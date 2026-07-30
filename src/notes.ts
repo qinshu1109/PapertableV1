@@ -319,6 +319,116 @@ export function freezeProjectScope(db: DatabaseSync, projectId: string): RunCont
   };
 }
 
+export function inheritDefaultLibrary(
+  store: DataStore,
+  projectId: string,
+): { path: string; documents: number; chunks: number } | null {
+  requireProject(store.db, projectId);
+  if (store.db.prepare(
+    "SELECT 1 FROM pt_project_libraries WHERE project_id = ?",
+  ).get(projectId)) return null;
+  const source = store.db.prepare(`
+    SELECT project_id, root_path
+    FROM pt_project_libraries
+    WHERE project_id <> ? AND indexed_at IS NOT NULL AND document_count > 0
+    ORDER BY indexed_at DESC
+    LIMIT 1
+  `).get(projectId) as { project_id: string; root_path: string } | undefined;
+  if (!source) return null;
+
+  const documents = store.db.prepare(`
+    SELECT id, relative_path, actual_path, sha256, byte_size, mtime_ms
+    FROM pt_documents
+    WHERE project_id = ? AND source_kind = 'library'
+    ORDER BY relative_path
+  `).all(source.project_id) as Array<{
+    id: string;
+    relative_path: string;
+    actual_path: string;
+    sha256: string;
+    byte_size: number;
+    mtime_ms: number;
+  }>;
+  const chunksForDocument = store.db.prepare(`
+    SELECT ordinal, start_offset, end_offset, text
+    FROM pt_chunks
+    WHERE document_id = ?
+    ORDER BY ordinal
+  `);
+  const insertDocument = store.db.prepare(`
+    INSERT INTO pt_documents(
+      id, project_id, source_kind, relative_path, actual_path, sha256,
+      byte_size, mtime_ms, created_at
+    ) VALUES(?, ?, 'library', ?, ?, ?, ?, ?, ?)
+  `);
+  const insertChunk = store.db.prepare(`
+    INSERT INTO pt_chunks(
+      id, document_id, project_id, source_kind, relative_path,
+      ordinal, start_offset, end_offset, text
+    ) VALUES(?, ?, ?, 'library', ?, ?, ?, ?, ?)
+  `);
+  const insertFts = store.db.prepare(
+    "INSERT INTO pt_chunks_fts(chunk_id, project_id, text) VALUES(?, ?, ?)",
+  );
+  const indexedAt = nowIso();
+  let chunkCount = 0;
+  store.db.exec("BEGIN IMMEDIATE");
+  try {
+    for (const document of documents) {
+      const documentId = randomUUID();
+      insertDocument.run(
+        documentId,
+        projectId,
+        document.relative_path,
+        document.actual_path,
+        document.sha256,
+        document.byte_size,
+        document.mtime_ms,
+        indexedAt,
+      );
+      const chunks = chunksForDocument.all(document.id) as Array<{
+        ordinal: number;
+        start_offset: number;
+        end_offset: number;
+        text: string;
+      }>;
+      for (const chunk of chunks) {
+        const chunkId = stableChunkId(
+          projectId,
+          "library",
+          document.sha256,
+          document.relative_path,
+          chunk.ordinal,
+          chunk.start_offset,
+          chunk.end_offset,
+        );
+        insertChunk.run(
+          chunkId,
+          documentId,
+          projectId,
+          document.relative_path,
+          chunk.ordinal,
+          chunk.start_offset,
+          chunk.end_offset,
+          chunk.text,
+        );
+        insertFts.run(chunkId, projectId, chunk.text);
+        chunkCount += 1;
+      }
+    }
+    store.db.prepare(`
+      INSERT INTO pt_project_libraries(
+        project_id, root_path, indexed_at, document_count, chunk_count
+      ) VALUES(?, ?, ?, ?, ?)
+    `).run(projectId, source.root_path, indexedAt, documents.length, chunkCount);
+    store.db.exec("COMMIT");
+    return { path: source.root_path, documents: documents.length, chunks: chunkCount };
+  } catch (error) {
+    store.db.exec("ROLLBACK");
+    throw error;
+  }
+}
+
 export const searchNotes: AgentHarnessTool<RunContext, typeof searchSchema, SearchDetails> = {
   name: "search_notes",
   label: "search notes",

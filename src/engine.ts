@@ -40,6 +40,7 @@ import {
 } from "./data.ts";
 import {
   freezeProjectScope,
+  inheritDefaultLibrary,
   readNotes,
   searchNotes,
   type RunContext,
@@ -340,6 +341,7 @@ export class PapertableEngine {
       "SELECT id FROM pt_runs WHERE card_id = ? AND status = 'running' LIMIT 1",
     ).get(cardId) as { id: string } | undefined;
     if (active) throw httpError(409, "这张卡片已经在回答");
+    inheritDefaultLibrary(this.store, card.project_id);
     const session = await openSessionById(this.sessions, card.session_id, card.project_id);
     let previousLeaf: string | null;
     try {

@@ -108,8 +108,13 @@ try {
   await bindLibrary(store, project.id, libraryDir);
   await reindexLibrary(store, project.id);
   const secondProject = createProject(store, "same-library") as { id: string };
-  await bindLibrary(store, secondProject.id, libraryDir);
-  await reindexLibrary(store, secondProject.id);
+  assert.equal(
+    (store.db.prepare(
+      "SELECT root_path FROM pt_project_libraries WHERE project_id = ?",
+    ).get(secondProject.id) as { root_path: string }).root_path,
+    libraryDir,
+    "新项目必须自动继承最近一次成功索引的长期资料库",
+  );
   assert.equal(
     Number((store.db.prepare(`
       SELECT COUNT(DISTINCT project_id) AS count FROM pt_chunks

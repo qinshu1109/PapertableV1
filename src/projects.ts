@@ -9,7 +9,7 @@ import {
   type DataStore,
   type ProjectRow,
 } from "./data.ts";
-import { listProjectMaterials } from "./notes.ts";
+import { inheritDefaultLibrary, listProjectMaterials } from "./notes.ts";
 import { publicCard } from "./engine.ts";
 
 export function createProject(store: DataStore, nameInput: string): Record<string, unknown> {
@@ -21,7 +21,8 @@ export function createProject(store: DataStore, nameInput: string): Record<strin
   store.db.prepare(
     "INSERT INTO pt_projects(id, name, created_at, updated_at) VALUES(?, ?, ?, ?)",
   ).run(id, name, now, now);
-  return { id, name, createdAt: now, updatedAt: now };
+  const inheritedLibrary = inheritDefaultLibrary(store, id);
+  return { id, name, createdAt: now, updatedAt: now, inheritedLibrary };
 }
 
 export function listProjects(db: DatabaseSync): Array<Record<string, unknown>> {

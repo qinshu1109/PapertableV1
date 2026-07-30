@@ -258,7 +258,7 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
           </p>
         )}
         <div className="fmt-name" style={{ marginBottom: 8 }}>
-          只读资料库（当前项目）
+          长期资料库（新项目默认继承）
         </div>
         <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
           <input
@@ -280,8 +280,8 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
         </div>
         <p className="note-line" style={{ marginBottom: 16 }}>
           {library
-            ? `已绑定：${library.path} · ${library.documents} 个文档 / ${library.chunks} 个片段${library.indexedAt ? '' : '（尚未索引，请重建索引）'}`
-            : '未绑定：回答将因无证据而拒答（sources-only）。绑定后模型只能检索、引用该库。'}
+            ? `已绑定并作为新项目默认库：${library.path} · ${library.documents} 个文档 / ${library.chunks} 个片段${library.indexedAt ? '' : '（尚未索引，请重建索引）'}`
+            : '尚无默认资料库：回答将因无证据而拒答（sources-only）。首次绑定并索引后，新项目会自动继承；临时材料不会跨项目。'}
         </p>
       </div>
     </Shell>
