@@ -63,6 +63,7 @@ export interface ServerRun {
   error: string | null;
   created_at: string;
   citations: Array<Record<string, unknown>>;
+  activity: RunEvent[];
 }
 
 export interface CardDetail extends ServerCard {
@@ -86,6 +87,13 @@ export interface RunEvent {
   [key: string]: unknown;
 }
 
+export interface ProviderSettings {
+  protocol: 'anthropic-messages';
+  baseUrl: string;
+  model: string;
+  hasApiKey: boolean;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
     headers: { 'content-type': 'application/json' },
@@ -99,7 +107,24 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  status: () => request<{ ready: boolean; modelConfigured: boolean; memory: { available: boolean } }>('/api/status'),
+  status: () =>
+    request<{
+      ready: boolean;
+      modelConfigured: boolean;
+      protocol: 'anthropic-messages';
+      memory: { available: boolean };
+    }>('/api/status'),
+  providerSettings: () => request<ProviderSettings>('/api/settings/provider'),
+  saveProviderSettings: (settings: {
+    protocol: 'anthropic-messages';
+    baseUrl: string;
+    model: string;
+    apiKey?: string;
+  }) =>
+    request<ProviderSettings>('/api/settings/provider', {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+    }),
 
   listProjects: () => request<{ projects: ServerProject[] }>('/api/projects'),
   createProject: (name: string) =>

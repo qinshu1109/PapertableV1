@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Check, FileJson, FileText, FolderTree, Package, Upload, X } from 'lucide-react';
+import { api, type ProviderSettings } from '../lib/api';
 import { useStore } from '../store';
 
 const IMPORT_FORMATS = [
@@ -147,22 +148,115 @@ export function ExportDialog({ onClose, onDone }: { onClose: () => void; onDone:
 }
 
 export function SettingsDialog({ onClose }: { onClose: () => void }) {
-  const [motion, setMotion] = useState(true);
-  const [density, setDensity] = useState('comfortable');
   const { library, bindLibrary, reindexLibrary } = useStore();
   const [libPath, setLibPath] = useState(library?.path ?? '');
+  const [provider, setProvider] = useState<ProviderSettings | null>(null);
+  const [baseUrl, setBaseUrl] = useState('');
+  const [model, setModel] = useState('');
+  const [apiKey, setApiKey] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let alive = true;
+    void api.providerSettings()
+      .then((settings) => {
+        if (!alive) return;
+        setProvider(settings);
+        setBaseUrl(settings.baseUrl);
+        setModel(settings.model);
+      })
+      .catch((loadError: unknown) => {
+        if (alive) setError(loadError instanceof Error ? loadError.message : String(loadError));
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const save = async () => {
+    setSaving(true);
+    setError('');
+    try {
+      await api.saveProviderSettings({
+        protocol: 'anthropic-messages',
+        baseUrl: baseUrl.trim(),
+        model: model.trim(),
+        apiKey: apiKey.trim() || undefined,
+      });
+      onClose();
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : String(saveError));
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <Shell
       title="设置"
       icon={<Check size={16} color="var(--ink-2)" />}
       onClose={onClose}
       footer={
-        <button className="btn primary" onClick={onClose}>
-          完成
-        </button>
+        <>
+          <button className="btn" onClick={onClose}>
+            取消
+          </button>
+          <button
+            className="btn primary"
+            disabled={saving || !provider || !baseUrl.trim() || !model.trim()}
+            onClick={() => void save()}
+          >
+            {saving ? '保存中…' : '保存设置'}
+          </button>
+        </>
       }
     >
       <div style={{ fontSize: 12.5, color: 'var(--ink-2)', lineHeight: 1.8 }}>
+        <div className="fmt-name" style={{ marginBottom: 8 }}>
+          云端模型
+        </div>
+        <label className="settings-field">
+          <span>协议</span>
+          <input className="tombstone-input" value="Anthropic Messages（原生）" disabled />
+        </label>
+        <label className="settings-field">
+          <span>Base URL</span>
+          <input
+            className="tombstone-input"
+            placeholder="https://api.anthropic.com 或兼容网关地址"
+            value={baseUrl}
+            onChange={(event) => setBaseUrl(event.target.value)}
+          />
+        </label>
+        <label className="settings-field">
+          <span>模型 ID</span>
+          <input
+            className="tombstone-input"
+            placeholder="例如 claude-opus-5"
+            value={model}
+            onChange={(event) => setModel(event.target.value)}
+          />
+        </label>
+        <label className="settings-field">
+          <span>密钥</span>
+          <input
+            className="tombstone-input"
+            type="password"
+            autoComplete="off"
+            placeholder={provider?.hasApiKey ? '已保存；留空保持不变' : '输入 API 密钥'}
+            value={apiKey}
+            onChange={(event) => setApiKey(event.target.value)}
+          />
+        </label>
+        <p className="note-line" style={{ marginBottom: 16 }}>
+          密钥只保存在本机后端配置文件中，页面不会读取明文。只使用 Anthropic Messages 原生协议，不回退到 OpenAI 协议。
+        </p>
+        {error && (
+          <p className="note-line settings-error" role="alert">
+            {error}
+          </p>
+        )}
         <div className="fmt-name" style={{ marginBottom: 8 }}>
           只读资料库（当前项目）
         </div>
@@ -188,32 +282,6 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
           {library
             ? `已绑定：${library.path} · ${library.documents} 个文档 / ${library.chunks} 个片段${library.indexedAt ? '' : '（尚未索引，请重建索引）'}`
             : '未绑定：回答将因无证据而拒答（sources-only）。绑定后模型只能检索、引用该库。'}
-        </p>
-        <div className="fmt-name" style={{ marginBottom: 8 }}>
-          阅读
-        </div>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-          {[
-            { id: 'comfortable', label: '舒适行高 1.78' },
-            { id: 'compact', label: '紧凑行高 1.62' },
-          ].map((o) => (
-            <button
-              key={o.id}
-              className={`chip-btn${density === o.id ? ' on' : ''}`}
-              onClick={() => setDensity(o.id)}
-            >
-              {o.label}
-            </button>
-          ))}
-        </div>
-        <div className="fmt-name" style={{ marginBottom: 8 }}>
-          动效
-        </div>
-        <button className={`chip-btn${motion ? ' on' : ''}`} onClick={() => setMotion((v) => !v)}>
-          卡片切换动画 {motion ? '开启' : '关闭'}
-        </button>
-        <p className="note-line">
-          原型只保留与阅读体验直接相关的两项设置。系统开启「减弱动态效果」时会自动降级全部动画。
         </p>
       </div>
     </Shell>

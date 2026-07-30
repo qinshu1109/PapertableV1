@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { AssistantMessage } from "@earendil-works/pi-ai";
@@ -21,6 +21,11 @@ import {
 import { buildBranchContext } from "./engine.ts";
 import { stageIdentity } from "./memos.ts";
 import {
+  loadProviderSettings,
+  providerSettingsPath,
+  saveProviderSettings,
+} from "./provider-settings.ts";
+import {
   activeConversation,
   closeSession,
   createSessionRepo,
@@ -28,6 +33,7 @@ import {
   sessionCwd,
   withSanitizedStorage,
 } from "./sessions.ts";
+import { reduceToolActivity } from "../frontend/src/lib/run-activity.ts";
 
 const directory = await mkdtemp(join(tmpdir(), "papertable-selfcheck-"));
 try {
@@ -38,6 +44,66 @@ try {
   await writeFile(join(libraryDir, "hidden.txt"), "HiddenBetaOnly must never be readable before search.");
 
   const store = openDataStore(dataDir);
+  const toolActivity = [
+    { id: 1, event: "tool_start", tool: "search_notes", toolCallId: "tool-1", queryLength: 6 },
+    { id: 2, event: "tool_update", tool: "search_notes", toolCallId: "tool-1", hitCount: 8 },
+    { id: 3, event: "tool_end", tool: "search_notes", toolCallId: "tool-1", hitCount: 8, isError: false },
+  ].reduce(reduceToolActivity, []);
+  assert.deepEqual(
+    toolActivity,
+    [{
+      id: "tool-1",
+      tool: "search_notes",
+      status: "done",
+      queryLength: 6,
+      hitCount: 8,
+    }],
+    "工具进度必须按 toolCallId 合并为一条实时记录",
+  );
+  const originalProviderEnv = {
+    baseUrl: process.env.PAPERTABLE_BASE_URL,
+    apiKey: process.env.PAPERTABLE_API_KEY,
+    model: process.env.PAPERTABLE_MODEL,
+  };
+  try {
+    const publicSettings = saveProviderSettings(dataDir, {
+      protocol: "anthropic-messages",
+      baseUrl: "https://example.test/v1/",
+      apiKey: "selfcheck-secret",
+      model: "claude-selfcheck",
+    });
+    assert.deepEqual(publicSettings, {
+      protocol: "anthropic-messages",
+      baseUrl: "https://example.test/v1",
+      model: "claude-selfcheck",
+      hasApiKey: true,
+    });
+    assert.equal("apiKey" in publicSettings, false, "设置接口绝不能回传密钥");
+    assert.equal(
+      (await stat(providerSettingsPath(dataDir))).mode & 0o777,
+      0o600,
+      "模型配置文件权限必须是 0600",
+    );
+    delete process.env.PAPERTABLE_BASE_URL;
+    delete process.env.PAPERTABLE_API_KEY;
+    delete process.env.PAPERTABLE_MODEL;
+    assert.equal(loadProviderSettings(dataDir).model, "claude-selfcheck");
+    assert.equal(process.env.PAPERTABLE_API_KEY, "selfcheck-secret");
+    assert.throws(
+      () => saveProviderSettings(dataDir, {
+        protocol: "openai-completions",
+        baseUrl: "https://example.test",
+        apiKey: "wrong-protocol",
+        model: "wrong-model",
+      }),
+      /只支持 Anthropic Messages/,
+      "后端必须拒绝 OpenAI 协议",
+    );
+  } finally {
+    restoreEnv("PAPERTABLE_BASE_URL", originalProviderEnv.baseUrl);
+    restoreEnv("PAPERTABLE_API_KEY", originalProviderEnv.apiKey);
+    restoreEnv("PAPERTABLE_MODEL", originalProviderEnv.model);
+  }
   const project = createProject(store, "selfcheck") as { id: string };
   await bindLibrary(store, project.id, libraryDir);
   await reindexLibrary(store, project.id);
@@ -251,4 +317,9 @@ try {
   process.stdout.write("selfcheck: ok\n");
 } finally {
   await rm(directory, { recursive: true, force: true });
+}
+
+function restoreEnv(name: string, value: string | undefined): void {
+  if (value === undefined) delete process.env[name];
+  else process.env[name] = value;
 }

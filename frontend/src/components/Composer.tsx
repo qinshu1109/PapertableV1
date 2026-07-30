@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowUp,
   Check,
-  ChevronDown,
   Cpu,
   Layers,
   Paperclip,
@@ -14,12 +13,6 @@ import {
 import { useStore } from '../store';
 import { EDGE_META } from '../types';
 import { incomingEdge } from '../lib/graph';
-
-const MODELS = [
-  { id: 'local-a', name: '本地 · 长文推理', note: '适合长篇解释与推导' },
-  { id: 'local-b', name: '本地 · 快速问答', note: '响应快，适合追问' },
-  { id: 'func', name: '功能模型', note: '生成标题与概念标注' },
-];
 
 export function Composer({ onLocate }: { onLocate: (cardId: string, turnId?: string) => void }) {
   const {
@@ -35,8 +28,6 @@ export function Composer({ onLocate }: { onLocate: (cardId: string, turnId?: str
     showToast,
   } = useStore();
   const [text, setText] = useState('');
-  const [model, setModel] = useState(MODELS[0]);
-  const [modelOpen, setModelOpen] = useState(false);
   const [ctxOpen, setCtxOpen] = useState(false);
   const ta = useRef<HTMLTextAreaElement>(null);
 
@@ -57,7 +48,7 @@ export function Composer({ onLocate }: { onLocate: (cardId: string, turnId?: str
     return sourceCard.turns.filter((t) => t.role === 'ai').findIndex((t) => t.id === inEdge.sourceTurnId) + 1;
   }, [inEdge, sourceCard]);
 
-  /** 模拟上下文体积：粗略按字符估算 */
+  /** 仅向用户展示粗略体积，不冒充 provider 的真实 token 计数。 */
   const size = useMemo(() => {
     let n = card?.turns.reduce((s, t) => s + t.content.length, 0) ?? 0;
     n += references.reduce((s, r) => s + r.excerpt.length, 0);
@@ -70,7 +61,6 @@ export function Composer({ onLocate }: { onLocate: (cardId: string, turnId?: str
   }, [card, references, inEdge, sourceCard]);
 
   const tokens = Math.round(size / 1.6);
-  const pct = Math.min(100, Math.round((tokens / 8000) * 100));
 
   const submit = () => {
     if (!text.trim() || streamingTurnId) return;
@@ -206,49 +196,17 @@ export function Composer({ onLocate }: { onLocate: (cardId: string, turnId?: str
               </div>
 
               <div className="ctx-foot">
-                <span>
-                  约 {tokens.toLocaleString()} tokens · 预算 8,000
-                </span>
-                <span className="meter" aria-label={`上下文占用 ${pct}%`}>
-                  <i style={{ width: `${Math.max(4, pct)}%` }} />
-                </span>
+                <span>约 {tokens.toLocaleString()} tokens（按字符粗略估算）</span>
               </div>
             </div>
           </>
         )}
 
         <div className="composer-box">
-          <div style={{ position: 'relative', flexShrink: 0 }}>
-            <button className="chip-btn" onClick={() => setModelOpen((v) => !v)} title="选择模型">
-              <Cpu size={13} />
-              {model.name}
-              <ChevronDown size={12} />
-            </button>
-            {modelOpen && (
-              <>
-                <div style={{ position: 'fixed', inset: 0, zIndex: 55 }} onClick={() => setModelOpen(false)} />
-                <div className="menu" style={{ bottom: 38, left: 0, minWidth: 208 }}>
-                  {MODELS.map((m) => (
-                    <button
-                      key={m.id}
-                      className="menu-item"
-                      onClick={() => {
-                        setModel(m);
-                        setModelOpen(false);
-                      }}
-                    >
-                      {m.id === model.id ? <Check size={14} color="var(--accent)" /> : <span style={{ width: 14 }} />}
-                      <span>
-                        <span style={{ display: 'block', color: 'var(--ink)' }}>{m.name}</span>
-                        <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>{m.note}</span>
-                      </span>
-                    </button>
-                  ))}
-                  <div className="menu-note">原型内为本地 mock，不会发起任何网络请求</div>
-                </div>
-              </>
-            )}
-          </div>
+          <span className="chip-btn" title="模型 ID、URL 与密钥在设置中配置">
+            <Cpu size={13} />
+            云端 · Anthropic Messages
+          </span>
 
           <button
             className={`chip-btn${ctxOpen ? ' on' : ''}`}

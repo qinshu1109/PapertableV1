@@ -241,6 +241,13 @@ export class PapertableEngine {
     await active.harness?.abort();
   }
 
+  resetProvider(): void {
+    if (this.#active.size > 0) {
+      throw httpError(409, "有回答正在生成，结束后再修改模型配置");
+    }
+    this.#provider = undefined;
+  }
+
   async shutdown(): Promise<void> {
     const activeRuns = [...this.#active.values()];
     for (const active of activeRuns) {
@@ -505,6 +512,7 @@ export class PapertableEngine {
     if (event.type === "tool_execution_start") {
       const args = asRecord(event.args);
       this.emit(runId, "tool_start", {
+        toolCallId: event.toolCallId,
         tool: event.toolName,
         queryLength: typeof args.query === "string" ? args.query.length : undefined,
         requestedChunks: Array.isArray(args.chunkIds) ? args.chunkIds.length : undefined,
@@ -515,6 +523,7 @@ export class PapertableEngine {
       const partial = asRecord(event.partialResult);
       const details = asRecord(partial.details);
       this.emit(runId, "tool_update", {
+        toolCallId: event.toolCallId,
         tool: event.toolName,
         hitCount: numberField(details, "hitCount"),
         readCount: numberField(details, "readCount"),
@@ -525,6 +534,7 @@ export class PapertableEngine {
       const result = asRecord(event.result);
       const details = asRecord(result.details);
       this.emit(runId, "tool_end", {
+        toolCallId: event.toolCallId,
         tool: event.toolName,
         isError: event.isError,
         hitCount: numberField(details, "hitCount"),
@@ -543,10 +553,10 @@ export class PapertableEngine {
     const model = makeModel();
     const models = createModels();
     models.setProvider(createProvider({
-      id: "cozai",
-      name: "CozAI",
+      id: "papertable-cloud",
+      name: "Papertable cloud model",
       baseUrl: model.baseUrl,
-      auth: { apiKey: envApiKeyAuth("CozAI API key", ["PAPERTABLE_API_KEY"]) },
+      auth: { apiKey: envApiKeyAuth("Anthropic Messages API key", ["PAPERTABLE_API_KEY"]) },
       models: [model],
       api: anthropicMessagesApi(),
     }));
@@ -734,9 +744,9 @@ export function buildSystemPrompt(card: CardRow): string {
 function makeModel(): Model<"anthropic-messages"> {
   return {
     id: requiredEnv("PAPERTABLE_MODEL"),
-    name: "CozAI model",
+    name: "Papertable cloud model",
     api: "anthropic-messages",
-    provider: "cozai",
+    provider: "papertable-cloud",
     baseUrl: requiredEnv("PAPERTABLE_BASE_URL").replace(/\/v1\/?$/, ""),
     headers: { "user-agent": "Papertable/0.2" },
     reasoning: false,

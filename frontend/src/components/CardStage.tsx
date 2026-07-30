@@ -718,8 +718,12 @@ function TurnBlock({
       {streaming && turn.content.length === 0 && (
         <div className="thinking">
           <span className="dot-pulse" />
-          正在生成回答…
+          {turn.phase === 'tools' ? '正在检索和读取资料…' : '正在规划下一步…'}
         </div>
+      )}
+
+      {(turn.activity?.length ?? 0) > 0 && (
+        <ToolActivityPanel turn={turn} streaming={streaming} />
       )}
 
       <div className="md" data-turn-ai={turn.id}>
@@ -730,6 +734,44 @@ function TurnBlock({
       <RunFooter turn={turn} streaming={streaming} />
     </div>
   );
+}
+
+function ToolActivityPanel({ turn, streaming }: { turn: Turn; streaming: boolean }) {
+  const activity = turn.activity ?? [];
+  const running = activity.find((item) => item.status === 'running');
+  const summary = streaming
+    ? turn.phase === 'answering'
+      ? `正文正在流式生成 · 已完成 ${activity.length} 次工具调用`
+      : running?.tool === 'read_notes'
+        ? '正在读取证据片段'
+        : running
+          ? '正在检索项目资料'
+          : `正在分析下一步 · 已完成 ${activity.length} 次工具调用`
+    : `工具调用记录 · ${activity.length} 次`;
+  return (
+    <details className="tool-activity" open={streaming}>
+      <summary aria-live="polite">{summary}</summary>
+      <div className="tool-activity-list">
+        {activity.map((item) => (
+          <div className={`tool-activity-row ${item.status}`} key={item.id}>
+            <span className="tool-status" aria-hidden="true" />
+            <span>{item.tool === 'read_notes' ? '读取证据' : item.tool === 'search_notes' ? '检索资料' : item.tool}</span>
+            <small>{toolActivityDetail(item)}</small>
+          </div>
+        ))}
+      </div>
+    </details>
+  );
+}
+
+function toolActivityDetail(item: NonNullable<Turn['activity']>[number]): string {
+  const parts: string[] = [];
+  if (item.queryLength !== undefined) parts.push(`查询 ${item.queryLength} 字`);
+  if (item.requestedChunks !== undefined) parts.push(`请求 ${item.requestedChunks} 个片段`);
+  if (item.hitCount !== undefined) parts.push(`命中 ${item.hitCount} 条`);
+  if (item.readCount !== undefined) parts.push(`实读 ${item.readCount} 个`);
+  parts.push(item.status === 'running' ? '进行中' : item.status === 'error' ? '失败' : '完成');
+  return parts.join(' · ');
 }
 
 /** 引用芯片 + 终局态 + 采纳（金子） */

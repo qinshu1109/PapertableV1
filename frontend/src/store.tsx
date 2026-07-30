@@ -35,6 +35,7 @@ import type {
   Turn,
   Verdict,
 } from './types';
+import { reduceToolActivity, type ToolActivity } from './lib/run-activity';
 
 let seq = 100;
 const uid = (p: string) => `${p}-${++seq}`;
@@ -69,6 +70,9 @@ interface LiveRun {
   turnId: string;
   content: string;
   citations: Citation[];
+  activity: ToolActivity[];
+  phase: 'planning' | 'tools' | 'answering';
+  turnCount: number;
 }
 
 interface Overlay {
@@ -266,11 +270,38 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     (runId: string, cardId: string) => {
       stopSubscription();
       const turnId = `live-${runId}`;
-      setLive({ runId, cardId, turnId, content: '', citations: [] });
+      setLive({
+        runId,
+        cardId,
+        turnId,
+        content: '',
+        citations: [],
+        activity: [],
+        phase: 'planning',
+        turnCount: 0,
+      });
       const close = subscribeRun(runId, (event: RunEvent) => {
+        if (event.event === 'turn_start') {
+          setLive((prev) =>
+            prev && prev.runId === runId
+              ? { ...prev, phase: 'planning', turnCount: prev.turnCount + 1 }
+              : prev,
+          );
+          return;
+        }
+        if (['tool_start', 'tool_update', 'tool_end'].includes(event.event)) {
+          setLive((prev) =>
+            prev && prev.runId === runId
+              ? { ...prev, phase: 'tools', activity: reduceToolActivity(prev.activity, event) }
+              : prev,
+          );
+          return;
+        }
         if (event.event === 'answer_sentence') {
           const answer = String(event.answer || '');
-          setLive((prev) => (prev && prev.runId === runId ? { ...prev, content: answer } : prev));
+          setLive((prev) =>
+            prev && prev.runId === runId ? { ...prev, phase: 'answering', content: answer } : prev,
+          );
           return;
         }
         if (event.event === 'citation_resolved') {
@@ -361,6 +392,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             createdAt: Date.now(),
             streaming: true,
             citations: live.citations,
+            activity: live.activity,
+            phase: live.phase,
+            turnCount: live.turnCount,
           },
         ];
       }
@@ -828,39 +862,40 @@ function detailToTurns(detail: CardDetail): Turn[] {
     content: message.text,
     createdAt: 0,
   }));
+  const completedAiTurns = turns.filter((turn) => turn.role === 'ai');
+  let completedIndex = 0;
   for (const run of detail.runs) {
     if (run.status !== 'ended') continue;
-    if (run.answer) {
-      // 从后往前找到内容一致的 AI 轮，attach run 元数据
-      for (let i = turns.length - 1; i >= 0; i -= 1) {
-        const turn = turns[i];
-        if (turn.role === 'ai' && turn.content === run.answer && !turn.runId) {
-          turn.runId = run.id;
-          turn.status = run.result ?? undefined;
-          turn.reason = run.reason ?? undefined;
-          turn.citations = run.citations as Citation[];
-          break;
-        }
+    if (run.result === 'completed') {
+      const turn = completedAiTurns[completedIndex++];
+      if (turn) {
+        turn.runId = run.id;
+        turn.status = run.result;
+        turn.reason = run.reason ?? undefined;
+        turn.citations = run.citations as Citation[];
+        turn.activity = (run.activity ?? []).reduce(reduceToolActivity, []);
       }
-    } else {
-      // 失败/拒答等没有正文的 run：补一条状态轮（问题 + 终局态）
-      turns.push({
-        id: `runq-${run.id}`,
-        role: 'user',
-        content: run.question,
-        createdAt: 0,
-      });
-      turns.push({
-        id: `run-${run.id}`,
-        role: 'ai',
-        content: '',
-        createdAt: 0,
-        runId: run.id,
-        status: run.result ?? 'failed',
-        reason: run.reason ?? undefined,
-        error: run.error ?? undefined,
-      });
+      continue;
     }
+    // 非完成运行已从 Pi 历史回滚，产品层单独展示其安全 partial 与真实终态。
+    turns.push({
+      id: `runq-${run.id}`,
+      role: 'user',
+      content: run.question,
+      createdAt: 0,
+    });
+    turns.push({
+      id: `run-${run.id}`,
+      role: 'ai',
+      content: run.answer ?? '',
+      createdAt: 0,
+      runId: run.id,
+      status: run.result ?? 'failed',
+      reason: run.reason ?? undefined,
+      error: run.error ?? undefined,
+      citations: run.citations as Citation[],
+      activity: (run.activity ?? []).reduce(reduceToolActivity, []),
+    });
   }
   return turns;
 }

@@ -852,6 +852,49 @@ textarea {
   color: var(--ink-3);
   padding: 4px 0;
 }
+.tool-activity {
+  margin: 6px 0 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--raised) 82%, transparent);
+  overflow: hidden;
+}
+.tool-activity summary {
+  cursor: pointer;
+  padding: 7px 10px;
+  color: var(--ink-2);
+  font-size: 12px;
+}
+.tool-activity-list {
+  border-top: 1px solid var(--line-soft);
+  padding: 4px 10px 7px;
+}
+.tool-activity-row {
+  display: grid;
+  grid-template-columns: 7px auto 1fr;
+  align-items: center;
+  gap: 7px;
+  min-height: 25px;
+  color: var(--ink-2);
+  font-size: 12px;
+}
+.tool-activity-row small {
+  color: var(--ink-3);
+  text-align: right;
+}
+.tool-status {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+.tool-activity-row.running .tool-status {
+  background: var(--accent);
+  animation: pulse 1.1s var(--e-soft) infinite;
+}
+.tool-activity-row.error .tool-status {
+  background: var(--danger, #a33);
+}
 .dot-pulse {
   width: 6px;
   height: 6px;
@@ -1818,13 +1861,27 @@ textarea {
   padding: 7px 9px;
 }
 
+.settings-field {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 9px;
+}
+.settings-field .tombstone-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+.settings-error {
+  color: var(--danger, #a33);
+  margin-bottom: 14px;
+}
+
 .ledger-drawer {
   position: fixed;
   top: 0;
   right: 0;
   bottom: 0;
   width: min(400px, 92vw);
-  z-index: 80;
+  z-index: 101;
   background: var(--card);
   border-left: 1px solid var(--line);
   box-shadow: -12px 0 40px rgba(40, 30, 20, 0.16);

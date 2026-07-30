@@ -22,6 +22,11 @@ import {
   supersedeVerdict,
 } from "./verdicts.ts";
 import { PromotionService } from "./promotion.ts";
+import {
+  loadProviderSettings,
+  publicProviderSettings,
+  saveProviderSettings,
+} from "./provider-settings.ts";
 import { createSessionRepo } from "./sessions.ts";
 
 const HOST = "127.0.0.1";
@@ -32,6 +37,7 @@ export type PapertableApp = Awaited<ReturnType<typeof createApp>>;
 
 export async function createApp(dataDir?: string) {
   const store = openDataStore(dataDir);
+  loadProviderSettings(store.dataDir);
   ensureVerdictTables(store.db);
   const sessions = createSessionRepo(store);
   const engine = new PapertableEngine(store, sessions);
@@ -104,16 +110,27 @@ async function route(
   const url = new URL(request.url || "/", `http://${HOST}:${PORT}`);
   const path = url.pathname;
 
+  if (path === "/api/settings/provider" && method === "GET") {
+    json(response, 200, publicProviderSettings());
+    return;
+  }
+  if (path === "/api/settings/provider" && method === "PUT") {
+    const body = await readJson(request);
+    services.engine.resetProvider();
+    json(response, 200, saveProviderSettings(services.store.dataDir, body));
+    return;
+  }
   if (method === "GET" && path === "/api/status") {
+    const provider = publicProviderSettings();
     json(response, 200, {
       ready: true,
       node: process.version,
       modelConfigured: Boolean(
-        process.env.PAPERTABLE_BASE_URL
-        && process.env.PAPERTABLE_API_KEY
-        && process.env.PAPERTABLE_MODEL
+        provider.baseUrl
+        && provider.hasApiKey
+        && provider.model
       ),
-      protocol: "anthropic-messages",
+      protocol: provider.protocol,
       memory: services.memoryStatus,
     });
     return;
@@ -305,6 +322,7 @@ function openSse(
     connection: "keep-alive",
     "x-accel-buffering": "no",
   });
+  response.socket?.setNoDelay(true);
   response.flushHeaders();
   for (const event of engine.events(runId, after)) writeSse(response, event);
   if (run.status === "ended") {

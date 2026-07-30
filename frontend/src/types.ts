@@ -2,6 +2,7 @@
  * 最小数据模型。
  * 三种卡片关系统一用 CardEdge 表达，UI 不硬编码关系语义。
  */
+import type { ToolActivity } from './lib/run-activity';
 
 export type EdgeType = 'child' | 'divergent' | 'branch';
 
@@ -31,6 +32,9 @@ export interface Turn {
   createdAt: number;
   /** 生成中的临时状态 */
   streaming?: boolean;
+  phase?: 'planning' | 'tools' | 'answering';
+  turnCount?: number;
+  activity?: ToolActivity[];
   favorite?: boolean;
   /** 服务端会话条目 id（选区/改道锚点用） */
   entryId?: string;
