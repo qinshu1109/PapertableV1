@@ -32,7 +32,7 @@ export class AnswerSentenceGate {
   #raw = "";
   #answer = "";
   #started = false;
-  #emittedKeys = new Set<string>();
+  #emittedCount = 0;
   #pendingStructure: SafePiece[] = [];
   #citations = new Map<string, PublicCitation>();
   #protocolViolation = false;
@@ -101,12 +101,10 @@ export class AnswerSentenceGate {
     this.#citationViolation ||= parsed.citationViolation;
     this.#uncitedClaimCount = parsed.uncitedClaimCount;
     this.#invalidCitationCount = parsed.invalidCitationCount;
-    for (const piece of parsed.pieces) {
-      const pieceKey = piece.substantive
-        ? `claim:${normalizedClaim(piece.text)}`
-        : `structure:${piece.text}`;
-      if (this.#emittedKeys.has(pieceKey)) continue;
-      this.#emittedKeys.add(pieceKey);
+    // 按下标推进：论据去重已在 safePieces 内完成（seenClaims），
+    // 这里不能再按文本内容去重——否则重复的空行与相同标题会被误删，段落结构就没了。
+    for (let index = this.#emittedCount; index < parsed.pieces.length; index += 1) {
+      const piece = parsed.pieces[index];
       if (!this.#hasSubstantiveEvidence && !piece.substantive) {
         this.#pendingStructure.push(piece);
         continue;
@@ -118,6 +116,7 @@ export class AnswerSentenceGate {
       }
       this.#release(piece);
     }
+    this.#emittedCount = parsed.pieces.length;
   }
 
   #release(piece: SafePiece): void {
@@ -204,6 +203,13 @@ function safePieces(
     const candidate = remaining.slice(0, end);
     remaining = remaining.slice(end);
     if (!candidate) break;
+    // 空白/换行片段：原样保留。它们是 Markdown 的段落与标题边界，
+    // 一旦丢掉，标题和列表会被焊在正文中间，整篇回答塌成一大块。
+    if (!candidate.trim()) {
+      pieces.push({ text: candidate, citations: [], substantive: false });
+      if (boundary < 0) break;
+      continue;
+    }
     const cleaned = validateCitations(candidate, context);
     invalidCitationCount += cleaned.invalidCitationCount;
     if (cleaned.invalidCitationCount > 0 && cleaned.citations.length === 0) {

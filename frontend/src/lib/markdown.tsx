@@ -16,10 +16,17 @@ function inline(
   blockText: string,
 ): React.ReactNode[] {
   const out: React.ReactNode[] = [];
-  const tokens = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+  const tokens = text.split(/(\*\*[^*]+\*\*|`[^`]+`|§\d+)/g);
   tokens.forEach((tok, i) => {
     if (!tok) return;
-    if (tok.startsWith('**') && tok.endsWith('**')) {
+    if (/^§\d+$/.test(tok)) {
+      // 引用角标：以上标形式跟在句尾，不抢正文注意力
+      out.push(
+        <sup className="md-cite" key={`${key}-s${i}`} title="本句的来源编号，对应底部引用">
+          {tok.slice(1)}
+        </sup>,
+      );
+    } else if (tok.startsWith('**') && tok.endsWith('**')) {
       out.push(
         <strong key={`${key}-b${i}`}>
           {withConcepts(tok.slice(2, -2), `${key}-b${i}`, concepts, onConcept, blockText)}
@@ -69,8 +76,22 @@ function withConcepts(
   );
 }
 
+/**
+ * 结构兜底：存量回答在后端曾丢失换行，导致标题与列表被焊在正文中间。
+ * 这里把行内的标题/列表重新拆回独立行，让旧卡片也能正常排版。
+ */
+function normalizeStructure(raw: string): string {
+  return raw
+    .replace(/([^\n])\s*(#{1,6}\s+)/g, '$1\n\n$2')
+    .replace(/([。！？.!?；;])\s*-\s(?=\S)/g, '$1\n- ')
+    .replace(/([。！？!?])\s*(\d{1,2}\.\s)(?=\S)/g, '$1\n$2')
+    // 容忍模型漏写空格的列表项：行首 "-要点" → "- 要点"
+    .replace(/^(\s*)-(?=[^\s\-])/gmu, '$1- ')
+    .replace(/\n{3,}/g, '\n\n');
+}
+
 export function Markdown({ content, concepts = [], onConcept }: Props) {
-  const lines = content.split('\n');
+  const lines = normalizeStructure(content).split('\n');
   const blocks: React.ReactNode[] = [];
   let i = 0;
   let k = 0;
@@ -78,7 +99,8 @@ export function Markdown({ content, concepts = [], onConcept }: Props) {
   while (i < lines.length) {
     const line = lines[i];
 
-    if (!line.trim()) {
+    if (!line.trim() || /^#{1,6}$/.test(line.trim())) {
+      // 空行、以及模型偶发输出的孤立 #（没有标题内容）都跳过
       i++;
       continue;
     }

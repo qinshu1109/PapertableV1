@@ -51,7 +51,7 @@
   /* 尺寸 */
   --sidebar-w: 232px;
   --sidebar-rail: 56px;
-  --graph-w: 214px;
+  --graph-w: 248px;
   --peek: 21px;
   --stack-top: 66px;
 
@@ -2024,3 +2024,33 @@ textarea {
 }
 .activity-toggle:hover { color: var(--ink); }
 .dot-pulse.small { transform: scale(0.7); }
+
+
+/* 引用角标：跟在句尾，不抢正文注意力 */
+.md-cite {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  line-height: 1;
+  color: var(--ctx, #4a6b57);
+  background: var(--ctx-soft, rgba(74, 107, 87, 0.1));
+  border-radius: 4px;
+  padding: 1px 3px;
+  margin-left: 2px;
+  vertical-align: super;
+  cursor: default;
+  user-select: none;
+}
+/* 引用芯片改紧凑网格，避免长 chunk id 铺满整行 */
+.cite-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 5px 8px;
+}
+.cite-chip { max-width: 100%; }
+/* 关系图：当前节点标题 */
+.gnode-label {
+  font-size: 10.5px;
+  fill: var(--ink-2);
+  pointer-events: none;
+  user-select: none;
+}

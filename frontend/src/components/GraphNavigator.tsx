@@ -10,12 +10,32 @@ const COLORS: Record<string, string> = {
   branch: '#6f7893',
 };
 
+/**
+ * 边形状：同列直接直线；分岔时走"垂直 → 小圆角 → 水平 → 小圆角 → 垂直"。
+ * 比全长三次贝塞尔干净，不会在窄面板里拖出蒙形 S 弯。
+ */
+function elbowPath(ax: number, ay: number, bx: number, by: number): string {
+  if (Math.abs(bx - ax) < 0.5) return `M ${ax} ${ay} L ${bx} ${by}`;
+  const r = Math.min(10, Math.abs(bx - ax) / 2, Math.abs(by - ay) / 2.2);
+  const midY = ay + (by - ay) / 2;
+  const dir = bx > ax ? 1 : -1;
+  return [
+    `M ${ax} ${ay}`,
+    `L ${ax} ${midY - r}`,
+    `Q ${ax} ${midY} ${ax + dir * r} ${midY}`,
+    `L ${bx - dir * r} ${midY}`,
+    `Q ${bx} ${midY} ${bx} ${midY + r}`,
+    `L ${bx} ${by}`,
+  ].join(' ');
+}
+
 export function GraphNavigator() {
   const { cards, edges, currentCardId, setCurrentCard, collapsed, toggleCollapse } = useStore();
   const wrapRef = useRef<HTMLDivElement>(null);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [hover, setHover] = useState<{ id: string; x: number; y: number } | null>(null);
+  const [centerX, setCenterX] = useState(107);
   const drag = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
 
   const { nodes, height, hidden } = useMemo(
@@ -23,9 +43,29 @@ export function GraphNavigator() {
     [cards, edges, collapsed],
   );
   const path = useMemo(() => pathToRoot(edges, currentCardId), [edges, currentCardId]);
+  // 语义布局（深挖向下/发散向右/改道向左）的 x 不以 0 为中心，这里按内容包围盒居中
+  const { contentMidX, contentWidth } = useMemo(() => {
+    const xs = [...nodes.values()].filter((n) => !hidden.has(n.id)).map((n) => n.x);
+    if (!xs.length) return { contentMidX: 0, contentWidth: 0 };
+    const min = Math.min(...xs);
+    const max = Math.max(...xs);
+    return { contentMidX: (min + max) / 2, contentWidth: max - min };
+  }, [nodes, hidden]);
+
+  // 自动缩放：内容比面板宽时缩到装得下（留出节点半径与标题的余量）
+  const [autoFit, setAutoFit] = useState(true);
+  useEffect(() => {
+    if (!autoFit) return;
+    const box = wrapRef.current?.getBoundingClientRect();
+    if (!box) return;
+    const usable = box.width - 76;
+    const next = contentWidth > usable ? Math.max(0.45, usable / contentWidth) : 1;
+    setZoom((z) => (Math.abs(z - next) < 0.02 ? z : next));
+  }, [contentWidth, autoFit]);
   const pathSet = useMemo(() => new Set(path), [path]);
 
   const recenter = () => {
+    setAutoFit(true);
     const n = nodes.get(currentCardId);
     const box = wrapRef.current?.getBoundingClientRect();
     if (!n || !box) return;
@@ -47,7 +87,17 @@ export function GraphNavigator() {
 
   useEffect(() => {
     const box = wrapRef.current?.getBoundingClientRect();
-    if (box) setPan({ x: 0, y: Math.max(46, (box.height - height) / 2) });
+    if (box) {
+      setCenterX(box.width / 2);
+      setPan({ x: 0, y: Math.max(46, (box.height - height) / 2) });
+    }
+    // 面板宽度变化（折叠侧边条 / 缩放窗口）时重新居中
+    const observer = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width;
+      if (width) setCenterX(width / 2);
+    });
+    if (wrapRef.current) observer.observe(wrapRef.current);
+    return () => observer.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -77,10 +127,10 @@ export function GraphNavigator() {
       <div className="graph-head">
         <span className="graph-title">关系图</span>
         <div style={{ display: 'flex', gap: 1 }}>
-          <button className="icon-btn" onClick={() => setZoom((z) => Math.max(0.6, z - 0.15))} title="缩小">
+          <button className="icon-btn" onClick={() => { setAutoFit(false); setZoom((z) => Math.max(0.4, z - 0.15)); }} title="缩小">
             <Minus size={14} />
           </button>
-          <button className="icon-btn" onClick={() => setZoom((z) => Math.min(1.6, z + 0.15))} title="放大">
+          <button className="icon-btn" onClick={() => { setAutoFit(false); setZoom((z) => Math.min(1.6, z + 0.15)); }} title="放大">
             <Plus size={14} />
           </button>
           <button className="icon-btn" onClick={recenter} title="回到当前节点">
@@ -101,18 +151,17 @@ export function GraphNavigator() {
         }}
       >
         <svg width="100%" height="100%" style={{ display: 'block' }}>
-          <g transform={`translate(${107 + pan.x * zoom} ${pan.y * zoom}) scale(${zoom})`}>
+          <g transform={`translate(${centerX - contentMidX * zoom + pan.x * zoom} ${pan.y * zoom}) scale(${zoom})`}>
             {edges
               .filter((e) => nodes.has(e.sourceCardId) && nodes.has(e.targetCardId) && !hidden.has(e.targetCardId))
               .map((e) => {
                 const a = nodes.get(e.sourceCardId)!;
                 const b = nodes.get(e.targetCardId)!;
                 const onPath = pathSet.has(e.sourceCardId) && pathSet.has(e.targetCardId);
-                const mid = (a.y + b.y) / 2;
                 return (
                   <path
                     key={e.id}
-                    d={`M ${a.x} ${a.y} C ${a.x} ${mid}, ${b.x} ${mid}, ${b.x} ${b.y}`}
+                    d={elbowPath(a.x, a.y, b.x, b.y)}
                     fill="none"
                     stroke={COLORS[e.type]}
                     strokeWidth={onPath ? 1.9 : 1.2}
@@ -156,6 +205,11 @@ export function GraphNavigator() {
                     />
                     {card.unread && !isCur && (
                       <circle cx={n.x + 6.5} cy={n.y - 6.5} r={2.6} fill="var(--accent)" />
+                    )}
+                    {isCur && (
+                      <text className="gnode-label" x={n.x} y={n.y + 24} textAnchor="middle">
+                        {card.title.length > 12 ? `${card.title.slice(0, 11)}…` : card.title}
+                      </text>
                     )}
                     {kids && (
                       <g
