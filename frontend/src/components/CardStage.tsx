@@ -653,6 +653,7 @@ function TurnBlock({
   copied: boolean;
 }) {
   const [more, setMore] = useState(false);
+  const cited = useMemo(() => extractCitations(turn.content), [turn.content]);
 
   if (turn.role === 'user') {
     return (
@@ -715,6 +716,8 @@ function TurnBlock({
         </div>
       </div>
 
+      <ActivityStrip turn={turn} streaming={streaming} />
+
       {streaming && turn.content.length === 0 && (
         <div className="thinking">
           <span className="dot-pulse" />
@@ -722,60 +725,93 @@ function TurnBlock({
         </div>
       )}
 
-      {(turn.activity?.length ?? 0) > 0 && (
-        <ToolActivityPanel turn={turn} streaming={streaming} />
-      )}
-
       <div className="md" data-turn-ai={turn.id}>
-        <Markdown content={turn.content} concepts={card.concepts} onConcept={onConcept} />
+        <Markdown content={cited.text} concepts={card.concepts} onConcept={onConcept} />
         {streaming && turn.content.length > 0 && <span className="caret" />}
       </div>
 
-      <RunFooter turn={turn} streaming={streaming} />
+      <RunFooter turn={turn} streaming={streaming} citeOrder={cited.ids} />
     </div>
   );
 }
 
-function ToolActivityPanel({ turn, streaming }: { turn: Turn; streaming: boolean }) {
-  const activity = turn.activity ?? [];
-  const running = activity.find((item) => item.status === 'running');
-  const summary = streaming
-    ? turn.phase === 'answering'
-      ? `正文正在流式生成 · 已完成 ${activity.length} 次工具调用`
-      : running?.tool === 'read_notes'
-        ? '正在读取证据片段'
-        : running
-          ? '正在检索项目资料'
-          : `正在分析下一步 · 已完成 ${activity.length} 次工具调用`
-    : `工具调用记录 · ${activity.length} 次`;
-  return (
-    <details className="tool-activity" open={streaming}>
-      <summary aria-live="polite">{summary}</summary>
-      <div className="tool-activity-list">
-        {activity.map((item) => (
-          <div className={`tool-activity-row ${item.status}`} key={item.id}>
-            <span className="tool-status" aria-hidden="true" />
-            <span>{item.tool === 'read_notes' ? '读取证据' : item.tool === 'search_notes' ? '检索资料' : item.tool}</span>
-            <small>{toolActivityDetail(item)}</small>
-          </div>
+const TOOL_LABEL: Record<string, string> = {
+  search_notes: '检索笔记',
+  read_notes: '读取原文',
+};
+
+/** 工具调用进度：流式时实时展开，完成后折叠为可回看的过程条 */
+function ActivityStrip({ turn, streaming }: { turn: Turn; streaming: boolean }) {
+  const [open, setOpen] = useState(false);
+  const items = turn.activity ?? [];
+  if (items.length === 0) return null;
+
+  const line = (item: (typeof items)[number]) => {
+    const label = TOOL_LABEL[item.tool] ?? item.tool;
+    const detail =
+      item.tool === 'search_notes'
+        ? item.hitCount !== undefined
+          ? ` · 命中 ${item.hitCount} 条`
+          : ''
+        : item.readCount !== undefined || item.requestedChunks !== undefined
+          ? ` · 读取 ${item.readCount ?? item.requestedChunks} 段`
+          : '';
+    return `${label}${detail}`;
+  };
+
+  if (streaming) {
+    return (
+      <div className="activity-strip live">
+        {items.map((item) => (
+          <span key={item.id} className={`activity-item ${item.status}`}>
+            {item.status === 'running' ? <span className="dot-pulse small" /> : item.status === 'error' ? '⚠' : '✓'}
+            {line(item)}
+          </span>
         ))}
       </div>
-    </details>
+    );
+  }
+
+  return (
+    <div className="activity-strip">
+      <button className="activity-toggle" onClick={() => setOpen((v) => !v)}>
+        {open ? '收起过程' : `检索过程 · ${items.length} 步`}
+      </button>
+      {open &&
+        items.map((item) => (
+          <span key={item.id} className={`activity-item ${item.status}`}>
+            {item.status === 'error' ? '⚠' : '✓'}
+            {line(item)}
+          </span>
+        ))}
+    </div>
   );
 }
 
-function toolActivityDetail(item: NonNullable<Turn['activity']>[number]): string {
-  const parts: string[] = [];
-  if (item.queryLength !== undefined) parts.push(`查询 ${item.queryLength} 字`);
-  if (item.requestedChunks !== undefined) parts.push(`请求 ${item.requestedChunks} 个片段`);
-  if (item.hitCount !== undefined) parts.push(`命中 ${item.hitCount} 条`);
-  if (item.readCount !== undefined) parts.push(`实读 ${item.readCount} 个`);
-  parts.push(item.status === 'running' ? '进行中' : item.status === 'error' ? '失败' : '完成');
-  return parts.join(' · ');
+/** 把正文里的 [[source:chunkId]] 标记替换为行内角标，并返回出现顺序 */
+function extractCitations(content: string): { text: string; ids: string[] } {
+  const ids: string[] = [];
+  const text = content.replace(/\s*\[\[source:([^\]]+)\]\]/g, (_m, id: string) => {
+    let index = ids.indexOf(id);
+    if (index < 0) {
+      ids.push(id);
+      index = ids.length - 1;
+    }
+    return ` §${index + 1}`;
+  });
+  return { text, ids };
 }
 
 /** 引用芯片 + 终局态 + 采纳（金子） */
-function RunFooter({ turn, streaming }: { turn: Turn; streaming: boolean }) {
+function RunFooter({
+  turn,
+  streaming,
+  citeOrder = [],
+}: {
+  turn: Turn;
+  streaming: boolean;
+  citeOrder?: string[];
+}) {
   const { adoptRun, retryRun } = useStore();
   const [adopting, setAdopting] = useState(false);
   const [handle, setHandle] = useState('');
@@ -788,11 +824,14 @@ function RunFooter({ turn, streaming }: { turn: Turn; streaming: boolean }) {
     <div className="run-footer">
       {citations.length > 0 && (
         <div className="cite-row">
-          {citations.map((c, i) => (
-            <span key={`${c.chunkId ?? i}`} className="cite-chip" title={String(c.excerpt ?? '')}>
-              § {String(c.relativePath ?? c.chunkId ?? '来源')}
-            </span>
-          ))}
+          {citations.map((c, i) => {
+            const order = c.chunkId ? citeOrder.indexOf(String(c.chunkId)) : -1;
+            return (
+              <span key={`${c.chunkId ?? i}`} className="cite-chip" title={String(c.excerpt ?? '')}>
+                §{order >= 0 ? order + 1 : ''} {String(c.relativePath ?? c.chunkId ?? '来源')}
+              </span>
+            );
+          })}
         </div>
       )}
 

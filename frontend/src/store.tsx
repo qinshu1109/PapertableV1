@@ -853,7 +853,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
 /* ================= 纯函数 ================= */
 
-/** 把 cardDetail 映射为原型的轮次序列（messages 为骨架，runs 补终局态与引用） */
+/**
+ * 把 cardDetail 映射为原型的轮次序列。
+ * messages 只保留成功轮的正文（失败轮会被会话回滚），所以：
+ * 1) 先用 messages 建骨架（携带 entryId，包含改道继承的历史）；
+ * 2) 完成轮按正文匹配锚点 attach 引用/活动；
+ * 3) 失败轮按 run 时序插入到下一个完成轮锚点之前，保持时间线正确。
+ */
 function detailToTurns(detail: CardDetail): Turn[] {
   const turns: Turn[] = detail.messages.map((message) => ({
     id: message.entryId,
@@ -862,40 +868,57 @@ function detailToTurns(detail: CardDetail): Turn[] {
     content: message.text,
     createdAt: 0,
   }));
-  const completedAiTurns = turns.filter((turn) => turn.role === 'ai');
-  let completedIndex = 0;
-  for (const run of detail.runs) {
-    if (run.status !== 'ended') continue;
-    if (run.result === 'completed') {
-      const turn = completedAiTurns[completedIndex++];
-      if (turn) {
-        turn.runId = run.id;
-        turn.status = run.result;
-        turn.reason = run.reason ?? undefined;
-        turn.citations = run.citations as Citation[];
-        turn.activity = (run.activity ?? []).reduce(reduceToolActivity, []);
+  const ended = detail.runs.filter((run) => run.status === 'ended');
+
+  // 第一遍：为已进入 Pi 历史的完成轮找锚点（AI 轮索引）。
+  const anchors = new Map<string, number>();
+  let cursor = 0;
+  for (const run of ended) {
+    if (run.result !== 'completed' || !run.answer) continue;
+    for (let i = cursor; i < turns.length; i += 1) {
+      if (turns[i].role === 'ai' && turns[i].content === run.answer && !turns[i].runId) {
+        turns[i].runId = run.id;
+        turns[i].status = run.result ?? undefined;
+        turns[i].reason = run.reason ?? undefined;
+        turns[i].citations = run.citations as Citation[];
+        turns[i].activity = (run.activity ?? []).reduce(reduceToolActivity, []);
+        anchors.set(run.id, i);
+        cursor = i + 1;
+        break;
       }
-      continue;
     }
-    // 非完成运行已从 Pi 历史回滚，产品层单独展示其安全 partial 与真实终态。
-    turns.push({
-      id: `runq-${run.id}`,
-      role: 'user',
-      content: run.question,
-      createdAt: 0,
-    });
-    turns.push({
-      id: `run-${run.id}`,
-      role: 'ai',
-      content: run.answer ?? '',
-      createdAt: 0,
-      runId: run.id,
-      status: run.result ?? 'failed',
-      reason: run.reason ?? undefined,
-      error: run.error ?? undefined,
-      citations: run.citations as Citation[],
-      activity: (run.activity ?? []).reduce(reduceToolActivity, []),
-    });
+  }
+
+  // 第二遍：被 Pi 历史回滚的非完成轮，按 run 时序放回产品时间线。
+  for (let r = ended.length - 1; r >= 0; r -= 1) {
+    const run = ended[r];
+    if (run.result === 'completed') continue;
+    let insertAt = turns.length;
+    for (let n = r + 1; n < ended.length; n += 1) {
+      const anchor = anchors.get(ended[n].id);
+      if (anchor !== undefined) {
+        // 锚点是 AI 轮；其用户提问紧贴在前一位
+        insertAt = Math.max(0, anchor - 1);
+        break;
+      }
+    }
+    turns.splice(
+      insertAt,
+      0,
+      { id: `runq-${run.id}`, role: 'user', content: run.question, createdAt: 0 },
+      {
+        id: `run-${run.id}`,
+        role: 'ai',
+        content: run.answer ?? '',
+        createdAt: 0,
+        runId: run.id,
+        status: run.result ?? 'failed',
+        reason: run.reason ?? undefined,
+        error: run.error ?? undefined,
+        citations: run.citations as Citation[],
+        activity: (run.activity ?? []).reduce(reduceToolActivity, []),
+      },
+    );
   }
   return turns;
 }
