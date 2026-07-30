@@ -34,6 +34,8 @@ import {
   withSanitizedStorage,
 } from "./sessions.ts";
 import { reduceToolActivity } from "../frontend/src/lib/run-activity.ts";
+import { layoutGraph } from "../frontend/src/lib/graph.ts";
+import type { Card, CardEdge } from "../frontend/src/types.ts";
 
 const directory = await mkdtemp(join(tmpdir(), "papertable-selfcheck-"));
 try {
@@ -60,6 +62,19 @@ try {
     }],
     "工具进度必须按 toolCallId 合并为一条实时记录",
   );
+  const graphCards = ["root", "deep", "reroute", "diverge"].map((id) => ({
+    id,
+    trashed: false,
+  })) as Card[];
+  const graphEdges = [
+    { id: "e1", type: "child", sourceCardId: "root", targetCardId: "deep" },
+    { id: "e2", type: "branch", sourceCardId: "deep", targetCardId: "reroute" },
+    { id: "e3", type: "divergent", sourceCardId: "reroute", targetCardId: "diverge" },
+  ] as CardEdge[];
+  const graphNodes = layoutGraph(graphCards, graphEdges, new Set()).nodes;
+  assert.equal(graphNodes.get("deep")?.x, graphNodes.get("root")?.x, "深挖必须沿路径向下");
+  assert.ok(graphNodes.get("reroute")!.x < graphNodes.get("deep")!.x, "改道必须向左分岔");
+  assert.ok(graphNodes.get("diverge")!.x > graphNodes.get("reroute")!.x, "发散必须向右展开");
   const originalProviderEnv = {
     baseUrl: process.env.PAPERTABLE_BASE_URL,
     apiKey: process.env.PAPERTABLE_API_KEY,

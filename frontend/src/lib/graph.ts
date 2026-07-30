@@ -46,9 +46,14 @@ export function subtreeIds(edges: CardEdge[], cardId: string): string[] {
 
 const H_GAP = 54;
 const V_GAP = 66;
+const EDGE_X: Record<CardEdge['type'], number> = {
+  child: 0,
+  divergent: 1,
+  branch: -1,
+};
 
 /**
- * 简易分层树布局：深度决定 y，同层顺序决定 x。
+ * 简易语义树布局：深挖向下、发散向右、改道向左。
  * 折叠的子树不参与布局。
  */
 export function layoutGraph(
@@ -61,10 +66,27 @@ export function layoutGraph(
   const roots = alive.filter((c) => !incomingEdge(edges, c.id)).map((c) => c.id);
 
   const hidden = new Set<string>();
-  const order: { id: string; depth: number }[] = [];
+  const nodes = new Map<string, GraphNode>();
+  const occupied = new Map<number, Set<number>>();
 
-  const visit = (id: string, depth: number) => {
-    order.push({ id, depth });
+  const claimSlot = (depth: number, preferred: number, direction: number) => {
+    const used = occupied.get(depth) ?? new Set<number>();
+    occupied.set(depth, used);
+    let slot = preferred;
+    for (let distance = 1; used.has(slot); distance += 1) {
+      slot = direction < 0
+        ? preferred - distance
+        : direction > 0
+          ? preferred + distance
+          : preferred + (distance % 2 ? -Math.ceil(distance / 2) : distance / 2);
+    }
+    used.add(slot);
+    return slot;
+  };
+
+  const visit = (id: string, depth: number, preferredSlot: number, direction = 0) => {
+    const slot = claimSlot(depth, preferredSlot, direction);
+    nodes.set(id, { id, depth, x: slot * H_GAP, y: depth * V_GAP });
     if (collapsed.has(id)) {
       subtreeIds(edges, id)
         .slice(1)
@@ -73,30 +95,20 @@ export function layoutGraph(
     }
     outgoingEdges(edges, id)
       .filter((e) => aliveIds.has(e.targetCardId))
-      .forEach((e) => visit(e.targetCardId, depth + 1));
+      .forEach((e) => {
+        const childDirection = EDGE_X[e.type];
+        visit(e.targetCardId, depth + 1, slot + childDirection, childDirection);
+      });
   };
-  roots.forEach((r) => visit(r, 0));
+  roots.forEach((r, index) => visit(r, 0, index * 2));
 
-  // 每层内按访问顺序水平排布
-  const byDepth = new Map<number, string[]>();
-  order.forEach(({ id, depth }) => {
-    if (hidden.has(id)) return;
-    const arr = byDepth.get(depth) ?? [];
-    arr.push(id);
-    byDepth.set(depth, arr);
-  });
-
-  const nodes = new Map<string, GraphNode>();
-  let maxWidth = 0;
-  byDepth.forEach((ids, depth) => {
-    const rowWidth = (ids.length - 1) * H_GAP;
-    maxWidth = Math.max(maxWidth, rowWidth);
-    ids.forEach((id, i) => {
-      nodes.set(id, { id, depth, x: i * H_GAP - rowWidth / 2, y: depth * V_GAP });
-    });
-  });
-
-  const depths = [...byDepth.keys()];
-  const height = (Math.max(0, ...depths) + 1) * V_GAP;
-  return { nodes, width: maxWidth + H_GAP * 2, height, hidden };
+  const visible = [...nodes.values()].filter((node) => !hidden.has(node.id));
+  const xs = visible.map((node) => node.x);
+  const height = (Math.max(0, ...visible.map((node) => node.depth)) + 1) * V_GAP;
+  return {
+    nodes,
+    width: Math.max(H_GAP * 2, Math.max(0, ...xs) - Math.min(0, ...xs) + H_GAP * 2),
+    height,
+    hidden,
+  };
 }
