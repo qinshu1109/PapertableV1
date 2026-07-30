@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Papertable 最小业务闭环</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <h1>Papertable</h1>
+    <span id="server-status">正在连接…</span>
+    <button id="universe-button" type="button">知识宇宙</button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <h2>项目</h2>
+      <form id="project-form">
+        <input id="project-name" placeholder="新项目名称" maxlength="100" required>
+        <button>创建</button>
+      </form>
+      <div id="project-list"></div>
+    </aside>
+
+    <main id="empty-state">
+      <h2>先创建或打开一个项目</h2>
+      <p>项目是资料边界。根问题、追问、深挖、发散和改道都默认使用同一项目资料。</p>
+    </main>
+
+    <main id="workspace" hidden>
+      <section class="project-head">
+        <div>
+          <small>当前项目</small>
+          <h2 id="project-title"></h2>
+        </div>
+        <span id="memory-stage"></span>
+      </section>
+
+      <section class="sources">
+        <article class="source-channel library">
+          <h3>长期资料库（只读）</h3>
+          <p>绑定你已有的笔记目录。Papertable 只索引，不会修改目录里的文件；只有点“重新索引”才会读取变化。</p>
+          <form id="library-form">
+            <input id="library-path" placeholder="/绝对路径/到/笔记库" required>
+            <button>绑定路径</button>
+          </form>
+          <button id="reindex-library" type="button">重新索引</button>
+          <div id="library-status"></div>
+        </article>
+
+        <article class="source-channel materials">
+          <h3>这个项目补充的材料</h3>
+          <p>当长期笔记不够时，把本项目需要的文本拖进来。文件会复制进项目并长期保存，不会混回原笔记库。</p>
+          <label id="material-drop">
+            拖入或选择 .md / .markdown / .txt（单文件 ≤ 20 MiB）
+            <input id="material-input" type="file" accept=".md,.markdown,.txt" multiple hidden>
+          </label>
+          <div id="material-list"></div>
+        </article>
+      </section>
+
+      <section class="work">
+        <aside class="cards">
+          <h3>问题与分支</h3>
+          <div id="card-tree"></div>
+          <form id="root-question-form">
+            <textarea id="root-question" placeholder="提出一个新的根问题" required></textarea>
+            <button>新建根问题</button>
+          </form>
+        </aside>
+
+        <article class="conversation">
+          <div class="conversation-head">
+            <div>
+              <small>当前卡片</small>
+              <h3 id="card-title">尚未选择</h3>
+            </div>
+            <div class="branch-actions">
+              <button id="deep-button" type="button" disabled>深挖选区</button>
+              <button id="diverge-button" type="button" disabled>发散</button>
+              <button id="reroute-button" type="button" disabled>从旧问题改道</button>
+            </div>
+          </div>
+          <div id="selection-status">选中回答文字后可深挖或保留；点击旧问题可选择改道点。</div>
+          <div id="messages"></div>
+          <div id="live-run" hidden>
+            <div id="progress"></div>
+            <div class="activity">
+              <strong>实时工具记录</strong>
+              <ol id="activity-log"></ol>
+            </div>
+            <pre id="live-answer"></pre>
+            <button id="abort-button" type="button">停止生成</button>
+          </div>
+          <form id="followup-form" hidden>
+            <textarea id="followup-question" placeholder="继续追问这张卡片" required></textarea>
+            <button>追问</button>
+          </form>
+          <button id="promote-button" type="button" disabled>保留选区并预览</button>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="universe-dialog">
+    <form method="dialog"><button class="close">关闭</button></form>
+    <h2>MemOS 知识宇宙</h2>
+    <p id="universe-meta"></p>
+    <div id="universe-nodes"></div>
+  </dialog>
+
+  <dialog id="promotion-dialog">
+    <form method="dialog"><button class="close">关闭</button></form>
+    <h2>正式笔记发布预览</h2>
+    <p id="promotion-meta"></p>
+    <h3>将写入的 Markdown</h3>
+    <pre id="promotion-human"></pre>
+    <details><summary>精确差异</summary><pre id="promotion-diff"></pre></details>
+    <button id="publish-button" type="button">发布到 Obsidian</button>
+    <p id="publish-status"></p>
+  </dialog>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
