@@ -6,9 +6,9 @@
     "node": ">=24.0.0"
   },
   "scripts": {
-    "start": "node --experimental-strip-types src/main.ts",
-    "run": "node --experimental-strip-types src/main.ts",
-    "selfcheck": "node --experimental-strip-types src/selfcheck.ts"
+    "start": "node src/main.ts",
+    "run": "node src/main.ts",
+    "selfcheck": "node src/selfcheck.ts"
   },
   "dependencies": {
     "@earendil-works/pi-agent-core": "0.82.1",

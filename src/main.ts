@@ -1,6 +1,6 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { readFile } from "node:fs/promises";
-import { extname } from "node:path";
+import { extname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { openDataStore, httpError, requireCard, requireRun, type DataStore } from "./data.ts";
 import { PapertableEngine, type BranchRequest, type StoredRunEvent } from "./engine.ts";
@@ -13,6 +13,14 @@ import {
   reindexLibrary,
 } from "./notes.ts";
 import { createProject, listProjects, projectDetail } from "./projects.ts";
+import {
+  adoptRun,
+  confirmVerdict,
+  createTombstoneDraft,
+  ensureVerdictTables,
+  listVerdicts,
+  supersedeVerdict,
+} from "./verdicts.ts";
 import { PromotionService } from "./promotion.ts";
 import { createSessionRepo } from "./sessions.ts";
 
@@ -24,6 +32,7 @@ export type PapertableApp = Awaited<ReturnType<typeof createApp>>;
 
 export async function createApp(dataDir?: string) {
   const store = openDataStore(dataDir);
+  ensureVerdictTables(store.db);
   const sessions = createSessionRepo(store);
   const engine = new PapertableEngine(store, sessions);
   const recovered = await engine.recoverInterruptedRuns();
@@ -34,7 +43,7 @@ export async function createApp(dataDir?: string) {
 
   const server = createServer(async (request, response) => {
     try {
-      await route(request, response, { store, engine, memory, promotions, memoryStatus });
+      await route(request, response, { store, sessions, engine, memory, promotions, memoryStatus });
     } catch (error) {
       if (response.headersSent) {
         response.end();
@@ -79,6 +88,7 @@ export async function createApp(dataDir?: string) {
 
 type Services = {
   store: DataStore;
+  sessions: ReturnType<typeof createSessionRepo>;
   engine: PapertableEngine;
   memory: MemoryBridge;
   promotions: PromotionService;
@@ -190,7 +200,45 @@ async function route(
     const body = await readJson(request);
     const result = await services.engine.createBranch(cardId, body as unknown as BranchRequest);
     await services.memory.stageCard(cardId, "branch_created");
-    json(response, 202, result);
+    // 判决簿：改道即触发墓碑起草（proposed，等待用户确认；不阻塞失败）
+    let verdict: Record<string, unknown> | null = null;
+    if ((body as { kind?: string }).kind === "reroute") {
+      verdict = await createTombstoneDraft(services.store, services.sessions, result.cardId)
+        .catch(() => null);
+    }
+    json(response, 202, verdict ? { ...result, verdict } : result);
+    return;
+  }
+
+  match = path.match(/^\/api\/projects\/([^/]+)\/verdicts$/u);
+  if (match && method === "GET") {
+    json(response, 200, { verdicts: listVerdicts(services.store.db, decodeURIComponent(match[1])) });
+    return;
+  }
+  match = path.match(/^\/api\/verdicts\/([^/]+)\/confirm$/u);
+  if (match && method === "POST") {
+    const body = await readJson(request);
+    json(response, 200, confirmVerdict(
+      services.store,
+      decodeURIComponent(match[1]),
+      typeof body.text === "string" ? body.text : undefined,
+    ));
+    return;
+  }
+  match = path.match(/^\/api\/verdicts\/([^/]+)\/supersede$/u);
+  if (match && method === "POST") {
+    json(response, 200, supersedeVerdict(services.store, decodeURIComponent(match[1])));
+    return;
+  }
+  match = path.match(/^\/api\/runs\/([^/]+)\/adopt$/u);
+  if (match && method === "POST") {
+    const body = await readJson(request);
+    json(response, 201, adoptRun(
+      services.store,
+      decodeURIComponent(match[1]),
+      String(body.handle || ""),
+      typeof body.text === "string" ? body.text : undefined,
+    ));
     return;
   }
   match = path.match(/^\/api\/cards\/([^/]+)\/stage$/u);
@@ -284,20 +332,39 @@ function writeSse(response: ServerResponse, event: StoredRunEvent): void {
   response.write(`data: ${JSON.stringify(event)}\n\n`);
 }
 
+const STATIC_TYPES: Record<string, string> = {
+  ".html": "text/html; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".ico": "image/x-icon",
+  ".woff2": "font/woff2",
+  ".map": "application/json; charset=utf-8",
+};
+
 async function serveStatic(path: string, response: ServerResponse): Promise<void> {
   const requested = path === "/" ? "index.html" : path.replace(/^\/+/u, "");
-  if (requested.includes("..") || !["index.html", "app.js", "style.css"].includes(requested)) {
-    throw httpError(404, "页面不存在");
+  // 路径穿越防护：解析后必须仍在 STATIC_ROOT 内
+  const resolved = resolve(STATIC_ROOT, requested);
+  if (!resolved.startsWith(resolve(STATIC_ROOT))) throw httpError(404, "页面不存在");
+  let target = resolved;
+  let type = STATIC_TYPES[extname(resolved)];
+  let bytes: Buffer;
+  try {
+    if (!type) throw new Error("fallback");
+    bytes = await readFile(target);
+  } catch {
+    // SPA 回退：未知路径一律返回 index.html
+    target = resolve(STATIC_ROOT, "index.html");
+    type = STATIC_TYPES[".html"];
+    bytes = await readFile(target).catch(() => {
+      throw httpError(404, "页面不存在");
+    });
   }
-  const bytes = await readFile(`${STATIC_ROOT}${requested}`);
-  const type = extname(requested) === ".js"
-    ? "text/javascript; charset=utf-8"
-    : extname(requested) === ".css"
-      ? "text/css; charset=utf-8"
-      : "text/html; charset=utf-8";
   response.writeHead(200, {
     "content-type": type,
-    "cache-control": "no-store",
+    "cache-control": requested.startsWith("assets/") ? "public, max-age=31536000, immutable" : "no-store",
     "content-length": bytes.byteLength,
   });
   response.end(bytes);

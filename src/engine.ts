@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { verdictInjectionBlock } from "./verdicts.ts";
 import {
   createModels,
   createProvider,
@@ -426,7 +427,7 @@ export class PapertableEngine {
         session: safeSession,
         models: provider.models,
         model: provider.model,
-        systemPrompt: buildSystemPrompt(card),
+        systemPrompt: buildSystemPrompt(card) + verdictInjectionBlock(this.store.db, card.project_id),
         toolContext: context,
         tools: [searchNotes, readNotes],
         streamOptions: {
