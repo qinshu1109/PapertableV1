@@ -25,6 +25,7 @@ import {
   type ServerLibrary,
 } from './lib/api';
 import type {
+  ActivityItem,
   Card,
   CardEdge,
   Citation,
@@ -35,6 +36,11 @@ import type {
   Turn,
   Verdict,
 } from './types';
+
+const numberOr = (value: unknown, fallback?: number) => {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 ? n : fallback;
+};
 
 let seq = 100;
 const uid = (p: string) => `${p}-${++seq}`;
@@ -69,6 +75,8 @@ interface LiveRun {
   turnId: string;
   content: string;
   citations: Citation[];
+  activity: ActivityItem[];
+  phase: 'thinking' | 'searching' | 'reading' | 'answering';
 }
 
 interface Overlay {
@@ -266,11 +274,55 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     (runId: string, cardId: string) => {
       stopSubscription();
       const turnId = `live-${runId}`;
-      setLive({ runId, cardId, turnId, content: '', citations: [] });
+      setLive({ runId, cardId, turnId, content: '', citations: [], activity: [], phase: 'thinking' });
       const close = subscribeRun(runId, (event: RunEvent) => {
+        if (event.event === 'tool_start') {
+          const tool = String(event.tool || '');
+          setLive((prev) =>
+            prev && prev.runId === runId
+              ? {
+                  ...prev,
+                  phase: tool === 'read_notes' ? 'reading' : 'searching',
+                  activity: [
+                    ...prev.activity,
+                    {
+                      id: `${event.id}`,
+                      tool,
+                      state: 'running',
+                      queryLength: Number(event.queryLength) || undefined,
+                      requestedChunks: Number(event.requestedChunks) || undefined,
+                    },
+                  ],
+                }
+              : prev,
+          );
+          return;
+        }
+        if (event.event === 'tool_update' || event.event === 'tool_end') {
+          const done = event.event === 'tool_end';
+          setLive((prev) => {
+            if (!prev || prev.runId !== runId) return prev;
+            const activity = [...prev.activity];
+            for (let i = activity.length - 1; i >= 0; i -= 1) {
+              if (activity[i].tool === event.tool && (!done || activity[i].state === 'running')) {
+                activity[i] = {
+                  ...activity[i],
+                  state: done ? (event.isError ? 'error' : 'done') : activity[i].state,
+                  hitCount: numberOr(event.hitCount, activity[i].hitCount),
+                  readCount: numberOr(event.readCount, activity[i].readCount),
+                };
+                break;
+              }
+            }
+            return { ...prev, activity };
+          });
+          return;
+        }
         if (event.event === 'answer_sentence') {
           const answer = String(event.answer || '');
-          setLive((prev) => (prev && prev.runId === runId ? { ...prev, content: answer } : prev));
+          setLive((prev) =>
+            prev && prev.runId === runId ? { ...prev, content: answer, phase: 'answering' } : prev,
+          );
           return;
         }
         if (event.event === 'citation_resolved') {
@@ -361,6 +413,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             createdAt: Date.now(),
             streaming: true,
             citations: live.citations,
+            activity: live.activity,
+            phase: live.phase,
           },
         ];
       }
@@ -819,7 +873,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
 /* ================= 纯函数 ================= */
 
-/** 把 cardDetail 映射为原型的轮次序列（messages 为骨架，runs 补终局态与引用） */
+/**
+ * 把 cardDetail 映射为原型的轮次序列。
+ * messages 只保留成功轮的正文（失败轮会被会话回滚），所以：
+ * 1) 先用 messages 建骨架（携带 entryId，包含改道继承的历史）；
+ * 2) 完成轮按正文匹配锚点 attach 引用/活动；
+ * 3) 失败轮按 run 时序插入到下一个完成轮锚点之前，保持时间线正确。
+ */
 function detailToTurns(detail: CardDetail): Turn[] {
   const turns: Turn[] = detail.messages.map((message) => ({
     id: message.entryId,
@@ -828,29 +888,46 @@ function detailToTurns(detail: CardDetail): Turn[] {
     content: message.text,
     createdAt: 0,
   }));
-  for (const run of detail.runs) {
-    if (run.status !== 'ended') continue;
-    if (run.answer) {
-      // 从后往前找到内容一致的 AI 轮，attach run 元数据
-      for (let i = turns.length - 1; i >= 0; i -= 1) {
-        const turn = turns[i];
-        if (turn.role === 'ai' && turn.content === run.answer && !turn.runId) {
-          turn.runId = run.id;
-          turn.status = run.result ?? undefined;
-          turn.reason = run.reason ?? undefined;
-          turn.citations = run.citations as Citation[];
-          break;
-        }
+
+  const ended = detail.runs.filter((run) => run.status === 'ended');
+
+  // 第一遍：为完成轮找锚点（AI 轮索引）
+  const anchors = new Map<string, number>();
+  let cursor = 0;
+  for (const run of ended) {
+    if (!run.answer) continue;
+    for (let i = cursor; i < turns.length; i += 1) {
+      if (turns[i].role === 'ai' && turns[i].content === run.answer && !turns[i].runId) {
+        turns[i].runId = run.id;
+        turns[i].status = run.result ?? undefined;
+        turns[i].reason = run.reason ?? undefined;
+        turns[i].citations = run.citations as Citation[];
+        turns[i].activity = mapActivity(run.activity);
+        anchors.set(run.id, i);
+        cursor = i + 1;
+        break;
       }
-    } else {
-      // 失败/拒答等没有正文的 run：补一条状态轮（问题 + 终局态）
-      turns.push({
-        id: `runq-${run.id}`,
-        role: 'user',
-        content: run.question,
-        createdAt: 0,
-      });
-      turns.push({
+    }
+  }
+
+  // 第二遍：失败轮插到下一个完成轮的用户提问之前；没有后续完成轮则追到末尾
+  for (let r = ended.length - 1; r >= 0; r -= 1) {
+    const run = ended[r];
+    if (run.answer) continue;
+    let insertAt = turns.length;
+    for (let n = r + 1; n < ended.length; n += 1) {
+      const anchor = anchors.get(ended[n].id);
+      if (anchor !== undefined) {
+        // 锚点是 AI 轮；其用户提问紧贴在前一位
+        insertAt = Math.max(0, anchor - 1);
+        break;
+      }
+    }
+    turns.splice(
+      insertAt,
+      0,
+      { id: `runq-${run.id}`, role: 'user', content: run.question, createdAt: 0 },
+      {
         id: `run-${run.id}`,
         role: 'ai',
         content: '',
@@ -859,10 +936,43 @@ function detailToTurns(detail: CardDetail): Turn[] {
         status: run.result ?? 'failed',
         reason: run.reason ?? undefined,
         error: run.error ?? undefined,
-      });
-    }
+        activity: mapActivity(run.activity),
+      },
+    );
   }
   return turns;
+}
+
+/** 把存量 run 的 activity 事件列表映射为工具进度条目（tool_start/end 配对） */
+function mapActivity(events: Array<Record<string, unknown>> | undefined): ActivityItem[] {
+  if (!Array.isArray(events)) return [];
+  const items: ActivityItem[] = [];
+  for (const event of events) {
+    const kind = String(event.event || '');
+    const tool = String(event.tool || '');
+    if (kind === 'tool_start') {
+      items.push({
+        id: `${event.id ?? items.length}`,
+        tool,
+        state: 'running',
+        queryLength: numberOr(event.queryLength),
+        requestedChunks: numberOr(event.requestedChunks),
+      });
+    } else if (kind === 'tool_update' || kind === 'tool_end') {
+      for (let i = items.length - 1; i >= 0; i -= 1) {
+        if (items[i].tool === tool) {
+          items[i] = {
+            ...items[i],
+            state: kind === 'tool_end' ? (event.isError ? 'error' : 'done') : items[i].state,
+            hitCount: numberOr(event.hitCount, items[i].hitCount),
+            readCount: numberOr(event.readCount, items[i].readCount),
+          };
+          break;
+        }
+      }
+    }
+  }
+  return items;
 }
 
 /** 深挖选区：优先精确匹配偏移；失配时退化为整段回答 */

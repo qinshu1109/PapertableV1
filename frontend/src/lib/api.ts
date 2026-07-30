@@ -63,6 +63,7 @@ export interface ServerRun {
   error: string | null;
   created_at: string;
   citations: Array<Record<string, unknown>>;
+  activity: Array<Record<string, unknown>>;
 }
 
 export interface CardDetail extends ServerCard {

@@ -42,6 +42,21 @@ export interface Turn {
   error?: string;
   /** 受控引用（由宿主验证，前端只展示） */
   citations?: Citation[];
+  /** 本轮的工具调用过程（流式时实时更新，完成后可回看） */
+  activity?: ActivityItem[];
+  /** 流式中的阶段：thinking / searching / reading / answering */
+  phase?: string;
+}
+
+/** 工具调用进度（来自 tool_start/tool_update/tool_end 事件） */
+export interface ActivityItem {
+  id: string;
+  tool: string;
+  state: 'running' | 'done' | 'error';
+  hitCount?: number;
+  readCount?: number;
+  queryLength?: number;
+  requestedChunks?: number;
 }
 
 export interface Citation {

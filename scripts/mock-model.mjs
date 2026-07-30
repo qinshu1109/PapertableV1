@@ -11,8 +11,15 @@ const PORT = Number(process.env.MOCK_PORT || 9410);
 const LOG = process.env.MOCK_LOG || "/tmp/mock-model.log";
 
 function collectToolResults(messages) {
+  // 只统计最后一条用户提问之后的 tool_result（即本轮 agent loop 的进度）
+  let lastUserText = -1;
+  messages.forEach((message, index) => {
+    if (message.role !== "user") return;
+    const blocks = Array.isArray(message.content) ? message.content : [{ type: "text" }];
+    if (blocks.some((b) => b.type === "text" || typeof message.content === "string")) lastUserText = index;
+  });
   const results = [];
-  for (const message of messages) {
+  for (const message of messages.slice(lastUserText >= 0 ? lastUserText : 0)) {
     if (!Array.isArray(message.content)) continue;
     for (const block of message.content) {
       if (block.type === "tool_result") {
@@ -63,7 +70,8 @@ function jsonBlocks(decision) {
   return [{ type: "text", text: decision.text }];
 }
 
-function sse(response, decision) {
+async function sse(response, decision) {
+  response.on("error", () => undefined);
   response.writeHead(200, {
     "content-type": "text/event-stream; charset=utf-8",
     "cache-control": "no-cache",
@@ -100,7 +108,9 @@ function sse(response, decision) {
     });
     // 分片输出，模拟真实流式
     const text = decision.text;
+    const delay = Number(process.env.MOCK_DELAY || 0);
     for (let i = 0; i < text.length; i += 24) {
+      if (delay) await new Promise((r) => setTimeout(r, delay));
       send("content_block_delta", {
         type: "content_block_delta", index: 0,
         delta: { type: "text_delta", text: text.slice(i, i + 24) },
@@ -128,7 +138,7 @@ createServer(async (request, response) => {
   try { body = JSON.parse(raw); } catch { /* 忽略 */ }
   const decision = decide(body);
   if (body.stream) {
-    sse(response, decision);
+    await sse(response, decision).catch(() => undefined);
     return;
   }
   response.writeHead(200, { "content-type": "application/json" });
@@ -139,6 +149,8 @@ createServer(async (request, response) => {
     stop_sequence: null,
     usage: { input_tokens: 10, output_tokens: 80 },
   }));
+process.on("uncaughtException", (e) => appendFileSync(LOG, `\nUNCAUGHT: ${e?.stack || e}\n`));
+process.on("unhandledRejection", (e) => appendFileSync(LOG, `\nUNHANDLED: ${e}\n`));
 }).listen(PORT, "127.0.0.1", () => {
   console.log(`mock model on 127.0.0.1:${PORT}`);
 });
