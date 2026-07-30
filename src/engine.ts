@@ -21,6 +21,7 @@ import {
   interruptedTerminal,
   protocolErrorTerminal,
   providerErrorTerminal,
+  sanitizeAssistantMessage,
   startupErrorTerminal,
   type PublicCitation,
   type Terminal,
@@ -448,11 +449,17 @@ export class PapertableEngine {
         if (active.abortRequested) await harness.abort();
       }
       let firstProviderPayload = true;
+      let repairingCitations = false;
       harness.on("before_provider_payload", ({ payload }) => {
         if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
           throw new Error("Expected an Anthropic Messages provider payload");
         }
         const next = { ...(payload as Record<string, unknown>) };
+        if (repairingCitations) {
+          delete next.tools;
+          delete next.tool_choice;
+          return { payload: next };
+        }
         next.tool_choice = firstProviderPayload
           ? { type: "tool", name: "search_notes" }
           : { type: "auto" };
@@ -461,19 +468,47 @@ export class PapertableEngine {
       });
       harness.subscribe((event) => this.handleHarnessEvent(runId, event, gate!));
 
-      const assistant = await harness.prompt(question);
+      let assistant = await harness.prompt(question);
       gate.finish();
-      if (active?.abortRequested || assistant.stopReason === "aborted") {
-        terminal = abortedTerminal(gate.answer, gate.citations);
-      } else if (assistant.stopReason === "error") {
-        terminal = providerErrorTerminal(safeError(assistant.errorMessage), gate.answer, gate.citations);
-      } else if (gate.protocolViolation) {
-        terminal = protocolErrorTerminal(gate.answer, gate.citations);
-      } else {
-        terminal = gateAnswer(textBlocks(assistant), context);
-        if (terminal.result === "completed") {
-          terminal.answer = gate.answer || terminal.answer;
-          terminal.citations = gate.citations.length > 0 ? gate.citations : terminal.citations;
+      terminal = terminalFromAssistant(assistant, gate, context, Boolean(active?.abortRequested));
+      this.emit(runId, "citation_diagnostics", { attempt: 1, ...gate.citationDiagnostics });
+
+      if (
+        terminal.result === "failed"
+        && terminal.reason === "citation_error"
+        && context.readIds.size > 0
+        && !active?.abortRequested
+      ) {
+        const branch = await safeSession.getBranch();
+        const failedAssistant = branch.at(-1);
+        const repairBaseId = failedAssistant?.type === "message"
+          && failedAssistant.message.role === "assistant"
+          ? failedAssistant.parentId
+          : null;
+        if (repairBaseId) {
+          await safeSession.getStorage().setLeafId(repairBaseId);
+          gate = new AnswerSentenceGate(context, {
+            onSentence: (sentence, answer) => {
+              this.emit(runId, "answer_sentence", { sentence, answer });
+            },
+            onCitation: (citation) => {
+              this.emit(runId, "citation_resolved", citation);
+            },
+          });
+          repairingCitations = true;
+          this.emit(runId, "repair_applied", { kind: "citation_format", attempt: 2 });
+          try {
+            assistant = await harness.prompt(citationRepairPrompt(context));
+          } finally {
+            repairingCitations = false;
+          }
+          gate.finish();
+          terminal = terminalFromAssistant(assistant, gate, context, Boolean(active?.abortRequested));
+          this.emit(runId, "citation_diagnostics", { attempt: 2, ...gate.citationDiagnostics });
+          if (terminal.result === "completed") {
+            await session.getStorage().setLeafId(repairBaseId);
+            await session.appendMessage(sanitizeAssistantMessage(assistant, context));
+          }
         }
       }
     } catch (error) {
@@ -762,6 +797,40 @@ function textBlocks(message: AssistantMessage): string {
     .filter((block): block is { type: "text"; text: string } => block.type === "text")
     .map((block) => block.text)
     .join("");
+}
+
+function terminalFromAssistant(
+  assistant: AssistantMessage,
+  gate: AnswerSentenceGate,
+  context: RunContext,
+  abortRequested: boolean,
+): Terminal {
+  if (abortRequested || assistant.stopReason === "aborted") {
+    return abortedTerminal(gate.answer, gate.citations);
+  }
+  if (assistant.stopReason === "error") {
+    return providerErrorTerminal(safeError(assistant.errorMessage), gate.answer, gate.citations);
+  }
+  if (gate.protocolViolation) {
+    return protocolErrorTerminal(gate.answer, gate.citations);
+  }
+  const terminal = gateAnswer(textBlocks(assistant), context);
+  if (terminal.result === "completed") {
+    terminal.answer = gate.answer || terminal.answer;
+    terminal.citations = gate.citations.length > 0 ? gate.citations : terminal.citations;
+  }
+  return terminal;
+}
+
+function citationRepairPrompt(context: RunContext): string {
+  const tokens = [...context.readIds].map((id) => `[[source:${id}]]`).join("\n");
+  return [
+    "内部确定性修复：刚才的最终回答没有通过受控引用检查。",
+    "不要调用工具，不要解释错误。重新生成一份完整回答。",
+    "每个事实句末只能逐字复制下面列出的引用令牌；不要使用 knowledge_id、文件名或其他 ID 代替 chunkId：",
+    tokens,
+    `第一行必须是 ${ANSWER_SENTINEL}，其后只写给用户看的最终正文。`,
+  ].join("\n\n");
 }
 
 function requiredEnv(name: string): string {

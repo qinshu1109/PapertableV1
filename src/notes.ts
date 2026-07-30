@@ -379,6 +379,7 @@ export const readNotes: AgentHarnessTool<RunContext, typeof readSchema, ReadDeta
           const row = byId.get(id)!;
           return [
             `[${row.id}]`,
+            `Citation token (copy exactly): [[source:${row.id}]]`,
             `Channel: ${row.source_kind === "library" ? "long-term library" : "project material"}`,
             `Path: ${row.relative_path}`,
             `Anchor: ${row.start_offset}-${row.end_offset}`,
@@ -519,7 +520,13 @@ function searchChunks(context: RunContext, query: string): ChunkRow[] {
         WHERE f.pt_chunks_fts MATCH ?
           AND c.project_id = ?
           AND c.document_id IN (${documentPlaceholders})
-        ORDER BY bm25(pt_chunks_fts)
+        ORDER BY CASE
+          WHEN c.source_kind = 'project_material' THEN 0
+          WHEN c.relative_path LIKE '10_活跃知识/%' THEN 1
+          WHEN c.relative_path LIKE '80_AI暂存/%'
+            OR c.relative_path LIKE 'OH-Works/小琴助理-activity/%' THEN 3
+          ELSE 2
+        END, bm25(pt_chunks_fts)
         LIMIT 8
       `).all(ftsQuery, context.projectId, ...documentIds) as ChunkRow[]);
     } catch {
@@ -536,6 +543,13 @@ function searchChunks(context: RunContext, query: string): ChunkRow[] {
       WHERE c.project_id = ?
         AND c.document_id IN (${documentPlaceholders})
         AND (${where})
+      ORDER BY CASE
+        WHEN c.source_kind = 'project_material' THEN 0
+        WHEN c.relative_path LIKE '10_活跃知识/%' THEN 1
+        WHEN c.relative_path LIKE '80_AI暂存/%'
+          OR c.relative_path LIKE 'OH-Works/小琴助理-activity/%' THEN 3
+        ELSE 2
+      END
       LIMIT 8
     `).all(context.projectId, ...documentIds, ...fallbackTerms) as ChunkRow[]);
   }

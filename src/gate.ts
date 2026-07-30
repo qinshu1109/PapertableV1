@@ -33,10 +33,13 @@ export class AnswerSentenceGate {
   #answer = "";
   #started = false;
   #emittedKeys = new Set<string>();
+  #pendingStructure: SafePiece[] = [];
   #citations = new Map<string, PublicCitation>();
   #protocolViolation = false;
   #citationViolation = false;
   #hasSubstantiveEvidence = false;
+  #uncitedClaimCount = 0;
+  #invalidCitationCount = 0;
 
   constructor(
     context: RunContext,
@@ -84,26 +87,47 @@ export class AnswerSentenceGate {
     return this.#citationViolation;
   }
 
+  get citationDiagnostics(): { uncitedClaimCount: number; invalidCitationCount: number } {
+    return {
+      uncitedClaimCount: this.#uncitedClaimCount,
+      invalidCitationCount: this.#invalidCitationCount,
+    };
+  }
+
   #sync(flush: boolean): void {
     const parsed = safePieces(this.#raw, this.#context, flush);
     this.#started ||= parsed.started;
     this.#protocolViolation ||= parsed.protocolViolation;
     this.#citationViolation ||= parsed.citationViolation;
+    this.#uncitedClaimCount = parsed.uncitedClaimCount;
+    this.#invalidCitationCount = parsed.invalidCitationCount;
     for (const piece of parsed.pieces) {
       const pieceKey = piece.substantive
         ? `claim:${normalizedClaim(piece.text)}`
         : `structure:${piece.text}`;
       if (this.#emittedKeys.has(pieceKey)) continue;
       this.#emittedKeys.add(pieceKey);
-      for (const citation of piece.citations) {
-        if (this.#citations.has(citation.chunkId)) continue;
-        this.#citations.set(citation.chunkId, citation);
-        this.#onCitation(citation);
+      if (!this.#hasSubstantiveEvidence && !piece.substantive) {
+        this.#pendingStructure.push(piece);
+        continue;
       }
-      this.#hasSubstantiveEvidence ||= piece.substantive;
-      this.#answer += piece.text;
-      this.#onSentence(piece.text, this.#answer.trim());
+      if (piece.substantive && !this.#hasSubstantiveEvidence) {
+        this.#hasSubstantiveEvidence = true;
+        for (const pending of this.#pendingStructure) this.#release(pending);
+        this.#pendingStructure = [];
+      }
+      this.#release(piece);
     }
+  }
+
+  #release(piece: SafePiece): void {
+    for (const citation of piece.citations) {
+      if (this.#citations.has(citation.chunkId)) continue;
+      this.#citations.set(citation.chunkId, citation);
+      this.#onCitation(citation);
+    }
+    this.#answer += piece.text;
+    this.#onSentence(piece.text, this.#answer.trim());
   }
 }
 
@@ -151,6 +175,8 @@ function safePieces(
   pieces: SafePiece[];
   protocolViolation: boolean;
   citationViolation: boolean;
+  uncitedClaimCount: number;
+  invalidCitationCount: number;
 } {
   const afterSentinel = textAfterSentinel(rawAnswer);
   if (afterSentinel === undefined) {
@@ -159,6 +185,8 @@ function safePieces(
       pieces: [],
       protocolViolation: false,
       citationViolation: false,
+      uncitedClaimCount: 0,
+      invalidCitationCount: 0,
     };
   }
   const protocol = new ProtocolSanitizer();
@@ -167,6 +195,8 @@ function safePieces(
   const pieces: SafePiece[] = [];
   const seenClaims = new Set<string>();
   let citationViolation = false;
+  let uncitedClaimCount = 0;
+  let invalidCitationCount = 0;
   while (remaining) {
     const boundary = nextSentenceBoundary(remaining, flush);
     if (boundary < 0 && !flush) break;
@@ -175,13 +205,15 @@ function safePieces(
     remaining = remaining.slice(end);
     if (!candidate) break;
     const cleaned = validateCitations(candidate, context);
-    if (cleaned.hadInvalidCitation && cleaned.citations.length === 0) {
+    invalidCitationCount += cleaned.invalidCitationCount;
+    if (cleaned.invalidCitationCount > 0 && cleaned.citations.length === 0) {
       citationViolation = true;
       continue;
     }
     if (!cleaned.text.trim()) continue;
     if (cleaned.citations.length === 0 && !isStructuralText(cleaned.text)) {
       citationViolation = true;
+      uncitedClaimCount += 1;
       continue;
     }
     const substantive = cleaned.citations.length > 0 && isSubstantiveText(cleaned.text);
@@ -200,6 +232,8 @@ function safePieces(
     pieces,
     protocolViolation: protocol.violation,
     citationViolation,
+    uncitedClaimCount,
+    invalidCitationCount,
   };
 }
 
@@ -273,27 +307,27 @@ function textAfterSentinel(text: string): string | undefined {
 function validateCitations(text: string, context: RunContext): {
   text: string;
   citations: PublicCitation[];
-  hadInvalidCitation: boolean;
+  invalidCitationCount: number;
 } {
   const citations = new Map<string, PublicCitation>();
-  let hadInvalidCitation = false;
+  let invalidCitationCount = 0;
   const cleaned = text
     .replace(/\[\[source:([^\]]*)\]\]/g, (token, rawChunkId: string) => {
       const chunkId = rawChunkId.trim();
       if (!chunkId || /\s/u.test(chunkId)) {
-        hadInvalidCitation = true;
+        invalidCitationCount += 1;
         return "";
       }
       const full = getChunkCitation(context, chunkId);
       if (!full) {
-        hadInvalidCitation = true;
+        invalidCitationCount += 1;
         return "";
       }
       const { actualPath: _actualPath, ...citation } = full;
       citations.set(chunkId, citation);
       return token;
     });
-  return { text: cleaned, citations: [...citations.values()], hadInvalidCitation };
+  return { text: cleaned, citations: [...citations.values()], invalidCitationCount };
 }
 
 function nextSentenceBoundary(text: string, flush = false): number {

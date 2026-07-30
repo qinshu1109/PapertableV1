@@ -129,12 +129,19 @@ try {
   );
   const allowedId = (found.details as { readableIds: string[] }).readableIds[0];
   assert.ok(allowedId, "搜索返回的 ID 可以读取");
-  await readNotes.execute(
+  const read = await readNotes.execute(
     "check-read",
     { chunkIds: [allowedId] },
     undefined,
     undefined,
     context,
+  );
+  assert.ok(
+    read.content
+      .map((block) => block.type === "text" ? block.text : "")
+      .join("")
+      .includes(`Citation token (copy exactly): [[source:${allowedId}]]`),
+    "读取结果必须直接给模型可复制的受控引用令牌",
   );
 
   const hiddenId = (store.db.prepare(
@@ -183,7 +190,10 @@ try {
     onCitation: () => undefined,
   });
   const streamingRaw = `${ANSWER_SENTINEL}### 标题\n第一句事实 [[source:${allowedId}]]。第二句事实 [[source:${allowedId}]]。`;
-  for (let index = 0; index < streamingRaw.length; index += 7) {
+  const structuralPrefix = `${ANSWER_SENTINEL}### 标题\n`;
+  streamingGate.feed(structuralPrefix);
+  assert.equal(streamed.length, 0, "首个有效引用事实句出现前不能单独释放标题空壳");
+  for (let index = structuralPrefix.length; index < streamingRaw.length; index += 7) {
     streamingGate.feed(streamingRaw.slice(index, index + 7));
   }
   streamingGate.finish();
@@ -193,6 +203,19 @@ try {
     "流式句闸门必须与最终落库闸门产生同一安全正文",
   );
   assert.ok(streamed.length > 0, "流式闸门应在终态前释放完整句");
+  const diagnosticGate = new AnswerSentenceGate(context, {
+    onSentence: () => undefined,
+    onCitation: () => undefined,
+  });
+  diagnosticGate.feed(
+    `${ANSWER_SENTINEL}无引用事实。错误引用 [[source:${hiddenId}]]。`,
+  );
+  diagnosticGate.finish();
+  assert.deepEqual(
+    diagnosticGate.citationDiagnostics,
+    { uncitedClaimCount: 1, invalidCitationCount: 1 },
+    "引用失败必须留下不含正文和 ID 的安全计数",
+  );
   const duplicateRaw = `${ANSWER_SENTINEL}重复事实 [[source:${allowedId}]]。重复事实 [[source:${allowedId}]][[source:${allowedId}]]。`;
   assert.equal(
     gateAnswer(duplicateRaw, context).answer,
