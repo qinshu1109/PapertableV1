@@ -39,6 +39,11 @@ function decide(body) {
     : String(body.system || "");
   appendFileSync(LOG, `\n===== request ${new Date().toISOString()} =====\n${system}\n`);
 
+  if (system.includes("概念编辑器")) {
+    // 概念编辑器第二轮已被移除：概念词表随主回答一次产出，此分支不应再被触发
+    return { kind: "text", text: "unexpected concept editor call" };
+  }
+
   // 墓碑润色请求：无 tools、system 里带"墓碑"
   if (system.includes("墓碑")) {
     return { kind: "text", text: "用户否决了直接堆砌通用解释的方向，因为它偏离了验证判决簿闭环这个目标" };
@@ -59,7 +64,7 @@ function decide(body) {
   const cite = ids.length ? `[[source:${ids[ids.length - 1]}]]` : "";
   return {
     kind: "text",
-    text: `[[PAPERTABLE_ANSWER_START]]根据资料库中的说明，判决簿只持久化用户确认的金子与墓碑，其余探索痕迹默认蒸发${cite}。这一设计的目的是让干净上下文不再失忆${cite}。`,
+    text: `[[PAPERTABLE_ANSWER_START]]根据资料库中的说明，判决簿只持久化用户确认的金子与墓碑，其余探索痕迹默认蒸发${cite}。这一设计的目的是让干净上下文不再失忆${cite}。\n[[PAPERTABLE_CONCEPTS]]\n{"concepts":[{"term":"判决簿","question":"判决簿如何区分应保存的金子、墓碑和应蒸发的普通探索？"}]}`,
   };
 }
 
@@ -127,6 +132,9 @@ async function sse(response, decision) {
   response.end();
 }
 
+process.on("uncaughtException", (e) => appendFileSync(LOG, `\nUNCAUGHT: ${e?.stack || e}\n`));
+process.on("unhandledRejection", (e) => appendFileSync(LOG, `\nUNHANDLED: ${e}\n`));
+
 createServer(async (request, response) => {
   if (request.method !== "POST" || !request.url?.includes("/v1/messages")) {
     response.writeHead(404).end();
@@ -149,8 +157,6 @@ createServer(async (request, response) => {
     stop_sequence: null,
     usage: { input_tokens: 10, output_tokens: 80 },
   }));
-process.on("uncaughtException", (e) => appendFileSync(LOG, `\nUNCAUGHT: ${e?.stack || e}\n`));
-process.on("unhandledRejection", (e) => appendFileSync(LOG, `\nUNHANDLED: ${e}\n`));
 }).listen(PORT, "127.0.0.1", () => {
   console.log(`mock model on 127.0.0.1:${PORT}`);
 });

@@ -17,7 +17,7 @@
 | 边框 | 2 px 重描边 | 1 px 细边框，靠明度差分层 |
 | 阴影 | `-4px 8px 24px rgba(0,0,0,.30)` 硬阴影 | 宽扩散低透明度双层柔影 |
 | 卡片底色 | 与页面背景接近的灰米 | 卡片明显亮于背景，形成纸面浮起感 |
-| 关系入口 | 只有抽象图标 | 图标 + 中文短标签 + 空间方向 + 语义色三重编码 |
+| 关系入口 | 只有抽象图标 | 图标 + 中文短标签 + 语义色（TASK-022 起去掉方向文案，方向由关系图承担） |
 | 关系图 | 单色节点 | 三色语义连线，线型区分继承策略 |
 | 正文 | 16/24 聊天式 | 15/1.78 编辑式排版，标题带细分隔线 |
 | 用户消息 | 深色重阴影气泡 | 低对比暖气泡，不与正文抢注意力 |
@@ -67,7 +67,7 @@
 
 基础步长 4 px。常用：卡片内边距 18/22/30 px，正文最大宽度 720 px，段落间距 15 px，标题上间距 30 px（h2）/ 24 px（h3）。
 
-侧栏 232 px（折叠 56 px），关系图 214 px，卡片舞台最大宽度 880 px。
+侧栏 232 px（折叠 56 px），关系图 214 px，卡片舞台最大宽度 1207 px（TASK-022 起，对齐 Explore 实测卡宽）。
 
 ### 阴影
 
@@ -102,7 +102,7 @@
 
 ```text
 stage (padding 14/26)
-└── stack (max-width 880)
+└── stack (max-width 1207)
     ├── back-card  depth 3   translateY(-3×peek) scaleX(.904) rotate(-0.4°)  z 7
     ├── back-card  depth 2   translateY(-2×peek) scaleX(.936) rotate( 0.45°) z 8
     ├── back-card  depth 1   translateY(-1×peek) scaleX(.968) rotate(-0.4°)  z 9
@@ -194,6 +194,8 @@ type ConceptTerm = { text: string; start: number; end: number; reason?: string }
 ### 5.6 关系图布局
 
 `lib/graph.ts` 的 `layoutGraph()` 是固定分层布局（深度决定 y，同层顺序决定 x）。节点数量变多后可替换为 d3-hierarchy 或力导向，`GraphNavigator` 只依赖返回的 `Map<id, {x, y, depth}>`，不需要改动渲染代码。
+
+交互补充（TASK-022）：图栏支持左键拖拽平移（窗口级 pointer 监听，>4px 才算拖动；拖完当次 click 不触发展开/收起与跳卡）；SVG 最小画布 720×1150，小树下也可拖；手动滚动/拖拽 3 秒后平滑归位到当前节点。
 
 ### 5.7 导入导出
 

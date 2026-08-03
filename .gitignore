@@ -1,5 +1,7 @@
 node_modules/
 .memos/
+.reasonix/
+frontend/tsconfig.tsbuildinfo
 .DS_Store
 .env
 .env.*

@@ -11,6 +11,7 @@ import { useStore } from '../store';
 export function VerdictPanel() {
   const {
     verdicts,
+    verdictStatus,
     pendingTombstone,
     confirmTombstone,
     dismissTombstone,
@@ -29,13 +30,23 @@ export function VerdictPanel() {
   const gold = verdicts.filter((v) => v.kind === 'gold');
   const tombstones = verdicts.filter((v) => v.kind === 'tombstone');
   const confirmedCount = verdicts.filter((v) => v.status === 'confirmed').length;
+  const revise = (verdict: (typeof verdicts)[number]) => {
+    const text = window.prompt('写下替代后的新判决；旧版本会保留，不会删除。', verdict.text);
+    if (!text?.trim()) return;
+    supersedeVerdict(verdict.id, text.trim(), verdict.handle ?? undefined);
+  };
 
   return (
     <>
       {/* 打开判决簿的常驻入口 */}
-      <button className="ledger-fab" onClick={() => setLedgerOpen(true)} title="判决簿：金子与墓碑">
+      <button
+        className="ledger-fab"
+        onClick={() => setLedgerOpen(true)}
+        title={verdictStatus.available ? 'MemOS 可用' : 'MemOS 不可用，当前使用本机缓存'}
+      >
         <BookMarked size={14} />
         判决簿{confirmedCount > 0 ? ` · ${confirmedCount}` : ''}
+        {verdictStatus.pending > 0 ? ` · 待重试 ${verdictStatus.pending}` : ''}
       </button>
 
       {/* 改道后的墓碑确认条 */}
@@ -53,7 +64,7 @@ export function VerdictPanel() {
               className="tombstone-input"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              maxLength={200}
+              maxLength={500}
               aria-label="墓碑草稿"
             />
             <button
@@ -63,8 +74,8 @@ export function VerdictPanel() {
               <Check size={13} />
               确认入簿
             </button>
-            <button className="btn" onClick={dismissTombstone} title="忽略即不入簿，随耗材蒸发">
-              忽略
+            <button className="btn" onClick={dismissTombstone} title="明确跳过：记录 abandoned，但不写入 MemOS">
+              跳过
             </button>
           </motion.div>
         )}
@@ -93,6 +104,14 @@ export function VerdictPanel() {
               </div>
 
               <div className="ledger-body scroll-y">
+                {(!verdictStatus.available || verdictStatus.pending > 0) && (
+                  <p className="ledger-empty" role="status">
+                    {verdictStatus.available
+                      ? `MemOS 已恢复，还有 ${verdictStatus.pending} 条判决等待自动补写。`
+                      : `MemOS 当前不可用；判决安全留在本机，待重试 ${verdictStatus.pending} 条。`}
+                    {verdictStatus.failed > 0 ? ` 最近失败 ${verdictStatus.failed} 条。` : ''}
+                  </p>
+                )}
                 <div className="ledger-section">
                   <div className="ledger-title">
                     <Gem size={13} style={{ color: 'var(--accent)' }} />
@@ -108,7 +127,7 @@ export function VerdictPanel() {
                       <div className="ledger-handle">[{v.handle}]</div>
                       <div className="ledger-text">{v.text}</div>
                       <div className="ledger-meta">
-                        {v.status === 'superseded' ? '已 supersede' : 'confirmed · 注入中'}
+                        {v.status === 'superseded' ? '已 supersede' : 'confirmed · 可提供'}
                         {v.cardId && cardById(v.cardId) && (
                           <button
                             className="ledger-link"
@@ -121,7 +140,7 @@ export function VerdictPanel() {
                           </button>
                         )}
                         {v.status === 'confirmed' && (
-                          <button className="ledger-link warn" onClick={() => supersedeVerdict(v.id)}>
+                          <button className="ledger-link warn" onClick={() => revise(v)}>
                             supersede
                           </button>
                         )}
@@ -151,7 +170,7 @@ export function VerdictPanel() {
                           </button>
                         )}
                         {v.status === 'confirmed' && (
-                          <button className="ledger-link warn" onClick={() => supersedeVerdict(v.id)}>
+                          <button className="ledger-link warn" onClick={() => revise(v)}>
                             supersede
                           </button>
                         )}
@@ -172,7 +191,7 @@ export function VerdictPanel() {
                 </div>
 
                 <p className="ledger-foot">
-                  confirmed 判决由宿主注入每个新的干净上下文（干净但不失忆）；只许 supersede，不许删除。
+                  confirmed 判决只在当前问题相关时注入；召回为空就不注入。只许 supersede，不许删除。
                 </p>
               </div>
             </motion.aside>

@@ -1,7 +1,7 @@
 /**
  * PapertableV1 后端 API 客户端（同源 /api，开发期由 Vite 代理到 4317）。
  */
-import type { Verdict } from '../types';
+import type { Citation, ConceptInsight, Verdict, VerdictSyncStatus, VerdictTrace, VerdictUse } from '../types';
 
 export interface ServerProject {
   id: string;
@@ -16,7 +16,7 @@ export interface ServerCard {
   id: string;
   projectId: string;
   title: string;
-  kind: 'root' | 'deep_dive' | 'diverge' | 'reroute';
+  kind: 'root' | 'deep_dive' | 'diverge' | 'reroute' | 'concept';
   sourceCardId: string | null;
   createdAt: string;
   updatedAt: string;
@@ -26,7 +26,7 @@ export interface ServerEdge {
   id: string;
   sourceCardId: string;
   targetCardId: string;
-  kind: 'deep_dive' | 'diverge' | 'reroute';
+  kind: 'deep_dive' | 'diverge' | 'reroute' | 'concept';
   snapshot: Record<string, unknown>;
   createdAt: string;
 }
@@ -62,7 +62,12 @@ export interface ServerRun {
   answer: string | null;
   error: string | null;
   created_at: string;
-  citations: Array<Record<string, unknown>>;
+  /** 该 run 回答在会话分支中的 assistant 条目 id（稳定绑定标识） */
+  answerEntryId?: string | null;
+  citations: Citation[];
+  concepts: ConceptInsight[];
+  verdictTrace?: VerdictTrace;
+  verdictUse?: VerdictUse;
   activity: RunEvent[];
 }
 
@@ -70,28 +75,80 @@ export interface CardDetail extends ServerCard {
   branchContext: Record<string, unknown>;
   messages: ServerMessage[];
   runs: ServerRun[];
+  /** 用户点击触发的按需概念会话（缓存复用） */
+  conceptPreviews: Array<{
+    id: string;
+    source_run_id: string | null;
+    concept_term: string | null;
+    question: string;
+    status: 'running' | 'ended';
+    result: string | null;
+    answer: string | null;
+  }>;
 }
 
 export interface BranchPayload {
-  kind: 'deep_dive' | 'diverge' | 'reroute';
+  kind: 'deep_dive' | 'diverge' | 'reroute' | 'concept';
   question: string;
   selection?: { entryId: string; text: string; start: number; end: number };
   topic?: string;
   sourceEntryId?: string;
+  sourceRunId?: string;
+  conceptId?: string;
+  previewRunId?: string;
 }
 
-export interface RunEvent {
+interface RunEventBase {
   id: number;
-  event: string;
   createdAt: string;
-  [key: string]: unknown;
 }
 
-export interface ProviderSettings {
-  protocol: 'anthropic-messages';
+export type RunEvent =
+  | (RunEventBase & {
+      event: 'run_created';
+      runId: string;
+      cardId: string;
+      projectId: string;
+    })
+  | (RunEventBase & { event: 'turn_start' })
+  | (RunEventBase & {
+      event: 'tool_start' | 'tool_update' | 'tool_end';
+      toolCallId?: string;
+      tool?: string;
+      isError?: boolean;
+      queryLength?: number;
+      requestedChunks?: number;
+      hitCount?: number;
+      readCount?: number;
+    })
+  | (RunEventBase & { event: 'thinking_start'; contentIndex: number })
+  | (RunEventBase & { event: 'thinking_end'; contentIndex: number; content: string })
+  | (RunEventBase & { event: 'answer_sentence'; sentence: string; answer: string })
+  | (RunEventBase & { event: 'citation_resolved' } & Citation)
+  | (RunEventBase & {
+      event: 'run_end';
+      result: string;
+      reason?: string | null;
+      answer?: string | null;
+      citations?: Citation[];
+      error?: string | null;
+    });
+
+export type ProviderId = 'claude' | 'deepseek' | 'opencode-go';
+export type ProviderProtocol = 'anthropic-messages' | 'openai-completions';
+
+export interface ProviderOption {
+  id: ProviderId;
+  name: string;
+  protocol: ProviderProtocol;
   baseUrl: string;
   model: string;
   hasApiKey: boolean;
+}
+
+export interface ProviderSettings extends ProviderOption {
+  activeProviderId: ProviderId;
+  providers: ProviderOption[];
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -111,12 +168,14 @@ export const api = {
     request<{
       ready: boolean;
       modelConfigured: boolean;
-      protocol: 'anthropic-messages';
+      protocol: ProviderProtocol;
       memory: { available: boolean };
+      verdicts: VerdictSyncStatus;
     }>('/api/status'),
   providerSettings: () => request<ProviderSettings>('/api/settings/provider'),
   saveProviderSettings: (settings: {
-    protocol: 'anthropic-messages';
+    providerId: ProviderId;
+    protocol: ProviderProtocol;
     baseUrl: string;
     model: string;
     apiKey?: string;
@@ -129,7 +188,17 @@ export const api = {
   listProjects: () => request<{ projects: ServerProject[] }>('/api/projects'),
   createProject: (name: string) =>
     request<ServerProject>('/api/projects', { method: 'POST', body: JSON.stringify({ name }) }),
+  renameProject: (id: string, name: string) =>
+    request<Pick<ServerProject, 'id' | 'name' | 'updatedAt'>>(`/api/projects/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ name }),
+    }),
   projectDetail: (id: string) => request<ProjectDetail>(`/api/projects/${encodeURIComponent(id)}`),
+  purgeCards: (id: string, cardIds: string[]) =>
+    request<{ purged: string[]; skipped: Array<{ cardId: string; reason: string }> }>(
+      `/api/projects/${encodeURIComponent(id)}/cards/purge`,
+      { method: 'POST', body: JSON.stringify({ cardIds }) },
+    ),
   bindLibrary: (id: string, path: string) =>
     request<{ ok: boolean }>(`/api/projects/${encodeURIComponent(id)}/library`, {
       method: 'PUT',
@@ -144,13 +213,30 @@ export const api = {
       body: JSON.stringify({ question }),
     }),
   cardDetail: (id: string) => request<CardDetail>(`/api/cards/${encodeURIComponent(id)}`),
+  renameCard: (id: string, title: string) =>
+    request<ServerCard>(`/api/cards/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ title }),
+    }),
   continueCard: (id: string, question: string) =>
     request<{ runId: string }>(`/api/cards/${encodeURIComponent(id)}/messages`, {
       method: 'POST',
       body: JSON.stringify({ question }),
     }),
   createBranch: (id: string, payload: BranchPayload) =>
-    request<{ cardId: string; runId: string; verdict?: Verdict }>(`/api/cards/${encodeURIComponent(id)}/branches`, {
+    request<{ cardId: string; runId: string | null; verdict?: Verdict }>(`/api/cards/${encodeURIComponent(id)}/branches`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  /** 用户点击高亮词：启动（或复用）按需概念会话 */
+  openConceptPreview: (id: string, payload: { sourceRunId: string; conceptId: string }) =>
+    request<{
+      runId: string;
+      status: 'running' | 'ended';
+      result: string | null;
+      answer: string | null;
+      cached: boolean;
+    }>(`/api/cards/${encodeURIComponent(id)}/concept-previews`, {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
@@ -164,14 +250,22 @@ export const api = {
   retryRun: (id: string) => request<{ runId: string }>(`/api/runs/${encodeURIComponent(id)}/retry`, { method: 'POST' }),
 
   listVerdicts: (projectId: string) =>
-    request<{ verdicts: Verdict[] }>(`/api/projects/${encodeURIComponent(projectId)}/verdicts`),
+    request<{ verdicts: Verdict[]; status: VerdictSyncStatus }>(`/api/projects/${encodeURIComponent(projectId)}/verdicts`),
   confirmVerdict: (id: string, text?: string) =>
-    request<Verdict>(`/api/verdicts/${encodeURIComponent(id)}/confirm`, {
+    request<{ verdict: Verdict; runId: string }>(`/api/verdicts/${encodeURIComponent(id)}/confirm`, {
       method: 'POST',
       body: JSON.stringify(text ? { text } : {}),
     }),
-  supersedeVerdict: (id: string) =>
-    request<Verdict>(`/api/verdicts/${encodeURIComponent(id)}/supersede`, { method: 'POST' }),
+  abandonVerdict: (id: string) =>
+    request<{ verdict: Verdict; runId: string }>(`/api/verdicts/${encodeURIComponent(id)}/abandon`, {
+      method: 'POST',
+      body: '{}',
+    }),
+  supersedeVerdict: (id: string, text: string, handle?: string) =>
+    request<Verdict>(`/api/verdicts/${encodeURIComponent(id)}/supersede`, {
+      method: 'POST',
+      body: JSON.stringify(handle ? { text, handle } : { text }),
+    }),
   adoptRun: (runId: string, handle: string, text?: string) =>
     request<Verdict>(`/api/runs/${encodeURIComponent(runId)}/adopt`, {
       method: 'POST',
@@ -180,14 +274,12 @@ export const api = {
 };
 
 const RUN_EVENTS = [
-  'run_created',
   'turn_start',
   'tool_start',
   'tool_update',
   'tool_end',
   'answer_sentence',
   'citation_resolved',
-  'memory_stage_status',
   'run_end',
 ];
 

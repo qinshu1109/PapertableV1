@@ -341,5 +341,10 @@ function asRecord(value: unknown): Record<string, unknown> {
 }
 
 function safeMessage(error: unknown): string {
-  return (error instanceof Error ? error.message : String(error)).slice(0, 600);
+  const message = error instanceof Error ? error.message : String(error);
+  const apiKey = process.env.PAPERTABLE_API_KEY;
+  return (apiKey ? message.replaceAll(apiKey, "[redacted]") : message)
+    .replace(/Bearer\s+\S+/giu, "Bearer [redacted]")
+    .replace(/\bsk-[A-Za-z0-9_-]+\b/gu, "[redacted]")
+    .slice(0, 600);
 }

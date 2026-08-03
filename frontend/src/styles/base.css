@@ -3,9 +3,9 @@
    ============================================================ */
 :root {
   /* 表面 */
-  --bg: #f3eee5;
-  --card: #fbf8f2;
-  --card-back: #eae3d9;
+  --bg: #f1ebdf;
+  --card: #fbf8f1;
+  --card-back: #e9e1d4;
   --composer: #eee8df;
   --raised: #f7f3ec;
   --sunken: #ece5da;
@@ -36,10 +36,10 @@
   --r-btn: 10px;
 
   /* 阴影 */
-  --sh-card: 0 1px 2px rgba(52, 43, 38, 0.04), 0 18px 44px -18px rgba(52, 43, 38, 0.28);
+  --sh-card: 0 1px 2px rgba(52, 43, 38, 0.05), 0 10px 24px -12px rgba(52, 43, 38, 0.18), 0 30px 64px -24px rgba(52, 43, 38, 0.3);
   --sh-back: 0 12px 32px -20px rgba(52, 43, 38, 0.3);
   --sh-pop: 0 2px 6px rgba(52, 43, 38, 0.06), 0 16px 40px -12px rgba(52, 43, 38, 0.24);
-  --sh-float: 0 1px 3px rgba(52, 43, 38, 0.08), 0 8px 24px -8px rgba(52, 43, 38, 0.22);
+  --sh-float: 0 1px 3px rgba(52, 43, 38, 0.08), 0 12px 32px -10px rgba(52, 43, 38, 0.26);
 
   /* 动效 */
   --e-out: cubic-bezier(0.22, 0.8, 0.28, 1);
@@ -352,7 +352,7 @@ textarea {
 .stack {
   position: relative;
   width: 100%;
-  max-width: 880px;
+  max-width: 1207px; /* 对齐 Explore 实测卡宽（TASK-022 卡2：宽度 A） */
   height: 100%;
 }
 
@@ -367,7 +367,8 @@ textarea {
   border: 1px solid var(--line);
   box-shadow: var(--sh-back);
   cursor: pointer;
-  transition: transform var(--d-card) var(--e-out), filter var(--d-fast) var(--e-out);
+  transition: transform var(--d-card) var(--e-out), filter var(--d-fast) var(--e-out),
+    opacity var(--d-card) var(--e-out);
   overflow: hidden;
 }
 .back-card:hover {
@@ -395,6 +396,7 @@ textarea {
   left: 0;
   right: 0;
   bottom: 0;
+  z-index: 1;
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r-card);
@@ -643,14 +645,14 @@ textarea {
 .rel-btn {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  height: 34px;
-  padding: 0 14px;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
   border-radius: var(--r-chip);
   border: 1px solid var(--line);
   background: var(--raised);
-  font-size: 12.5px;
-  font-weight: 550;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--ink-2);
   transition: all var(--d-fast) var(--e-out);
   white-space: nowrap;
@@ -662,11 +664,6 @@ textarea {
   height: 18px;
   border-radius: 6px;
   flex-shrink: 0;
-}
-.rel-btn small {
-  color: var(--ink-3);
-  font-size: 11px;
-  font-weight: 400;
 }
 .rel-btn:hover {
   transform: translateY(-1px);
@@ -712,21 +709,19 @@ textarea {
   font-weight: 660;
   line-height: 1.45;
   letter-spacing: -0.008em;
-  margin: 30px 0 12px;
-  padding-bottom: 7px;
-  border-bottom: 1px solid var(--line-soft);
+  margin: 28px 0 12px;
 }
 .md-h3 {
-  font-size: 15.5px;
+  font-size: 16.5px;
   font-weight: 640;
   line-height: 1.5;
-  margin: 24px 0 8px;
+  margin: 20px 0 8px;
   color: var(--ink);
 }
 .md-h4 {
-  font-size: 14.5px;
+  font-size: 15px;
   font-weight: 620;
-  margin: 18px 0 6px;
+  margin: 14px 0 6px;
 }
 .md > *:first-child {
   margin-top: 0;
@@ -781,10 +776,35 @@ textarea {
   border-radius: 5px;
 }
 .md-table-wrap {
+  position: relative;
   margin: 0 0 16px;
-  overflow-x: auto;
+  overflow: auto;
+  max-height: 420px;
   border: 1px solid var(--line);
   border-radius: 12px;
+}
+.md-table-copy {
+  position: sticky;
+  top: 6px;
+  float: right;
+  margin: 6px 6px 0 0;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 7px;
+  background: var(--paper, #fbf8f2);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--d-fast, 0.15s);
+}
+.md-table-wrap:hover .md-table-copy,
+.md-table-copy:focus-visible {
+  opacity: 1;
 }
 .md-table {
   width: 100%;
@@ -799,6 +819,9 @@ textarea {
   color: var(--ink-2);
   border-bottom: 1px solid var(--line);
   white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 .md-table td {
   padding: 9px 13px;
@@ -811,22 +834,164 @@ textarea {
 .md strong {
   font-weight: 640;
 }
+.md-link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 
-/* 可点击概念 */
+/* 行内引用角标 §N：绿色淡胶囊，hover 加深 */
+.cite-ref {
+  display: inline;
+  font: inherit;
+  font-size: 0.75em;
+  line-height: 1;
+  padding: 1px 5px;
+  margin: 0 1px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ctx-soft);
+  color: var(--ctx);
+  font-weight: 500;
+  cursor: pointer;
+  vertical-align: 0.08em;
+  transition: background var(--d-fast), color var(--d-fast);
+}
+.cite-ref:hover {
+  background: var(--ctx);
+  color: #fbf8f2;
+}
+
+/* Mermaid 图块 */
+.mermaid-block {
+  position: relative;
+  margin: 0 0 15px;
+  padding: 13px 16px;
+  background: var(--sunken);
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+}
+.mermaid-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 6px;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity var(--d-fast);
+}
+.mermaid-block:hover .mermaid-actions,
+.mermaid-actions:focus-within {
+  opacity: 1;
+}
+.mermaid-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 7px;
+  background: var(--paper, #fbf8f2);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.mermaid-canvas {
+  cursor: zoom-in;
+  overflow-x: auto;
+}
+.mermaid-canvas:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.mermaid-loading {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  padding: 8px 0;
+}
+.mermaid-error {
+  font-size: 12px;
+  color: #a34a2a;
+  margin-bottom: 8px;
+}
+.mermaid-source {
+  margin: 0;
+}
+
+/* Mermaid 放大查看 */
+.mermaid-zoom-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(52, 43, 38, 0.42);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mermaid-zoom {
+  width: min(92vw, 1100px);
+  height: min(86vh, 760px);
+  background: var(--paper, #fbf8f2);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--sh-pop);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.mermaid-zoom-tools {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.mermaid-zoom-viewport {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  touch-action: none;
+}
+.mermaid-zoom-viewport:active {
+  cursor: grabbing;
+}
+
+/* 可点击概念：默认正文同色 + 底部虚线；打开临时卡后变品牌色，全程无背景色块 */
 .concept-term {
   display: inline;
   font: inherit;
+  cursor: pointer;
   color: inherit;
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  text-decoration-thickness: 1.5px;
-  text-underline-offset: 3.5px;
-  text-decoration-color: var(--accent);
-  border-radius: 3px;
-  transition: background var(--d-fast);
+  background: transparent;
+  border-radius: 4px;
+  padding: 0 0.14em;
+  font-weight: 590;
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  transition: color var(--d-fast), text-decoration-color var(--d-fast);
 }
 .concept-term:hover {
-  background: var(--accent-soft);
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+}
+.concept-term.is-open,
+.concept-term.is-open:hover {
+  color: var(--accent);
+  background: transparent;
+  text-decoration-color: var(--accent);
+}
+.concept-term:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 70%, white);
+  outline-offset: 2px;
 }
 
 /* 流式光标 */
@@ -851,6 +1016,30 @@ textarea {
   font-size: 12.5px;
   color: var(--ink-3);
   padding: 4px 0;
+}
+.thinking-block {
+  margin: 6px 0 14px;
+  color: var(--ink-3);
+  font-size: 12.5px;
+}
+.thinking-block summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  cursor: pointer;
+  user-select: none;
+}
+.thinking-content {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-left: 2px solid var(--line-soft);
+  color: var(--ink-2);
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+.thinking-content > div + div {
+  margin-top: 10px;
 }
 .tool-activity {
   margin: 6px 0 14px;
@@ -918,12 +1107,16 @@ textarea {
    关系导航器
    ============================================================ */
 .graph {
-  width: var(--graph-w);
+  width: 225px;
   flex-shrink: 0;
-  border-left: 1px solid var(--line);
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.05));
+  position: relative;
+  /* 展开/收起 200ms 慢-快-慢、无回弹；卡片随 flex 同步让位，不压卡片（2026-08-01 代码复核写死值） */
+  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.graph.narrow {
+  width: 56px;
 }
 .graph-head {
   display: flex;
@@ -931,6 +1124,10 @@ textarea {
   justify-content: space-between;
   padding: 14px 12px 8px 16px;
   min-height: 56px;
+}
+.graph.narrow .graph-head {
+  padding: 14px 8px 8px;
+  justify-content: center;
 }
 .graph-title {
   font-size: 11px;
@@ -943,54 +1140,52 @@ textarea {
   flex: 1;
   min-height: 0;
   position: relative;
-  overflow: hidden;
+  overflow: auto;
+  display: flex;
   cursor: grab;
-  touch-action: none;
+  /* 四周柔和淡出融进背景，不靠硬边分区（2026-08-01 代码复核） */
+  -webkit-mask-image: radial-gradient(ellipse 92% 88% at 50% 50%, #000 62%, transparent 98%);
+  mask-image: radial-gradient(ellipse 92% 88% at 50% 50%, #000 62%, transparent 98%);
 }
-.graph-canvas:active {
+.graph-canvas.dragging {
   cursor: grabbing;
+  /* 拖拽平移时暂停遮罩过渡，避免边缘闪动 */
 }
-.gnode-hit {
-  cursor: pointer;
+.graph-canvas.dragging svg {
+  pointer-events: none;
 }
-.graph-legend {
-  padding: 10px 14px 12px;
-  border-top: 1px solid var(--line-soft);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.graph.narrow .graph-canvas {
+  /* 收起时超出的横枝随宽度逐步裁掉，不整棵突然消失 */
+  overflow: hidden;
 }
-.legend-row {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 11px;
-  color: var(--ink-2);
-}
-.legend-dash {
-  width: 16px;
-  height: 2px;
-  border-radius: 2px;
+/* 图谱小于可视区时在面板内居中；超出时仍可正常滚动（flex-shrink:0 保证窄条里不被压缩、可滚动对中） */
+.graph-canvas > svg {
+  margin: auto;
   flex-shrink: 0;
 }
-
+/* 栏底提示条：悬停节点的标题与消息数（对齐线上版 209×54、圆角 6、左右各留 8px） */
 .graph-tip {
   position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
   z-index: 20;
   pointer-events: none;
   background: var(--ink);
   color: #f7f2ea;
-  padding: 6px 9px;
-  border-radius: 9px;
+  padding: 8px 10px;
+  border-radius: 6px;
   font-size: 11.5px;
   line-height: 1.5;
-  max-width: 170px;
   box-shadow: var(--sh-pop);
 }
 .graph-tip b {
   display: block;
   font-weight: 600;
   margin-bottom: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .graph-tip i {
   font-style: normal;
@@ -1009,7 +1204,7 @@ textarea {
 }
 .composer {
   width: 100%;
-  max-width: 880px;
+  max-width: 1207px; /* 与卡片同宽（TASK-022 卡2：宽度 A） */
   position: relative;
 }
 
@@ -1061,7 +1256,7 @@ textarea {
 }
 
 .composer-box {
-  background: var(--composer);
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r-composer);
   box-shadow: var(--sh-float);
@@ -1085,7 +1280,8 @@ textarea {
   font-size: 14.5px;
   line-height: 1.6;
   padding: 7px 2px;
-  max-height: 132px;
+  max-height: 214px;
+  overflow-y: auto;
   color: var(--ink);
 }
 .composer textarea::placeholder {
@@ -1110,6 +1306,37 @@ textarea {
 .chip-btn:hover {
   color: var(--ink);
   border-color: #c9bfb1;
+}
+/* 「+」收纳按钮（对标 ChatGPT 网页版输入框左侧圆钮） */
+.plus-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 99px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  background: var(--raised);
+  color: var(--ink-2);
+  flex-shrink: 0;
+  transition: background var(--d-fast) var(--e-out), color var(--d-fast) var(--e-out),
+    transform var(--d-fast) var(--e-out);
+}
+.plus-btn:hover {
+  color: var(--ink);
+  border-color: #c9bfb1;
+}
+.plus-btn.on {
+  color: var(--ink);
+  background: rgba(52, 43, 38, 0.07);
+  transform: rotate(45deg);
+}
+.plus-menu {
+  bottom: calc(100% + 10px);
+  left: 0;
+  min-width: 190px;
+}
+.plus-menu .ctx-count {
+  margin-left: auto;
 }
 .chip-btn.on {
   background: var(--ctx-soft);
@@ -1338,6 +1565,21 @@ textarea {
   max-height: 236px;
   font-size: 13.5px;
   line-height: 1.75;
+}
+.cp-generating {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ink-3);
+  font-size: 12.5px;
+  padding: 6px 0;
+}
+.cp-spin {
+  animation: cp-rotate 0.9s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes cp-rotate {
+  to { transform: rotate(360deg); }
 }
 .cp-source {
   margin: 0 16px 10px;
@@ -1711,9 +1953,6 @@ textarea {
     font-size: 11.5px;
     gap: 5px;
   }
-  .rel-btn small {
-    display: none;
-  }
   .composer-wrap {
     padding: 4px 12px calc(12px + env(safe-area-inset-bottom));
   }
@@ -1958,12 +2197,31 @@ textarea {
   background: var(--ctx-soft, rgba(74, 107, 87, 0.09));
   border: 1px solid var(--line-soft);
   border-radius: 999px;
-  padding: 2px 9px;
   max-width: 260px;
+  overflow: hidden;
+}
+.cite-chip summary {
+  padding: 2px 9px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  cursor: default;
+  cursor: pointer;
+  list-style: none;
+}
+.cite-chip summary::-webkit-details-marker { display: none; }
+.cite-chip[open] {
+  flex-basis: 100%;
+  max-width: 100%;
+  border-radius: 10px;
+}
+.cite-excerpt {
+  border-top: 1px solid var(--line-soft);
+  padding: 9px 11px 10px;
+  color: var(--ink-2);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.65;
+  white-space: pre-wrap;
 }
 .run-status {
   display: flex;

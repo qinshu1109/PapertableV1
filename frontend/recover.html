@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>卡片恢复 · Papertable</title>
+<body style="font-family:system-ui,-apple-system,sans-serif;max-width:680px;margin:56px auto;padding:0 18px;line-height:1.7">
+<h2>卡片恢复</h2>
+<pre id="out" style="white-space:pre-wrap;font-family:inherit;background:#f6f3ee;padding:14px 16px;border-radius:8px">处理中…</pre>
+<p><a href="/">→ 回到 Papertable（点开后请刷新页面）</a></p>
+<script>
+(function () {
+  var KEY = 'papertable-ui-overlay';
+  // Kimi 验收测试留下的 3 张卡片（保持隐藏在回收站）
+  var TEST_CARDS = [
+    '91d2fef9-ec81-4e34-988a-267f72d3c4bd',
+    '57c46f8a-3e6f-4912-aaae-cbf03aad371f',
+    '6071e590-5555-42c5-9762-8eca8c4d5309'
+  ];
+  var o = {};
+  try { o = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { o = {}; }
+  var before = Array.isArray(o.trashedCards) ? o.trashedCards.length : 0;
+  o.trashedCards = TEST_CARDS.slice();
+  localStorage.setItem(KEY, JSON.stringify(o));
+  document.getElementById('out').textContent =
+    '已从回收站恢复 ' + before + ' 张卡片（回收站已清空，数据一直在服务端，没有丢失）。\n\n' +
+    'Kimi 验收测试留下的 3 张卡片仍保留在回收站里：\n' +
+    '· 开发一个新功能前应该检查哪些最小需求单元？（2 张）\n' +
+    '· 问题级需求和方案级需求有什么区别？（1 张）\n\n' +
+    '注意：如果你在这次误删之前还主动删过别的卡片，它们也一并恢复了，需要再删一次。';
+})();
+</script>
+</body>
+</html>

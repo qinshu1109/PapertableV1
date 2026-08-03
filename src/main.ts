@@ -12,19 +12,28 @@ import {
   MAX_MATERIAL_BYTES,
   reindexLibrary,
 } from "./notes.ts";
-import { createProject, listProjects, projectDetail } from "./projects.ts";
 import {
+  createProject,
+  listProjects,
+  projectDetail,
+  purgeCards,
+  renameCard,
+  renameProject,
+} from "./projects.ts";
+import {
+  abandonTombstone,
   adoptRun,
   confirmVerdict,
   createTombstoneDraft,
-  ensureVerdictTables,
+  getVerdictStatus,
+  initializeVerdicts,
   listVerdicts,
+  retryPendingVerdicts,
   supersedeVerdict,
 } from "./verdicts.ts";
 import { PromotionService } from "./promotion.ts";
 import {
   loadProviderSettings,
-  publicProviderSettings,
   saveProviderSettings,
 } from "./provider-settings.ts";
 import { createSessionRepo } from "./sessions.ts";
@@ -38,7 +47,7 @@ export type PapertableApp = Awaited<ReturnType<typeof createApp>>;
 export async function createApp(dataDir?: string) {
   const store = openDataStore(dataDir);
   loadProviderSettings(store.dataDir);
-  ensureVerdictTables(store.db);
+  const verdictStatus = await initializeVerdicts(store);
   const sessions = createSessionRepo(store);
   const engine = new PapertableEngine(store, sessions);
   const recovered = await engine.recoverInterruptedRuns();
@@ -67,6 +76,7 @@ export async function createApp(dataDir?: string) {
   const idleTimer = setInterval(() => {
     void memory.stageIdleCards()
       .then(() => memory.retryPending())
+      .then(() => retryPendingVerdicts(store))
       .then(() => promotions.retryPendingReconciles())
       .catch(() => undefined);
   }, 60_000);
@@ -78,6 +88,7 @@ export async function createApp(dataDir?: string) {
     memory,
     promotions,
     memoryStatus,
+    verdictStatus,
     recovered,
     server,
     async close() {
@@ -111,7 +122,7 @@ async function route(
   const path = url.pathname;
 
   if (path === "/api/settings/provider" && method === "GET") {
-    json(response, 200, publicProviderSettings());
+    json(response, 200, loadProviderSettings(services.store.dataDir));
     return;
   }
   if (path === "/api/settings/provider" && method === "PUT") {
@@ -121,7 +132,7 @@ async function route(
     return;
   }
   if (method === "GET" && path === "/api/status") {
-    const provider = publicProviderSettings();
+    const provider = loadProviderSettings(services.store.dataDir);
     json(response, 200, {
       ready: true,
       node: process.version,
@@ -132,6 +143,7 @@ async function route(
       ),
       protocol: provider.protocol,
       memory: services.memoryStatus,
+      verdicts: await getVerdictStatus(services.store),
     });
     return;
   }
@@ -146,6 +158,15 @@ async function route(
   }
 
   let match = path.match(/^\/api\/projects\/([^/]+)$/u);
+  if (match && method === "PUT") {
+    const body = await readJson(request);
+    json(response, 200, renameProject(
+      services.store,
+      decodeURIComponent(match[1]),
+      String(body.name || ""),
+    ));
+    return;
+  }
   if (match && method === "GET") {
     json(response, 200, projectDetail(services.store, decodeURIComponent(match[1])));
     return;
@@ -196,8 +217,24 @@ async function route(
     ));
     return;
   }
+  match = path.match(/^\/api\/projects\/([^/]+)\/cards\/purge$/u);
+  if (match && method === "POST") {
+    const body = await readJson(request) as { cardIds?: unknown };
+    const cardIds = Array.isArray(body.cardIds) ? body.cardIds.map(String) : [];
+    json(response, 200, purgeCards(services.store, decodeURIComponent(match[1]), cardIds));
+    return;
+  }
 
   match = path.match(/^\/api\/cards\/([^/]+)$/u);
+  if (match && method === "PUT") {
+    const body = await readJson(request);
+    json(response, 200, renameCard(
+      services.store,
+      decodeURIComponent(match[1]),
+      String(body.title || ""),
+    ));
+    return;
+  }
   if (match && method === "GET") {
     json(response, 200, await services.engine.cardDetail(decodeURIComponent(match[1])));
     return;
@@ -208,6 +245,15 @@ async function route(
     json(response, 202, await services.engine.continueCard(
       decodeURIComponent(match[1]),
       String(body.question || ""),
+    ));
+    return;
+  }
+  match = path.match(/^\/api\/cards\/([^/]+)\/concept-previews$/u);
+  if (match && method === "POST") {
+    const body = await readJson(request);
+    json(response, 202, await services.engine.startConceptPreview(
+      decodeURIComponent(match[1]),
+      body as { sourceRunId?: string; conceptId?: string },
     ));
     return;
   }
@@ -222,6 +268,12 @@ async function route(
     if ((body as { kind?: string }).kind === "reroute") {
       verdict = await createTombstoneDraft(services.store, services.sessions, result.cardId)
         .catch(() => null);
+      if (!verdict && !result.runId) {
+        result.runId = await services.engine.startRun(
+          result.cardId,
+          String((body as { question?: unknown }).question || ""),
+        );
+      }
     }
     json(response, 202, verdict ? { ...result, verdict } : result);
     return;
@@ -229,28 +281,44 @@ async function route(
 
   match = path.match(/^\/api\/projects\/([^/]+)\/verdicts$/u);
   if (match && method === "GET") {
-    json(response, 200, { verdicts: listVerdicts(services.store.db, decodeURIComponent(match[1])) });
+    json(response, 200, await listVerdicts(services.store, decodeURIComponent(match[1])));
     return;
   }
   match = path.match(/^\/api\/verdicts\/([^/]+)\/confirm$/u);
   if (match && method === "POST") {
     const body = await readJson(request);
-    json(response, 200, confirmVerdict(
+    json(response, 200, await confirmVerdict(
       services.store,
+      services.engine,
       decodeURIComponent(match[1]),
       typeof body.text === "string" ? body.text : undefined,
     ));
     return;
   }
+  match = path.match(/^\/api\/verdicts\/([^/]+)\/abandon$/u);
+  if (match && method === "POST") {
+    json(response, 200, await abandonTombstone(
+      services.store,
+      services.engine,
+      decodeURIComponent(match[1]),
+    ));
+    return;
+  }
   match = path.match(/^\/api\/verdicts\/([^/]+)\/supersede$/u);
   if (match && method === "POST") {
-    json(response, 200, supersedeVerdict(services.store, decodeURIComponent(match[1])));
+    const body = await readJson(request);
+    json(response, 200, await supersedeVerdict(
+      services.store,
+      decodeURIComponent(match[1]),
+      String(body.text || ""),
+      typeof body.handle === "string" ? body.handle : undefined,
+    ));
     return;
   }
   match = path.match(/^\/api\/runs\/([^/]+)\/adopt$/u);
   if (match && method === "POST") {
     const body = await readJson(request);
-    json(response, 201, adoptRun(
+    json(response, 201, await adoptRun(
       services.store,
       decodeURIComponent(match[1]),
       String(body.handle || ""),

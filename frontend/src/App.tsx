@@ -6,7 +6,7 @@ import { ProjectSidebar } from './components/ProjectSidebar';
 import { CardStage } from './components/CardStage';
 import { GraphNavigator } from './components/GraphNavigator';
 import { Composer } from './components/Composer';
-import { ExportDialog, ImportDialog, SettingsDialog } from './components/Dialogs';
+import { ExportDialog, ImportDialog, SettingsDialog, TrashDialog } from './components/Dialogs';
 import { VerdictPanel } from './components/VerdictPanel';
 import { EDGE_META } from './types';
 import { incomingEdge, layoutGraph, pathToRoot } from './lib/graph';
@@ -15,7 +15,7 @@ export function App() {
   const { cards, edges, currentCardId, setCurrentCard, collapsed, toast, dismissToast, showToast } = useStore();
   const [sbCollapsed, setSbCollapsed] = useState(false);
   const [drawer, setDrawer] = useState(false);
-  const [modal, setModal] = useState<null | 'import' | 'export' | 'settings'>(null);
+  const [modal, setModal] = useState<null | 'import' | 'export' | 'settings' | 'trash'>(null);
 
   const path = useMemo(() => pathToRoot(edges, currentCardId), [edges, currentCardId]);
   const { nodes, hidden } = useMemo(() => layoutGraph(cards, edges, collapsed), [cards, edges, collapsed]);
@@ -64,6 +64,7 @@ export function App() {
         onImport={() => setModal('import')}
         onExport={() => setModal('export')}
         onSettings={() => setModal('settings')}
+        onTrash={() => setModal('trash')}
       />
 
       <main className="workspace">
@@ -122,6 +123,7 @@ export function App() {
         />
       )}
       {modal === 'settings' && <SettingsDialog onClose={() => setModal(null)} />}
+      {modal === 'trash' && <TrashDialog onClose={() => setModal(null)} />}
 
       <AnimatePresence>
         {toast && (

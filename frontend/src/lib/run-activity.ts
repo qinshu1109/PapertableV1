@@ -8,6 +8,12 @@ export interface ToolActivity {
   readCount?: number;
 }
 
+export interface ThinkingActivity {
+  id: string;
+  status: 'running' | 'done';
+  content: string;
+}
+
 type ToolEvent = {
   id: number;
   event: string;
@@ -61,6 +67,21 @@ export function reduceToolActivity(current: ToolActivity[], event: ToolEvent): T
         status: event.event === 'tool_end' ? (event.isError ? 'error' : 'done') : item.status,
       }
     : item);
+}
+
+export function reduceThinkingActivity(
+  current: ThinkingActivity[],
+  event: { id: number; event: string; content?: unknown },
+): ThinkingActivity[] {
+  if (event.event === 'thinking_start') {
+    return [...current, { id: `thinking-${event.id}`, status: 'running', content: '' }];
+  }
+  if (event.event !== 'thinking_end') return current;
+  const open = current.reduce((found, item, index) => item.status === 'running' ? index : found, -1);
+  const completed = { status: 'done' as const, content: String(event.content || '') };
+  return open < 0
+    ? [...current, { id: `thinking-${event.id}`, ...completed }]
+    : current.map((item, index) => index === open ? { ...item, ...completed } : item);
 }
 
 function numberValue(value: unknown): number | undefined {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Check, FileJson, FileText, FolderTree, Package, Upload, X } from 'lucide-react';
-import { api, type ProviderSettings } from '../lib/api';
+import { Check, FileJson, FileText, FolderTree, Package, Trash2, Upload, X } from 'lucide-react';
+import { api, type ProviderId, type ProviderSettings } from '../lib/api';
 import { useStore } from '../store';
 
 const IMPORT_FORMATS = [
@@ -147,10 +147,108 @@ export function ExportDialog({ onClose, onDone }: { onClose: () => void; onDone:
   );
 }
 
+export function TrashDialog({ onClose }: { onClose: () => void }) {
+  const { cards, restoreCards, purgeCards, showToast } = useStore();
+  const trashed = cards.filter((c) => c.trashed);
+  const [confirming, setConfirming] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const doPurge = async (ids: string[]) => {
+    setBusy(true);
+    try {
+      await purgeCards(ids);
+    } catch (error) {
+      showToast({ text: `彻底删除失败：${error instanceof Error ? error.message : String(error)}` });
+    } finally {
+      setBusy(false);
+      setConfirming(null);
+    }
+  };
+
+  return (
+    <Shell
+      title={`回收站 · ${trashed.length} 张卡片`}
+      icon={<Trash2 size={16} color="var(--ink-2)" />}
+      onClose={onClose}
+      footer={
+        <>
+          <button className="btn" onClick={onClose}>
+            关闭
+          </button>
+          <button
+            className="btn"
+            disabled={!trashed.length || busy}
+            onClick={() => restoreCards(trashed.map((c) => c.id))}
+          >
+            全部还原
+          </button>
+          {confirming === '__all__' ? (
+            <button
+              className="btn primary"
+              disabled={busy}
+              onClick={() => void doPurge(trashed.map((c) => c.id))}
+            >
+              确认彻底删除全部？不可恢复
+            </button>
+          ) : (
+            <button
+              className="btn"
+              disabled={!trashed.length || busy}
+              onClick={() => setConfirming('__all__')}
+            >
+              清空回收站
+            </button>
+          )}
+        </>
+      }
+    >
+      {trashed.length === 0 && (
+        <p className="note-line">
+          回收站是空的。卡片菜单里的「移入回收站」只是本地隐藏，随时可以从这里还原。
+        </p>
+      )}
+      {trashed.map((card) => (
+        <div
+          key={card.id}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '8px 0',
+            borderBottom: '1px solid var(--line, rgba(0,0,0,0.06))',
+          }}
+        >
+          <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {card.title}
+          </span>
+          <button className="btn" disabled={busy} onClick={() => restoreCards([card.id])}>
+            还原
+          </button>
+          {confirming === card.id ? (
+            <button className="btn primary" disabled={busy} onClick={() => void doPurge([card.id])}>
+              确认删除？
+            </button>
+          ) : (
+            <button className="btn" disabled={busy} onClick={() => setConfirming(card.id)}>
+              彻底删除
+            </button>
+          )}
+        </div>
+      ))}
+      {trashed.length > 0 && (
+        <p className="note-line">
+          还原只取消本地隐藏；彻底删除会物理删除卡片及其回答与关系，且不可恢复。被金子或墓碑引用的卡片不能彻底删除。
+        </p>
+      )}
+    </Shell>
+  );
+}
+
 export function SettingsDialog({ onClose }: { onClose: () => void }) {
   const { library, bindLibrary, reindexLibrary } = useStore();
   const [libPath, setLibPath] = useState(library?.path ?? '');
   const [provider, setProvider] = useState<ProviderSettings | null>(null);
+  const [selectedProviderId, setSelectedProviderId] = useState<ProviderId>('claude');
   const [baseUrl, setBaseUrl] = useState('');
   const [model, setModel] = useState('');
   const [apiKey, setApiKey] = useState('');
@@ -162,9 +260,11 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
     void api.providerSettings()
       .then((settings) => {
         if (!alive) return;
+        const active = settings.providers.find((item) => item.id === settings.activeProviderId)!;
         setProvider(settings);
-        setBaseUrl(settings.baseUrl);
-        setModel(settings.model);
+        setSelectedProviderId(active.id);
+        setBaseUrl(active.baseUrl);
+        setModel(active.model);
       })
       .catch((loadError: unknown) => {
         if (alive) setError(loadError instanceof Error ? loadError.message : String(loadError));
@@ -174,16 +274,30 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
     };
   }, []);
 
+  const selectedProvider = provider?.providers.find((item) => item.id === selectedProviderId);
+  const selectProvider = (id: ProviderId) => {
+    const selected = provider?.providers.find((item) => item.id === id);
+    if (!selected) return;
+    setSelectedProviderId(id);
+    setBaseUrl(selected.baseUrl);
+    setModel(selected.model);
+    setApiKey('');
+    setError('');
+  };
+
   const save = async () => {
+    if (!selectedProvider) return;
     setSaving(true);
     setError('');
     try {
       await api.saveProviderSettings({
-        protocol: 'anthropic-messages',
+        providerId: selectedProviderId,
+        protocol: selectedProvider.protocol,
         baseUrl: baseUrl.trim(),
         model: model.trim(),
         apiKey: apiKey.trim() || undefined,
       });
+      window.dispatchEvent(new Event('papertable-provider-changed'));
       onClose();
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : String(saveError));
@@ -204,10 +318,16 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
           </button>
           <button
             className="btn primary"
-            disabled={saving || !provider || !baseUrl.trim() || !model.trim()}
+            disabled={
+              saving
+              || !selectedProvider
+              || !baseUrl.trim()
+              || !model.trim()
+              || (!selectedProvider.hasApiKey && !apiKey.trim())
+            }
             onClick={() => void save()}
           >
-            {saving ? '保存中…' : '保存设置'}
+            {saving ? '保存中…' : '保存并使用'}
           </button>
         </>
       }
@@ -217,8 +337,28 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
           云端模型
         </div>
         <label className="settings-field">
+          <span>供应商</span>
+          <select
+            className="tombstone-input"
+            value={selectedProviderId}
+            onChange={(event) => selectProvider(event.target.value as ProviderId)}
+          >
+            {provider?.providers.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}{item.id === provider.activeProviderId ? '（当前）' : ''}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="settings-field">
           <span>协议</span>
-          <input className="tombstone-input" value="Anthropic Messages（原生）" disabled />
+          <input
+            className="tombstone-input"
+            value={selectedProvider?.protocol === 'openai-completions'
+              ? 'OpenAI Chat Completions'
+              : 'Anthropic Messages（原生）'}
+            disabled
+          />
         </label>
         <label className="settings-field">
           <span>Base URL</span>
@@ -244,13 +384,13 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
             className="tombstone-input"
             type="password"
             autoComplete="off"
-            placeholder={provider?.hasApiKey ? '已保存；留空保持不变' : '输入 API 密钥'}
+            placeholder={selectedProvider?.hasApiKey ? '已保存；留空保持不变' : '输入该供应商的 API 密钥'}
             value={apiKey}
             onChange={(event) => setApiKey(event.target.value)}
           />
         </label>
         <p className="note-line" style={{ marginBottom: 16 }}>
-          密钥只保存在本机后端配置文件中，页面不会读取明文。只使用 Anthropic Messages 原生协议，不回退到 OpenAI 协议。
+          三个供应商和密钥独立保留；选择后“保存并使用”才会切换。密钥只保存在本机后端配置文件中，页面不会读取明文。
         </p>
         {error && (
           <p className="note-line settings-error" role="alert">

@@ -1,16 +1,17 @@
 /**
  * 最小数据模型。
- * 三种卡片关系统一用 CardEdge 表达，UI 不硬编码关系语义。
+ * 四种卡片关系统一用 CardEdge 表达，UI 不硬编码关系语义。
  */
-import type { ToolActivity } from './lib/run-activity';
+import type { ThinkingActivity, ToolActivity } from './lib/run-activity';
 
-export type EdgeType = 'child' | 'divergent' | 'branch';
+export type EdgeType = 'child' | 'divergent' | 'branch' | 'concept';
 
 /** 上下文继承策略：决定 buildContext 未来如何拼装 */
 export type ContextPolicy =
   | 'topic-and-selection' // 深挖：来源主题 + 选中片段
   | 'topic-only' // 发散：仅来源主题作为相关背景
-  | 'history-through-turn'; // 改道：继承到指定轮次为止的完整历史
+  | 'history-through-turn' // 改道：继承到指定轮次为止的完整历史
+  | 'concept-expansion'; // 概念展开：用户认可的 AI 临时卡成为正式卡
 
 export type TurnRole = 'user' | 'ai';
 
@@ -29,12 +30,12 @@ export interface Turn {
   role: TurnRole;
   /** Markdown 正文 */
   content: string;
-  createdAt: number;
   /** 生成中的临时状态 */
   streaming?: boolean;
   phase?: 'planning' | 'tools' | 'answering';
   turnCount?: number;
   activity?: ToolActivity[];
+  thinking?: ThinkingActivity[];
   favorite?: boolean;
   /** 服务端会话条目 id（选区/改道锚点用） */
   entryId?: string;
@@ -46,14 +47,62 @@ export interface Turn {
   error?: string;
   /** 受控引用（由宿主验证，前端只展示） */
   citations?: Citation[];
+  /** 模型从本轮正式回答中选出的可点击临时概念卡 */
+  concepts?: ConceptInsight[];
+  /** 本轮实际命中的判决及 MemOS 可用性；只用于审计，不是资料引用。 */
+  verdictTrace?: VerdictTrace;
+  /** 模型自选复用：回答中显式标注引用的判决（provided 是提供数，used 才是真复用）。 */
+  verdictUse?: VerdictUse;
+}
+
+export interface VerdictUse {
+  promptVersion: string;
+  availability: 'available' | 'degraded' | 'unavailable';
+  source: 'memos' | 'local-cache' | 'none';
+  provided: number;
+  providedTotal: number;
+  truncated: boolean;
+  used: Array<{
+    id: string;
+    verdictType: 'tombstone' | 'gold';
+    snapshot: string;
+  }>;
+  unknownCount: number;
+}
+
+export interface VerdictTrace {
+  promptVersion: string;
+  injectionEnabled: boolean;
+  query: string;
+  availability: 'available' | 'degraded' | 'unavailable';
+  source: 'memos' | 'local-cache' | 'none';
+  verdicts: Array<{
+    id: string;
+    verdictType: 'tombstone' | 'gold';
+    snapshot: string;
+  }>;
+  providedTotal?: number;
+  truncated?: boolean;
+  unavailableCode?: string;
+}
+
+export interface ConceptInsight {
+  id: string;
+  term: string;
+  /** 旧数据才有 AI 预写正文；新链路为空，点击后按需生成 */
+  body?: string;
+  question: string;
 }
 
 export interface Citation {
-  chunkId?: string;
+  chunkId: string;
+  documentId?: string;
   relativePath?: string;
+  path?: string;
   sourceKind?: string;
-  excerpt?: string;
-  [key: string]: unknown;
+  start?: number;
+  end?: number;
+  excerpt: string;
 }
 
 /** 判决簿条目：墓碑（否决方向）与金子（采纳的 1% 命中） */
@@ -65,10 +114,24 @@ export interface Verdict {
   kind: 'tombstone' | 'gold';
   text: string;
   handle: string | null;
-  status: 'proposed' | 'confirmed' | 'superseded';
+  status: 'proposed' | 'confirmed' | 'superseded' | 'abandoned';
   memosStatus?: string;
+  memoryId?: string | null;
+  syncError?: string | null;
+  originalText?: string | null;
+  editRatio?: number | null;
+  supersedesMemoryId?: string | null;
+  resumedRunId?: string | null;
   createdAt: string;
   updatedAt?: string;
+}
+
+export interface VerdictSyncStatus {
+  available: boolean;
+  pending: number;
+  failed: number;
+  usingLocalCache: boolean;
+  error?: string;
 }
 
 export interface Card {
@@ -156,5 +219,13 @@ export const EDGE_META: Record<
     policyLabel: '继承分支点之前的对话历史，分支点之后不带入',
     color: 'var(--branch)',
     enterFrom: { x: -120, y: 12, rotate: -2.5 },
+  },
+  concept: {
+    label: '概念展开',
+    verb: '展开自',
+    policy: 'concept-expansion',
+    policyLabel: '把用户认可的 AI 临时概念卡原样提升为正式卡片',
+    color: 'var(--accent)',
+    enterFrom: { x: 0, y: 56, rotate: 0 },
   },
 };

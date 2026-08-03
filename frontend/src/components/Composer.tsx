@@ -5,14 +5,16 @@ import {
   Cpu,
   Layers,
   Paperclip,
+  Plus,
   Quote,
   Square,
   X,
   XCircle,
 } from 'lucide-react';
-import { useStore } from '../store';
+import { useStore, useStreamingTurnId } from '../store';
 import { EDGE_META } from '../types';
 import { incomingEdge } from '../lib/graph';
+import { api } from '../lib/api';
 
 export function Composer({ onLocate }: { onLocate: (cardId: string, turnId?: string) => void }) {
   const {
@@ -24,12 +26,32 @@ export function Composer({ onLocate }: { onLocate: (cardId: string, turnId?: str
     clearReferences,
     send,
     stopStream,
-    streamingTurnId,
     showToast,
   } = useStore();
+  const streamingTurnId = useStreamingTurnId();
   const [text, setText] = useState('');
   const [ctxOpen, setCtxOpen] = useState(false);
+  const [plusOpen, setPlusOpen] = useState(false);
+  const [modelId, setModelId] = useState<string | null>(null);
   const ta = useRef<HTMLTextAreaElement>(null);
+
+  /* 模型 chip 展示设置里真实配置的模型 ID，不写死 */
+  useEffect(() => {
+    let alive = true;
+    const load = () =>
+      api
+        .providerSettings()
+        .then((s) => alive && setModelId(s.model))
+        .catch(() => {});
+    load();
+    window.addEventListener('focus', load);
+    window.addEventListener('papertable-provider-changed', load);
+    return () => {
+      alive = false;
+      window.removeEventListener('focus', load);
+      window.removeEventListener('papertable-provider-changed', load);
+    };
+  }, []);
 
   const card = cards.find((c) => c.id === currentCardId);
   const inEdge = card ? incomingEdge(edges, card.id) : undefined;
@@ -40,7 +62,8 @@ export function Composer({ onLocate }: { onLocate: (cardId: string, turnId?: str
     const el = ta.current;
     if (!el) return;
     el.style.height = 'auto';
-    el.style.height = Math.min(el.scrollHeight, 132) + 'px';
+    // 上限约 214px（对齐 ai.explore.poker：约 7 行后改为框内滚动）
+    el.style.height = Math.min(el.scrollHeight, 214) + 'px';
   }, [text]);
 
   const branchIndex = useMemo(() => {
@@ -203,43 +226,65 @@ export function Composer({ onLocate }: { onLocate: (cardId: string, turnId?: str
         )}
 
         <div className="composer-box">
+          {/* 「+」收纳按钮：附件、上下文等零散动作收进一张菜单（对标 ChatGPT 网页版） */}
+          <div style={{ position: 'relative' }}>
+            <button
+              className={`plus-btn${plusOpen ? ' on' : ''}`}
+              onClick={() => setPlusOpen((v) => !v)}
+              title="更多功能"
+              aria-label="更多功能"
+            >
+              <Plus size={17} />
+            </button>
+            {plusOpen && (
+              <>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 45 }} onClick={() => setPlusOpen(false)} />
+                <div className="menu plus-menu">
+                  <button
+                    className="menu-item"
+                    onClick={() => {
+                      setPlusOpen(false);
+                      showToast({ text: '原型中附件只表现交互状态，不做真实解析' });
+                    }}
+                  >
+                    <Paperclip size={14} />
+                    添加附件
+                  </button>
+                  <button
+                    className="menu-item"
+                    onClick={() => {
+                      setPlusOpen(false);
+                      setCtxOpen(true);
+                    }}
+                  >
+                    <Layers size={14} />
+                    本次上下文
+                    <span className="ctx-count">{1 + (sourceCard ? 1 : 0) + references.length}</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+
           <span className="chip-btn" title="模型 ID、URL 与密钥在设置中配置">
             <Cpu size={13} />
-            云端 · Anthropic Messages
+            {modelId ?? '未配置模型'}
           </span>
-
-          <button
-            className={`chip-btn${ctxOpen ? ' on' : ''}`}
-            onClick={() => setCtxOpen((v) => !v)}
-            title="查看本次提问会带入什么上下文"
-          >
-            <Layers size={13} />
-            本次上下文
-            <span className="ctx-count">{1 + (sourceCard ? 1 : 0) + references.length}</span>
-          </button>
 
           <textarea
             ref={ta}
             rows={1}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="继续追问，或选中上面的文字建立精确引用…"
+            placeholder="探索一切…… (Enter = 换行) | (Ctrl+Enter = 发送)"
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
+              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                 e.preventDefault();
                 submit();
               }
             }}
             aria-label="提问输入框"
           />
-
-          <button
-            className="icon-btn"
-            title="添加附件"
-            onClick={() => showToast({ text: '原型中附件只表现交互状态，不做真实解析' })}
-          >
-            <Paperclip size={16} />
-          </button>
 
           {streamingTurnId ? (
             <button className="send-btn stop" onClick={stopStream} title="停止生成" aria-label="停止生成">
@@ -250,7 +295,7 @@ export function Composer({ onLocate }: { onLocate: (cardId: string, turnId?: str
               className="send-btn"
               onClick={submit}
               disabled={!text.trim()}
-              title="发送"
+              title="发送 (Ctrl+Enter)"
               aria-label="发送"
             >
               <ArrowUp size={17} />

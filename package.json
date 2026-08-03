@@ -8,7 +8,9 @@
   "scripts": {
     "start": "node src/main.ts",
     "run": "node src/main.ts",
-    "selfcheck": "node src/selfcheck.ts"
+    "selfcheck": "node src/selfcheck.ts",
+    "test": "node --test src/gate.test.ts src/verdict-memos.test.ts src/verdicts.test.ts",
+    "verify": "npm test && npm run selfcheck && npm --prefix frontend run build"
   },
   "dependencies": {
     "@earendil-works/pi-agent-core": "0.82.1",

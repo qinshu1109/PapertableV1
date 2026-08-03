@@ -2,6 +2,8 @@
 
 设计稿前端（纸桌 Papertable 原型）+ PapertableV1 引擎 + 判决簿 ADR 的完整组装。
 
+需求域边界、跨域业务接口和新 TASK 必填字段见 [REQUIREMENT-DOMAINS.md](./REQUIREMENT-DOMAINS.md)。
+
 ## 运行
 
 ```bash
@@ -28,8 +30,8 @@ cd frontend && npm install && npm run dev   # http://localhost:5173
 | 文件 | 内容 |
 |---|---|
 | `src/verdicts.ts` | 判决簿：`pt_verdicts` 表、墓碑起草（改道同步落模板草稿 + 后台功能模型润色）、confirm / supersede / adopt、注入块生成、MemOS `papertable-verdicts` Cube best-effort 同步（只许 supersede 不许删除；本地表为运行时权威） |
-| `src/engine.ts` | `buildSystemPrompt` 之后追加 `verdictInjectionBlock`——confirmed 判决注入每个新干净上下文（"干净但不失忆"） |
-| `src/main.ts` | 新端点：`GET /api/projects/:id/verdicts`、`POST /api/verdicts/:id/confirm`、`POST /api/verdicts/:id/supersede`、`POST /api/runs/:id/adopt`；改道分支响应附带墓碑草稿；serveStatic 改为 SPA 静态托管（含 assets、回退 index.html、路径穿越防护） |
+| `src/engine.ts` | `buildSystemPrompt` 之后追加 `verdictInjectionBlock`——每个新干净上下文提供本项目全部有效链尾判决（"干净但不失忆"；模型自选引用并强制 `[[verdict:id]]` 标注，完成后解析生成 `verdict_use` 审计事件） |
+| `src/main.ts` | 新端点：`GET /api/projects/:id/verdicts`、`POST /api/verdicts/:id/confirm`、`POST /api/verdicts/:id/supersede`、`POST /api/runs/:id/adopt`、`POST /api/projects/:id/cards/purge`（回收站物理删除，带判决引用与运行中保护）；改道分支响应附带墓碑草稿；serveStatic 改为 SPA 静态托管（含 assets、回退 index.html、路径穿越防护） |
 | `scripts/mock-model.mjs` | e2e 冒烟用假模型（anthropic-messages，含 SSE、tool_use 两跳、哨兵与受控引用），仅开发验证用 |
 
 ### 前端（frontend/，构建产物在 public/）
@@ -38,7 +40,7 @@ cd frontend && npm install && npm run dev   # http://localhost:5173
 - `src/store.tsx`：mock store 全量替换为服务端数据层；收藏/置顶/回收站/折叠保留为本地覆盖层（localStorage）；
 - 三种关系接通：深挖（精确选区偏移，失配退化为整段）、发散（topic）、改道（自动回溯至最近的用户轮 entryId）；
 - `VerdictPanel.tsx`：改道后的墓碑确认条（确认/改写/忽略）+ 判决簿抽屉（金子/墓碑、supersede、跳转来源卡片）；
-- TurnBlock 增加 RunFooter：受控引用芯片、终局态（refused/insufficient_evidence 显示"资料不足…拒答而非编造"）、重试、"采纳为金子"（亲手铸把手）；
+- TurnBlock 增加 RunFooter：受控引用芯片、终局态（refused/insufficient_evidence 显示"资料不足…拒答而非编造"）、重试、"采纳为金子"（亲手铸把手）、判决复用行（模型实际引用的金子，数据来自 `verdict_use`）；正文中的 `[[verdict:id]]` 标注渲染为行内 ✦；
 - 设置弹层新增只读资料库绑定与重建索引。
 
 ## 已验证（沙箱 e2e，mock 模型）
@@ -54,7 +56,7 @@ cd frontend && npm install && npm run dev   # http://localhost:5173
 
 - MemOS 同步的 `add_memory` 工具名按通用约定书写，若 MemOSjyi 实际工具名不同，改 `src/verdicts.ts` 里一处常量即可（失败会记录在 `memosStatus`，不影响本地闭环）；
 - 深挖选区在 markdown 渲染文本与原文偏移失配时退化为整段选区；
-- 原型的导入/导出/项目删除仍为占位；回收站是本地隐藏而非服务端删除；
+- 原型的导入/导出/项目删除仍为占位；卡片回收站已有列表页（侧栏入口），可还原（本地覆盖层）也可彻底删除（服务端物理删除，被判决引用或运行中的卡片受保护）；
 - 注入 A/B 复发率实验（ADR 判据 1）需真实模型与真实项目数据，在你机器上跑。
 
 ## 补充（流式与工具进度修复）

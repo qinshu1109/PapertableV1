@@ -4,12 +4,53 @@ import { getChunkCitation } from "./notes.ts";
 
 export const ANSWER_SENTINEL = "[[PAPERTABLE_ANSWER_START]]";
 
+/**
+ * 概念词表哨兵：模型在最终正文之后另起一行输出它，再跟一个
+ * {"concepts":[{"term","question"}]} JSON。词表只是高亮入口，临时卡内容
+ * 在用户点击后按需生成，绝不在主 run 里串行重写。
+ */
+export const CONCEPTS_SENTINEL = "[[PAPERTABLE_CONCEPTS]]";
+
+/** 切掉概念词表块，只允许闸门看到正文（流式中间态同样安全）。 */
+function cutConceptBlock(text: string): string {
+  const index = text.indexOf(CONCEPTS_SENTINEL);
+  return index < 0 ? text : text.slice(0, index);
+}
+
+/**
+ * 从原始 assistant 文本中解析概念词表（未校验）。
+ * 校验（term 逐字存在于正文、数量上限等）由引擎在终态做。
+ */
+export function parseConceptBlock(raw: string): Array<{ term: string; question: string }> {
+  const marker = raw.indexOf(CONCEPTS_SENTINEL);
+  if (marker < 0) return [];
+  const tail = raw.slice(marker + CONCEPTS_SENTINEL.length);
+  const start = tail.indexOf("{");
+  const end = tail.lastIndexOf("}");
+  if (start < 0 || end <= start) return [];
+  let parsed: { concepts?: unknown };
+  try {
+    parsed = JSON.parse(tail.slice(start, end + 1)) as { concepts?: unknown };
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(parsed.concepts)) return [];
+  return parsed.concepts.flatMap((value) => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+    const item = value as Record<string, unknown>;
+    const term = typeof item.term === "string" ? item.term.trim() : "";
+    const question = typeof item.question === "string" ? item.question.trim() : "";
+    return term && question ? [{ term, question }] : [];
+  });
+}
+
 export type TerminalResult = "completed" | "partial" | "refused" | "failed" | "aborted";
 export type TerminalReason =
   | "none"
   | "insufficient_evidence"
   | "protocol_error"
   | "citation_error"
+  | "incomplete_answer"
   | "provider_error"
   | "startup_error"
   | "process_interrupted"
@@ -152,6 +193,9 @@ export function gateAnswer(rawAnswer: string, context: RunContext): Terminal {
   ) {
     return { result: "failed", reason: "citation_error", citations: [] };
   }
+  if (/^#{1,6}\s+\S.*$/u.test(parsed.pieces.at(-1)?.text.trim() || "")) {
+    return { result: "failed", reason: "incomplete_answer", citations: [...citations.values()] };
+  }
   return {
     result: "completed",
     reason: "none",
@@ -190,7 +234,7 @@ function safePieces(
     };
   }
   const protocol = new ProtocolSanitizer();
-  let remaining = protocol.feed(afterSentinel);
+  let remaining = protocol.feed(cutConceptBlock(afterSentinel));
   if (flush) remaining += protocol.finish();
   const pieces: SafePiece[] = [];
   const seenClaims = new Set<string>();
@@ -204,6 +248,28 @@ function safePieces(
     const candidate = remaining.slice(0, end);
     remaining = remaining.slice(end);
     if (!candidate) break;
+    // 代码围栏（含 mermaid 图）是结构件：整吞到闭合围栏，不参与逐句引用校验；
+    // 否则图的每一行都会被当作"无引用正文"丢弃，图就永远到不了用户。
+    if (candidate.trimStart().startsWith("```")) {
+      const close = /^```[^\n]*(?:\n|$)/m.exec(remaining);
+      if (!close) {
+        if (!flush) {
+          remaining = candidate + remaining;
+          break;
+        }
+        pieces.push({ text: candidate + remaining, citations: [], substantive: false });
+        remaining = "";
+        break;
+      }
+      const fenceEnd = close.index + close[0].length;
+      pieces.push({
+        text: candidate + remaining.slice(0, fenceEnd),
+        citations: [],
+        substantive: false,
+      });
+      remaining = remaining.slice(fenceEnd);
+      continue;
+    }
     const cleaned = validateCitations(candidate, context);
     invalidCitationCount += cleaned.invalidCitationCount;
     if (cleaned.invalidCitationCount > 0 && cleaned.citations.length === 0) {
@@ -245,7 +311,10 @@ export function sanitizeAssistantMessage(
   if (hasToolCall) {
     return {
       ...message,
-      content: message.content.filter((block) => block.type === "toolCall"),
+      // Anthropic-compatible thinking models require the signed thinking block
+      // to be replayed with the following tool call.
+      content: message.content.filter((block) =>
+        block.type === "thinking" || block.type === "toolCall"),
     };
   }
   const rawText = message.content
@@ -384,7 +453,7 @@ function normalizedClaim(text: string): string {
 }
 
 export function stripProtocol(text: string): string {
-  return text
+  return cutConceptBlock(text)
     .replace(/<(?:analysis|thinking|system|assistant|tool)[^>]*>[\s\S]*?<\/(?:analysis|thinking|system|assistant|tool)>/gi, "")
     .replace(/<\/?(?:analysis|thinking|system|assistant|tool|final|answer)[^>]*>/gi, "")
     .replaceAll(ANSWER_SENTINEL, "");

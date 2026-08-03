@@ -4,7 +4,7 @@ import { join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 
 export type SourceKind = "library" | "project_material";
-export type BranchKind = "root" | "deep_dive" | "diverge" | "reroute";
+export type BranchKind = "root" | "deep_dive" | "diverge" | "reroute" | "concept";
 
 export type ProjectRow = {
   id: string;
@@ -39,6 +39,14 @@ export type RunRow = {
   error: string | null;
   created_at: string;
   ended_at: string | null;
+  /** answer = 卡片正式轮；concept_preview = 用户点击触发的按需概念会话 */
+  kind: string;
+  /** concept_preview 的独立会话；正式轮为 NULL（用卡片会话） */
+  session_id: string | null;
+  /** concept_preview 的来源正式轮 */
+  source_run_id: string | null;
+  /** concept_preview 的概念词 */
+  concept_term: string | null;
 };
 
 export type DataStore = {
@@ -71,7 +79,7 @@ export function openDataStore(dataDirectory = process.env.PAPERTABLE_DATA_DIR): 
       version INTEGER NOT NULL
     );
     INSERT INTO pt_schema(version)
-      SELECT 1 WHERE NOT EXISTS (SELECT 1 FROM pt_schema);
+      SELECT 3 WHERE NOT EXISTS (SELECT 1 FROM pt_schema);
 
     CREATE TABLE IF NOT EXISTS pt_projects (
       id TEXT PRIMARY KEY,
@@ -128,7 +136,7 @@ export function openDataStore(dataDirectory = process.env.PAPERTABLE_DATA_DIR): 
       project_id TEXT NOT NULL REFERENCES pt_projects(id) ON DELETE CASCADE,
       session_id TEXT NOT NULL UNIQUE,
       title TEXT NOT NULL,
-      branch_kind TEXT NOT NULL CHECK(branch_kind IN ('root', 'deep_dive', 'diverge', 'reroute')),
+      branch_kind TEXT NOT NULL CHECK(branch_kind IN ('root', 'deep_dive', 'diverge', 'reroute', 'concept')),
       source_card_id TEXT REFERENCES pt_cards(id) ON DELETE SET NULL,
       branch_context_json TEXT,
       created_at TEXT NOT NULL,
@@ -141,7 +149,7 @@ export function openDataStore(dataDirectory = process.env.PAPERTABLE_DATA_DIR): 
       project_id TEXT NOT NULL REFERENCES pt_projects(id) ON DELETE CASCADE,
       source_card_id TEXT NOT NULL REFERENCES pt_cards(id) ON DELETE CASCADE,
       target_card_id TEXT NOT NULL REFERENCES pt_cards(id) ON DELETE CASCADE,
-      kind TEXT NOT NULL CHECK(kind IN ('deep_dive', 'diverge', 'reroute')),
+      kind TEXT NOT NULL CHECK(kind IN ('deep_dive', 'diverge', 'reroute', 'concept')),
       snapshot_json TEXT NOT NULL,
       created_at TEXT NOT NULL
     );
@@ -160,7 +168,11 @@ export function openDataStore(dataDirectory = process.env.PAPERTABLE_DATA_DIR): 
       answer TEXT,
       error TEXT,
       created_at TEXT NOT NULL,
-      ended_at TEXT
+      ended_at TEXT,
+      kind TEXT NOT NULL DEFAULT 'answer',
+      session_id TEXT,
+      source_run_id TEXT,
+      concept_term TEXT
     );
     CREATE INDEX IF NOT EXISTS pt_runs_card ON pt_runs(card_id, created_at);
 
@@ -215,7 +227,96 @@ export function openDataStore(dataDirectory = process.env.PAPERTABLE_DATA_DIR): 
     );
   `);
 
+  migrateSchema(db);
   return { db, dataDir, databasePath, projectsDir, stagesDir };
+}
+
+function migrateSchema(db: DatabaseSync): void {
+  const row = db.prepare("SELECT version FROM pt_schema LIMIT 1").get() as { version: number };
+  if (row.version >= 2) {
+    migrateRunsV3(db, row.version);
+    return;
+  }
+
+  db.exec("PRAGMA foreign_keys = OFF");
+  try {
+    db.exec(`
+      BEGIN IMMEDIATE;
+
+      CREATE TABLE pt_cards_v2 (
+        id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL REFERENCES pt_projects(id) ON DELETE CASCADE,
+        session_id TEXT NOT NULL UNIQUE,
+        title TEXT NOT NULL,
+        branch_kind TEXT NOT NULL CHECK(branch_kind IN ('root', 'deep_dive', 'diverge', 'reroute', 'concept')),
+        source_card_id TEXT REFERENCES pt_cards_v2(id) ON DELETE SET NULL,
+        branch_context_json TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+      INSERT INTO pt_cards_v2
+        SELECT id, project_id, session_id, title, branch_kind, source_card_id,
+               branch_context_json, created_at, updated_at
+        FROM pt_cards;
+      DROP TABLE pt_cards;
+      ALTER TABLE pt_cards_v2 RENAME TO pt_cards;
+      CREATE INDEX pt_cards_project ON pt_cards(project_id, created_at);
+
+      CREATE TABLE pt_edges_v2 (
+        id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL REFERENCES pt_projects(id) ON DELETE CASCADE,
+        source_card_id TEXT NOT NULL REFERENCES pt_cards(id) ON DELETE CASCADE,
+        target_card_id TEXT NOT NULL REFERENCES pt_cards(id) ON DELETE CASCADE,
+        kind TEXT NOT NULL CHECK(kind IN ('deep_dive', 'diverge', 'reroute', 'concept')),
+        snapshot_json TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      );
+      INSERT INTO pt_edges_v2
+        SELECT id, project_id, source_card_id, target_card_id, kind, snapshot_json, created_at
+        FROM pt_edges;
+      DROP TABLE pt_edges;
+      ALTER TABLE pt_edges_v2 RENAME TO pt_edges;
+      CREATE INDEX pt_edges_project ON pt_edges(project_id, created_at);
+
+      UPDATE pt_schema SET version = 2;
+      COMMIT;
+    `);
+  } catch (error) {
+    try {
+      db.exec("ROLLBACK");
+    } catch {
+      // Transaction may already have rolled back.
+    }
+    throw error;
+  } finally {
+    db.exec("PRAGMA foreign_keys = ON");
+  }
+
+  const violations = db.prepare("PRAGMA foreign_key_check").all();
+  if (violations.length > 0) throw new Error("Schema migration left invalid foreign keys");
+
+  migrateRunsV3(db, 2);
+}
+
+/** v3：pt_runs 增加按需概念会话所需的列（正式轮不受影响，默认 kind='answer'）。 */
+function migrateRunsV3(db: DatabaseSync, version: number): void {
+  if (version >= 3) return;
+  const columns = (db.prepare("PRAGMA table_info(pt_runs)").all() as Array<{ name: string }>)
+    .map((column) => column.name);
+  // CREATE TABLE IF NOT EXISTS 先跑过：全新库的 pt_runs 已带新列，只需升版本号
+  if (columns.includes("kind")) {
+    db.exec("UPDATE pt_schema SET version = 3");
+    return;
+  }
+  db.exec(`
+    BEGIN IMMEDIATE;
+    ALTER TABLE pt_runs ADD COLUMN kind TEXT NOT NULL DEFAULT 'answer';
+    ALTER TABLE pt_runs ADD COLUMN session_id TEXT;
+    ALTER TABLE pt_runs ADD COLUMN source_run_id TEXT;
+    ALTER TABLE pt_runs ADD COLUMN concept_term TEXT;
+    UPDATE pt_schema SET version = 3;
+    COMMIT;
+  `);
 }
 
 export function nowIso(): string {

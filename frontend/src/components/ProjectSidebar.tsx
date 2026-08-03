@@ -5,6 +5,7 @@ import {
   Download,
   FolderPlus,
   MoreHorizontal,
+  Pencil,
   Pin,
   Search,
   Settings,
@@ -24,6 +25,7 @@ interface Props {
   onImport: () => void;
   onExport: () => void;
   onSettings: () => void;
+  onTrash: () => void;
 }
 
 export function ProjectSidebar({
@@ -34,11 +36,13 @@ export function ProjectSidebar({
   onImport,
   onExport,
   onSettings,
+  onTrash,
 }: Props) {
-  const { projects, activeProjectId, setActiveProject, togglePinProject, createProject, deleteProject } =
+  const { projects, activeProjectId, setActiveProject, renameProject, togglePinProject, createProject, deleteProject, cards } =
     useStore();
   const [query, setQuery] = useState('');
   const [menuFor, setMenuFor] = useState<string | null>(null);
+  const trashCount = cards.filter((c) => c.trashed).length;
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -47,6 +51,10 @@ export function ProjectSidebar({
   }, [projects, query]);
 
   const rail = collapsed && !drawerOpen;
+  const askRename = (id: string, current: string) => {
+    const next = window.prompt('项目名称', current)?.trim();
+    if (next && next !== current) renameProject(id, next);
+  };
 
   return (
     <aside
@@ -129,7 +137,16 @@ export function ProjectSidebar({
                 className={p.pinned ? 'pin-on' : ''}
                 style={{ opacity: p.pinned ? 1 : 0.25, flexShrink: 0 }}
               />
-              <span className="proj-name">{p.name}</span>
+              <span
+                className="proj-name"
+                title="双击重命名项目"
+                onDoubleClick={(event) => {
+                  event.stopPropagation();
+                  askRename(p.id, p.name);
+                }}
+              >
+                {p.name}
+              </span>
               <button
                 className="icon-btn"
                 title="项目菜单"
@@ -151,6 +168,16 @@ export function ProjectSidebar({
                     }}
                   />
                   <div className="menu" style={{ top: 30, right: 4 }} onClick={(e) => e.stopPropagation()}>
+                    <button
+                      className="menu-item"
+                      onClick={() => {
+                        setMenuFor(null);
+                        askRename(p.id, p.name);
+                      }}
+                    >
+                      <Pencil size={14} />
+                      重命名项目
+                    </button>
                     <button
                       className="menu-item"
                       onClick={() => {
@@ -198,6 +225,10 @@ export function ProjectSidebar({
       </div>
 
       <div className="sb-foot">
+        <button className="sb-item" onClick={onTrash} title="回收站">
+          <Trash2 size={15} />
+          {!rail && <span>回收站{trashCount > 0 ? ` (${trashCount})` : ''}</span>}
+        </button>
         <button className="sb-item" onClick={onSettings} title="设置">
           <Settings size={15} />
           {!rail && <span>设置</span>}

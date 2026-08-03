@@ -1,7 +1,7 @@
 /**
  * 服务端数据层：替换原型的 mock store，对接 PapertableV1 引擎。
  *
- * - 项目 / 卡片 / 三种关系边 / 逐句流式回答全部来自 127.0.0.1:4317；
+ * - 项目 / 卡片 / 四种关系边 / 逐句流式回答全部来自 127.0.0.1:4317；
  * - 收藏、置顶、回收站、折叠为本地 UI 覆盖层（localStorage），不进服务端；
  * - 判决簿（墓碑确认 / 金子采纳 / supersede）直连后端判决端点。
  */
@@ -34,8 +34,15 @@ import type {
   SourceAnchor,
   Turn,
   Verdict,
+  VerdictSyncStatus,
 } from './types';
-import { reduceToolActivity, type ToolActivity } from './lib/run-activity';
+import {
+  reduceThinkingActivity,
+  reduceToolActivity,
+  type ThinkingActivity,
+  type ToolActivity,
+} from './lib/run-activity';
+import { bindRunsToTurns } from './lib/bind-runs';
 
 let seq = 100;
 const uid = (p: string) => `${p}-${++seq}`;
@@ -44,6 +51,7 @@ const KIND_TO_EDGE: Record<ServerEdge['kind'], EdgeType> = {
   deep_dive: 'child',
   diverge: 'divergent',
   reroute: 'branch',
+  concept: 'concept',
 };
 
 export interface CreateCardInput {
@@ -52,6 +60,10 @@ export interface CreateCardInput {
   sourceTurnId?: string;
   sourceText?: string;
   sourceBlockText?: string;
+  sourceRunId?: string;
+  conceptId?: string;
+  /** 按需概念会话 run（新链路提升入口） */
+  previewRunId?: string;
   title: string;
   /** 初始轮次，例如概念预览升级为卡片时带入的问答 */
   seedTurns?: Turn[];
@@ -71,6 +83,7 @@ interface LiveRun {
   content: string;
   citations: Citation[];
   activity: ToolActivity[];
+  thinking: ThinkingActivity[];
   phase: 'planning' | 'tools' | 'answering';
   turnCount: number;
 }
@@ -107,7 +120,6 @@ interface Ctx {
   references: ReferenceChip[];
   collapsed: Set<string>;
   toast: Toast | null;
-  streamingTurnId: string | null;
   lastCreated: { cardId: string; type: EdgeType } | null;
 
   cardById: (id: string) => Card | undefined;
@@ -118,8 +130,11 @@ interface Ctx {
   deleteProject: (id: string) => void;
 
   setCurrentCard: (id: string) => void;
+  renameCard: (id: string, title: string) => void;
   createCard: (input: CreateCardInput) => void;
   deleteCard: (id: string) => void;
+  restoreCards: (ids: string[]) => void;
+  purgeCards: (ids: string[]) => Promise<void>;
   toggleFavoriteCard: (id: string) => void;
   toggleCollapse: (id: string) => void;
   markRead: (id: string) => void;
@@ -136,11 +151,12 @@ interface Ctx {
 
   /* ---------- 判决簿 ---------- */
   verdicts: Verdict[];
+  verdictStatus: VerdictSyncStatus;
   pendingTombstone: Verdict | null;
   confirmTombstone: (id: string, text?: string) => void;
   dismissTombstone: () => void;
-  supersedeVerdict: (id: string) => void;
-  adoptRun: (runId: string, handle: string) => Promise<boolean>;
+  supersedeVerdict: (id: string, text: string, handle?: string) => void;
+  adoptRun: (runId: string, handle: string, text?: string) => Promise<boolean>;
   ledgerOpen: boolean;
   setLedgerOpen: (open: boolean) => void;
 
@@ -154,12 +170,17 @@ interface Ctx {
 }
 
 const StoreCtx = createContext<Ctx | null>(null);
+const LiveRunCtx = createContext<LiveRun | null>(null);
+const StreamingTurnCtx = createContext<string | null>(null);
 
 export const useStore = () => {
   const v = useContext(StoreCtx);
   if (!v) throw new Error('StoreProvider missing');
   return v;
 };
+
+export const useLiveRun = () => useContext(LiveRunCtx);
+export const useStreamingTurnId = () => useContext(StreamingTurnCtx);
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -177,6 +198,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [lastCreated, setLastCreated] = useState<{ cardId: string; type: EdgeType } | null>(null);
   const [overlay, setOverlay] = useState<Overlay>(loadOverlay);
   const [verdicts, setVerdicts] = useState<Verdict[]>([]);
+  const [verdictStatus, setVerdictStatus] = useState<VerdictSyncStatus>({
+    available: false,
+    pending: 0,
+    failed: 0,
+    usingLocalCache: true,
+  });
   const [pendingTombstone, setPendingTombstone] = useState<Verdict | null>(null);
   const [ledgerOpen, setLedgerOpen] = useState(false);
 
@@ -212,10 +239,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const refreshVerdicts = useCallback(async (projectId: string) => {
     try {
-      const { verdicts: rows } = await api.listVerdicts(projectId);
+      const { verdicts: rows, status } = await api.listVerdicts(projectId);
       setVerdicts(rows);
+      setVerdictStatus(status);
+      setPendingTombstone((current) =>
+        current ?? rows.find((verdict) => verdict.status === 'proposed') ?? null,
+      );
     } catch {
-      /* 判决簿不可用不阻塞主流程 */
+      setVerdictStatus((current) => ({ ...current, available: false, usingLocalCache: true }));
     }
   }, []);
 
@@ -277,6 +308,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         content: '',
         citations: [],
         activity: [],
+        thinking: [],
         phase: 'planning',
         turnCount: 0,
       });
@@ -289,10 +321,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           );
           return;
         }
-        if (['tool_start', 'tool_update', 'tool_end'].includes(event.event)) {
+        if (
+          event.event === 'tool_start'
+          || event.event === 'tool_update'
+          || event.event === 'tool_end'
+        ) {
           setLive((prev) =>
             prev && prev.runId === runId
               ? { ...prev, phase: 'tools', activity: reduceToolActivity(prev.activity, event) }
+              : prev,
+          );
+          return;
+        }
+        if (event.event === 'thinking_start' || event.event === 'thinking_end') {
+          setLive((prev) =>
+            prev && prev.runId === runId
+              ? { ...prev, phase: 'planning', thinking: reduceThinkingActivity(prev.thinking, event) }
               : prev,
           );
           return;
@@ -305,9 +349,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           return;
         }
         if (event.event === 'citation_resolved') {
+          const citation: Citation = {
+            chunkId: event.chunkId,
+            documentId: event.documentId,
+            sourceKind: event.sourceKind,
+            path: event.path,
+            start: event.start,
+            end: event.end,
+            excerpt: event.excerpt,
+          };
           setLive((prev) =>
             prev && prev.runId === runId
-              ? { ...prev, citations: [...prev.citations, event as unknown as Citation] }
+              ? { ...prev, citations: [...prev.citations, citation] }
               : prev,
           );
           return;
@@ -375,6 +428,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (!activeProjectId) return;
+    const timer = window.setInterval(() => void refreshVerdicts(activeProjectId), 15_000);
+    return () => window.clearInterval(timer);
+  }, [activeProjectId, refreshVerdicts]);
+
   /* ================= 派生视图（原型数据模型） ================= */
 
   const cards = useMemo<Card[]>(() => {
@@ -382,22 +441,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       let turns = cardTurns[row.id] ?? [];
       const pending = pendingTurns[row.id] ?? [];
       if (pending.length) turns = [...turns, ...pending];
-      if (live && live.cardId === row.id) {
-        turns = [
-          ...turns,
-          {
-            id: live.turnId,
-            role: 'ai',
-            content: live.content,
-            createdAt: Date.now(),
-            streaming: true,
-            citations: live.citations,
-            activity: live.activity,
-            phase: live.phase,
-            turnCount: live.turnCount,
-          },
-        ];
-      }
       return {
         id: row.id,
         projectId: row.projectId,
@@ -410,7 +453,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         createdAt: Date.parse(row.createdAt) || Date.now(),
       };
     });
-  }, [serverCards, cardTurns, pendingTurns, live, overlay]);
+  }, [serverCards, cardTurns, pendingTurns, overlay]);
 
   const edges = useMemo<CardEdge[]>(
     () =>
@@ -427,7 +470,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             ? 'topic-and-selection'
             : edge.kind === 'diverge'
               ? 'topic-only'
-              : 'history-through-turn',
+              : edge.kind === 'reroute'
+                ? 'history-through-turn'
+                : 'concept-expansion',
       })),
     [serverEdges],
   );
@@ -457,10 +502,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
 
   const createProject = useCallback(() => {
+    const stamp = new Date();
+    const suggested = `未命名项目 ${stamp.getMonth() + 1}-${stamp.getDate()} ${String(stamp.getHours()).padStart(2, '0')}:${String(stamp.getMinutes()).padStart(2, '0')}`;
+    const name = window.prompt('项目名称', suggested)?.trim();
+    if (!name) return;
     void (async () => {
       try {
-        const stamp = new Date();
-        const name = `未命名项目 ${stamp.getMonth() + 1}-${stamp.getDate()} ${String(stamp.getHours()).padStart(2, '0')}:${String(stamp.getMinutes()).padStart(2, '0')}`;
         const created = await api.createProject(name);
         await refreshProjects();
         await openProject(created.id);
@@ -472,8 +519,23 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, [refreshProjects, openProject, showToast, fail]);
 
   const renameProject = useCallback((id: string, name: string) => {
-    setOverlay((o) => ({ ...o, projectNames: { ...o.projectNames, [id]: name } }));
-  }, []);
+    void (async () => {
+      try {
+        const updated = await api.renameProject(id, name);
+        setProjects((rows) => rows.map((row) => row.id === id
+          ? { ...row, name: updated.name, updatedAt: Date.parse(updated.updatedAt) || Date.now() }
+          : row));
+        setOverlay((current) => {
+          const projectNames = { ...current.projectNames };
+          delete projectNames[id];
+          return { ...current, projectNames };
+        });
+        showToast({ text: `项目已改名为「${updated.name}」` });
+      } catch (error) {
+        fail(error, '项目改名失败');
+      }
+    })();
+  }, [showToast, fail]);
 
   const togglePinProject = useCallback((id: string) => {
     setOverlay((o) => ({
@@ -505,6 +567,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const markRead = useCallback((_id: string) => undefined, []);
 
+  const renameCard = useCallback((id: string, title: string) => {
+    void (async () => {
+      try {
+        const updated = await api.renameCard(id, title);
+        setServerCards((rows) => rows.map((row) => row.id === id ? updated : row));
+        showToast({ text: `卡片已改名为「${updated.title}」` });
+      } catch (error) {
+        fail(error, '卡片改名失败');
+      }
+    })();
+  }, [showToast, fail]);
+
   const findEntryForBranch = useCallback(
     (sourceCardId: string, sourceTurnId?: string): { userEntryId?: string; aiTurn?: Turn } => {
       const turns = cardTurns[sourceCardId] ?? [];
@@ -532,7 +606,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           `围绕「${input.title}」继续探索`;
         try {
           let payload;
-          if (input.type === 'child') {
+          if (input.type === 'concept') {
+            if (!input.previewRunId && (!input.sourceRunId || !input.conceptId)) {
+              throw new Error('概念临时卡缺少 AI 来源，无法展开');
+            }
+            payload = {
+              kind: 'concept' as const,
+              question,
+              ...(input.previewRunId
+                ? { previewRunId: input.previewRunId }
+                : { sourceRunId: input.sourceRunId, conceptId: input.conceptId }),
+            };
+          } else if (input.type === 'child') {
             const turns = cardTurns[input.sourceCardId] ?? [];
             const target =
               (input.sourceTurnId && turns.find((t) => t.id === input.sourceTurnId && t.role === 'ai')) ||
@@ -552,8 +637,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           await refreshProject(activeProjectId);
           setLastCreated({ cardId: result.cardId, type: input.type });
           setCurrentCardId(result.cardId);
-          void loadCard(result.cardId);
-          subscribe(result.runId, result.cardId);
+          if (input.type === 'concept') {
+            await loadCard(result.cardId);
+          } else {
+            void loadCard(result.cardId);
+            if (result.runId) subscribe(result.runId, result.cardId);
+          }
         } catch (error) {
           fail(error, '创建卡片失败');
         }
@@ -581,6 +670,36 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       });
     },
     [serverEdges, serverCards, overlay.trashedCards, currentCardId, showToast, dismissToast],
+  );
+
+  const restoreCards = useCallback(
+    (ids: string[]) => {
+      if (!ids.length) return;
+      // 还原只改本地覆盖层：卡片从未离开服务端
+      setOverlay((o) => ({ ...o, trashedCards: o.trashedCards.filter((x) => !ids.includes(x)) }));
+      showToast({ text: `已还原 ${ids.length} 张卡片` });
+    },
+    [showToast],
+  );
+
+  const purgeCards = useCallback(
+    async (ids: string[]) => {
+      if (!ids.length || !activeProjectId) return;
+      const result = await api.purgeCards(activeProjectId, ids);
+      setOverlay((o) => ({ ...o, trashedCards: o.trashedCards.filter((x) => !result.purged.includes(x)) }));
+      if (result.purged.includes(currentCardId)) {
+        const fallback = serverCards.find(
+          (c) => !result.purged.includes(c.id) && !overlay.trashedCards.includes(c.id),
+        )?.id;
+        if (fallback) setCurrentCardId(fallback);
+      }
+      await refreshProject(activeProjectId);
+      const skippedText = result.skipped.length
+        ? `；跳过 ${result.skipped.length} 张（${result.skipped[0].reason}${result.skipped.length > 1 ? ' 等' : ''}）`
+        : '';
+      showToast({ text: `已彻底删除 ${result.purged.length} 张卡片${skippedText}` });
+    },
+    [activeProjectId, currentCardId, serverCards, overlay.trashedCards, refreshProject, showToast],
   );
 
   const toggleFavoriteCard = useCallback((id: string) => {
@@ -627,7 +746,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const send = useCallback(
     (text: string) => {
       const clean = text.trim();
-      if (!clean || live) return;
+      if (!clean || liveRef.current) return;
       const refBlock = references.length
         ? references.map((r) => `【引用｜${r.sourceTitle}】${r.excerpt}`).join('\n') + '\n\n'
         : '';
@@ -649,7 +768,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             ...m,
             [cardId]: [
               ...(m[cardId] ?? []),
-              { id: uid('pending'), role: 'user', content: question, createdAt: Date.now() },
+              { id: uid('pending'), role: 'user', content: question },
             ],
           }));
           const { runId } = await api.continueCard(cardId, question);
@@ -659,7 +778,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         }
       })();
     },
-    [live, references, currentCardId, activeProjectId, refreshProject, loadCard, subscribe, fail],
+    [references, currentCardId, activeProjectId, refreshProject, loadCard, subscribe, fail],
   );
 
   const stopStream = useCallback(() => {
@@ -688,27 +807,50 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     (id: string, text?: string) => {
       void (async () => {
         try {
-          await api.confirmVerdict(id, text);
+          const result = await api.confirmVerdict(id, text);
           setPendingTombstone(null);
           void refreshVerdicts(activeProjectId);
-          showToast({ text: '墓碑已入簿：后续新卡片会自动避开这个方向' });
+          subscribe(result.runId, result.verdict.cardId!);
+          showToast({
+            text: result.verdict.memosStatus === 'submitted'
+              ? '墓碑已写入 MemOS，并用于这张改道卡的首轮回答'
+              : '墓碑已安全留在本机，MemOS 恢复后自动补写；本轮按本地副本降级使用',
+          });
         } catch (error) {
           fail(error, '确认失败');
         }
       })();
     },
-    [activeProjectId, refreshVerdicts, showToast, fail],
+    [activeProjectId, refreshVerdicts, showToast, fail, subscribe],
   );
 
-  const dismissTombstone = useCallback(() => setPendingTombstone(null), []);
+  const dismissTombstone = useCallback(() => {
+    const pending = pendingTombstone;
+    if (!pending) return;
+    void (async () => {
+      try {
+        const result = await api.abandonVerdict(pending.id);
+        setPendingTombstone(null);
+        void refreshVerdicts(activeProjectId);
+        subscribe(result.runId, result.verdict.cardId!);
+        showToast({ text: '已明确放弃墓碑草稿；没有写入 MemOS，改道卡继续回答' });
+      } catch (error) {
+        fail(error, '放弃墓碑失败');
+      }
+    })();
+  }, [pendingTombstone, refreshVerdicts, activeProjectId, subscribe, showToast, fail]);
 
   const supersedeVerdictAction = useCallback(
-    (id: string) => {
+    (id: string, text: string, handle?: string) => {
       void (async () => {
         try {
-          await api.supersedeVerdict(id);
+          const replacement = await api.supersedeVerdict(id, text, handle);
           void refreshVerdicts(activeProjectId);
-          showToast({ text: '已标记 supersede（不删除，失效本身是信息）' });
+          showToast({
+            text: replacement.memosStatus === 'submitted'
+              ? '新判决已替代旧版本；旧记录仍保留可审计'
+              : '替代版本已留在本机待重试；旧记录没有删除',
+          });
         } catch (error) {
           fail(error, '操作失败');
         }
@@ -718,11 +860,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
 
   const adoptRunAction = useCallback(
-    async (runId: string, handle: string) => {
+    async (runId: string, handle: string, text?: string) => {
       try {
-        await api.adoptRun(runId, handle);
+        const verdict = await api.adoptRun(runId, handle, text);
         void refreshVerdicts(activeProjectId);
-        showToast({ text: `金子已入簿 · 把手「${handle}」将注入后续干净上下文` });
+        showToast({
+          text: verdict.memosStatus === 'submitted'
+            ? `金子已写入 MemOS · 把手「${handle}」`
+            : `金子已安全留在本机待重试 · 把手「${handle}」`,
+        });
         return true;
       } catch (error) {
         fail(error, '采纳失败');
@@ -770,7 +916,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       references,
       collapsed,
       toast,
-      streamingTurnId: live?.turnId ?? null,
       lastCreated,
       cardById,
       setActiveProject,
@@ -779,8 +924,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       createProject,
       deleteProject,
       setCurrentCard,
+      renameCard,
       createCard,
       deleteCard,
+      restoreCards,
+      purgeCards,
       toggleFavoriteCard,
       toggleCollapse,
       markRead,
@@ -792,6 +940,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       showToast,
       dismissToast,
       verdicts,
+      verdictStatus,
       pendingTombstone,
       confirmTombstone,
       dismissTombstone,
@@ -813,7 +962,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       references,
       collapsed,
       toast,
-      live,
       lastCreated,
       cardById,
       setActiveProject,
@@ -822,8 +970,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       createProject,
       deleteProject,
       setCurrentCard,
+      renameCard,
       createCard,
       deleteCard,
+      restoreCards,
+      purgeCards,
       toggleFavoriteCard,
       toggleCollapse,
       markRead,
@@ -835,6 +986,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       showToast,
       dismissToast,
       verdicts,
+      verdictStatus,
       pendingTombstone,
       confirmTombstone,
       dismissTombstone,
@@ -848,7 +1000,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     ],
   );
 
-  return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>;
+  return (
+    <StoreCtx.Provider value={value}>
+      <StreamingTurnCtx.Provider value={live?.turnId ?? null}>
+        <LiveRunCtx.Provider value={live}>{children}</LiveRunCtx.Provider>
+      </StreamingTurnCtx.Provider>
+    </StoreCtx.Provider>
+  );
 }
 
 /* ================= 纯函数 ================= */
@@ -857,7 +1015,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
  * 把 cardDetail 映射为原型的轮次序列。
  * messages 只保留成功轮的正文（失败轮会被会话回滚），所以：
  * 1) 先用 messages 建骨架（携带 entryId，包含改道继承的历史）；
- * 2) 完成轮按正文匹配锚点 attach 引用/活动；
+ * 2) 完成轮用 bindRunsToTurns 绑定锚点（稳定 answerEntryId，禁止正文文本匹配）；
  * 3) 失败轮按 run 时序插入到下一个完成轮锚点之前，保持时间线正确。
  */
 function detailToTurns(detail: CardDetail): Turn[] {
@@ -866,27 +1024,26 @@ function detailToTurns(detail: CardDetail): Turn[] {
     entryId: message.entryId,
     role: message.role === 'assistant' ? 'ai' : 'user',
     content: message.text,
-    createdAt: 0,
   }));
   const ended = detail.runs.filter((run) => run.status === 'ended');
 
   // 第一遍：为已进入 Pi 历史的完成轮找锚点（AI 轮索引）。
   const anchors = new Map<string, number>();
-  let cursor = 0;
+  const bindings = bindRunsToTurns(turns, ended);
   for (const run of ended) {
     if (run.result !== 'completed' || !run.answer) continue;
-    for (let i = cursor; i < turns.length; i += 1) {
-      if (turns[i].role === 'ai' && turns[i].content === run.answer && !turns[i].runId) {
-        turns[i].runId = run.id;
-        turns[i].status = run.result ?? undefined;
-        turns[i].reason = run.reason ?? undefined;
-        turns[i].citations = run.citations as Citation[];
-        turns[i].activity = (run.activity ?? []).reduce(reduceToolActivity, []);
-        anchors.set(run.id, i);
-        cursor = i + 1;
-        break;
-      }
-    }
+    const i = bindings.get(run.id);
+    if (i === undefined) continue;
+    turns[i].runId = run.id;
+    turns[i].status = run.result ?? undefined;
+    turns[i].reason = run.reason ?? undefined;
+    turns[i].citations = run.citations;
+    turns[i].concepts = run.concepts;
+    turns[i].verdictTrace = run.verdictTrace;
+    turns[i].verdictUse = run.verdictUse;
+    turns[i].activity = (run.activity ?? []).reduce(reduceToolActivity, []);
+    turns[i].thinking = (run.activity ?? []).reduce(reduceThinkingActivity, []);
+    anchors.set(run.id, i);
   }
 
   // 第二遍：被 Pi 历史回滚的非完成轮，按 run 时序放回产品时间线。
@@ -905,18 +1062,20 @@ function detailToTurns(detail: CardDetail): Turn[] {
     turns.splice(
       insertAt,
       0,
-      { id: `runq-${run.id}`, role: 'user', content: run.question, createdAt: 0 },
+      { id: `runq-${run.id}`, role: 'user', content: run.question },
       {
         id: `run-${run.id}`,
         role: 'ai',
         content: run.answer ?? '',
-        createdAt: 0,
         runId: run.id,
         status: run.result ?? 'failed',
         reason: run.reason ?? undefined,
         error: run.error ?? undefined,
-        citations: run.citations as Citation[],
+        citations: run.citations,
         activity: (run.activity ?? []).reduce(reduceToolActivity, []),
+        thinking: (run.activity ?? []).reduce(reduceThinkingActivity, []),
+        verdictTrace: run.verdictTrace,
+        verdictUse: run.verdictUse,
       },
     );
   }

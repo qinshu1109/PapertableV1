@@ -1,63 +1,52 @@
 import { useEffect, useRef, useState } from 'react';
-import { GripHorizontal, Maximize2, Quote, X } from 'lucide-react';
-import { Markdown } from '../lib/markdown';
+import { GripHorizontal, Loader2, Maximize2, Quote, X } from 'lucide-react';
+import { MarkdownView } from '../lib/MarkdownView';
+import type { ConceptInsight } from '../types';
 
-export interface ConceptState {
-  term: string;
+export interface ConceptState extends ConceptInsight {
   blockText: string;
   cardId: string;
-  turnId?: string;
+  turnId: string;
+  sourceRunId: string;
   x: number;
   y: number;
+  /**
+   * 临时卡内容按需生成：legacy = 旧数据自带预写正文；
+   * loading/streaming/done/error = 点击后启动的按需概念会话。
+   */
+  previewRunId?: string;
+  previewStatus: 'legacy' | 'loading' | 'streaming' | 'done' | 'error';
+  previewText: string;
+  previewError?: string;
 }
-
-const EXPLAIN = (term: string) => `**${term}**是这一段里最容易卡住的概念，先给一个可以直接用的定义。
-
-它描述的是系统在给定表述框架下的一个结构性属性：换一个表述方式，具体写法会变，但它刻画的对象不变。正因为如此，它才能作为跨章节复用的基础词汇。
-
-在当前上下文中它扮演三个作用：
-
-- 给后面的推导提供统一的记号；
-- 把"可观测量"与"状态"分开，避免把两者混为一谈；
-- 让不同实验条件下的结果可以放在同一个坐标系里比较。
-
-如果要继续追问，比较有价值的方向是它与相邻概念的边界在哪里。`;
 
 interface Props {
   state: ConceptState;
   sourceTitle: string;
+  layer: number;
   onClose: () => void;
+  onActivate: () => void;
   onQuote: (text: string) => void;
-  onPromote: (term: string, body: string) => void;
+  onPromote: () => void;
 }
 
-export function ConceptPreview({ state, sourceTitle, onClose, onQuote, onPromote }: Props) {
+export function ConceptPreview({
+  state,
+  sourceTitle,
+  layer,
+  onClose,
+  onActivate,
+  onQuote,
+  onPromote,
+}: Props) {
   const [pos, setPos] = useState({ x: state.x, y: state.y });
-  const [text, setText] = useState('');
-  const [done, setDone] = useState(false);
   const drag = useRef<{ dx: number; dy: number } | null>(null);
-  const full = EXPLAIN(state.term);
-
-  useEffect(() => {
-    setText('');
-    setDone(false);
-    let i = 0;
-    const id = window.setInterval(() => {
-      i += 5;
-      setText(full.slice(0, i));
-      if (i >= full.length) {
-        window.clearInterval(id);
-        setDone(true);
-      }
-    }, 22);
-    return () => window.clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.term, state.cardId]);
 
   useEffect(() => setPos({ x: state.x, y: state.y }), [state.x, state.y]);
 
   const onDown = (e: React.PointerEvent) => {
     if ((e.target as HTMLElement).closest('button')) return;
+    onActivate();
     drag.current = { dx: e.clientX - pos.x, dy: e.clientY - pos.y };
     (e.currentTarget as Element).setPointerCapture(e.pointerId);
   };
@@ -69,10 +58,13 @@ export function ConceptPreview({ state, sourceTitle, onClose, onQuote, onPromote
     });
   };
 
+  const generating = state.previewStatus === 'loading' || state.previewStatus === 'streaming';
+  const ready = state.previewStatus === 'legacy' || state.previewStatus === 'done';
+
   return (
     <div
       className="concept-pop"
-      style={{ left: pos.x, top: pos.y }}
+      style={{ left: pos.x, top: pos.y, zIndex: 80 + layer }}
       role="dialog"
       aria-label={`概念解释：${state.term}`}
     >
@@ -93,7 +85,7 @@ export function ConceptPreview({ state, sourceTitle, onClose, onQuote, onPromote
             padding: '2px 7px',
           }}
         >
-          {done ? '生成完成' : '生成中'}
+          AI 临时卡
         </span>
         <button className="icon-btn" onClick={onClose} aria-label="关闭概念预览">
           <X size={15} />
@@ -101,8 +93,24 @@ export function ConceptPreview({ state, sourceTitle, onClose, onQuote, onPromote
       </div>
 
       <div className="cp-body scroll-y md">
-        <Markdown content={text} />
-        {!done && <span className="caret" />}
+        {state.previewStatus === 'loading' && (
+          <div className="cp-generating">
+            <Loader2 size={14} className="cp-spin" />
+            AI 正在检索资料库，现场生成概念解释…
+          </div>
+        )}
+        {state.previewStatus === 'error' && (
+          <div className="cp-generating">
+            这次概念解释生成失败{state.previewError ? `（${state.previewError}）` : ''}，关闭后重新点击该词可以重试。
+          </div>
+        )}
+        {state.previewText && <MarkdownView content={state.previewText} />}
+        {generating && state.previewText && (
+          <div className="cp-generating">
+            <Loader2 size={13} className="cp-spin" />
+            正在继续生成…
+          </div>
+        )}
       </div>
 
       <div className="cp-source">
@@ -110,18 +118,27 @@ export function ConceptPreview({ state, sourceTitle, onClose, onQuote, onPromote
       </div>
 
       <div className="cp-foot">
-        <button className="chip-btn" onClick={() => onQuote(`${state.term}：${full.split('\n')[0]}`)}>
+        <button
+          className="chip-btn"
+          disabled={!state.previewText}
+          onClick={() => onQuote(`${state.term}：${state.previewText.split('\n')[0]}`)}
+        >
           <Quote size={13} />
           引用
         </button>
         <button
           className="chip-btn"
           style={{ marginLeft: 'auto' }}
-          onClick={() => onPromote(state.term, full)}
-          title={`把预览升级为正式卡片，来源保留为「${sourceTitle}」`}
+          disabled={!ready}
+          onClick={onPromote}
+          title={
+            ready
+              ? `把这张临时卡升级为正式卡片，来源保留为「${sourceTitle}」`
+              : '概念解释还在生成，完成后再展开'
+          }
         >
           <Maximize2 size={13} />
-          展开为卡片
+          展开为正式卡片
         </button>
       </div>
     </div>

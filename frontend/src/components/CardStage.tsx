@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowDownRight,
@@ -8,19 +8,20 @@ import {
   CornerDownRight,
   GitBranch,
   MoreHorizontal,
+  Pencil,
   Quote,
   Split,
   Star,
   Trash2,
 } from 'lucide-react';
-import { useStore } from '../store';
+import { useLiveRun, useStore, useStreamingTurnId } from '../store';
 import { EDGE_META } from '../types';
-import type { Card, EdgeType, Turn } from '../types';
+import type { Card, ConceptInsight, EdgeType, Turn } from '../types';
 import { incomingEdge, pathToRoot } from '../lib/graph';
-import { Markdown } from '../lib/markdown';
+import { api, subscribeRun } from '../lib/api';
+import { MarkdownView } from '../lib/MarkdownView';
+import { extractCitations } from '../lib/normalize';
 import { ConceptPreview, type ConceptState } from './ConceptPreview';
-
-const spring = { type: 'spring' as const, stiffness: 260, damping: 30, mass: 0.9 };
 
 interface SelState {
   x: number;
@@ -32,18 +33,42 @@ interface SelState {
 
 export function CardStage() {
   const {
-    cards,
+    cards: storedCards,
     edges,
     currentCardId,
     setCurrentCard,
+    renameCard,
     createCard,
     deleteCard,
     toggleFavoriteCard,
     addReference,
     lastCreated,
-    streamingTurnId,
     showToast,
   } = useStore();
+  const live = useLiveRun();
+  const streamingTurnId = useStreamingTurnId();
+  const cards = useMemo<Card[]>(() => {
+    if (!live) return storedCards;
+    return storedCards.map((stored) => live.cardId === stored.id
+      ? {
+          ...stored,
+          turns: [
+            ...stored.turns,
+            {
+              id: live.turnId,
+              role: 'ai',
+              content: live.content,
+              streaming: true,
+              citations: live.citations,
+              activity: live.activity,
+              thinking: live.thinking,
+              phase: live.phase,
+              turnCount: live.turnCount,
+            },
+          ],
+        }
+      : stored);
+  }, [storedCards, live]);
 
   const card = cards.find((c) => c.id === currentCardId);
   const path = useMemo(() => pathToRoot(edges, currentCardId), [edges, currentCardId]);
@@ -52,13 +77,68 @@ export function CardStage() {
   const bodyRef = useRef<HTMLDivElement>(null);
   const scrollMem = useRef<Record<string, number>>({});
   const [sel, setSel] = useState<SelState | null>(null);
-  const [concept, setConcept] = useState<ConceptState | null>(null);
+  const [concepts, setConcepts] = useState<ConceptState[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [spawn, setSpawn] = useState<null | { kind: 'divergent' } | { kind: 'branch' }>(null);
   const [spawnText, setSpawnText] = useState('');
   const [flashTurn, setFlashTurn] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const prevCard = useRef(currentCardId);
+  /** 按需概念会话的 SSE 关闭函数（按临时卡 id） */
+  const previewClosers = useRef(new Map<string, () => void>());
+
+  const askRenameCard = () => {
+    if (!card) return;
+    const next = window.prompt('卡片名称', card.title)?.trim();
+    if (next && next !== card.title) renameCard(card.id, next);
+  };
+
+  const closeConcept = useCallback((id: string) => {
+    previewClosers.current.get(id)?.();
+    previewClosers.current.delete(id);
+    setConcepts((open) => open.filter((item) => item.id !== id));
+  }, []);
+
+  /** 用户点击高亮词：临时卡内容按需生成（可复用后端缓存，支持 SSE 流式） */
+  const startConceptPreview = useCallback((state: ConceptState) => {
+    const patch = (partial: Partial<ConceptState>) =>
+      setConcepts((open) => open.map((item) => (item.id === state.id ? { ...item, ...partial } : item)));
+    void (async () => {
+      try {
+        const res = await api.openConceptPreview(state.cardId, {
+          sourceRunId: state.sourceRunId,
+          conceptId: state.id,
+        });
+        patch({ previewRunId: res.runId });
+        if (res.status === 'ended') {
+          patch(
+            res.result === 'completed' && res.answer
+              ? { previewStatus: 'done', previewText: res.answer }
+              : { previewStatus: 'error', previewError: res.result ?? 'failed' },
+          );
+          return;
+        }
+        const close = subscribeRun(res.runId, (event) => {
+          if (event.event === 'answer_sentence') {
+            patch({ previewStatus: 'streaming', previewText: String(event.answer ?? '') });
+          }
+          if (event.event === 'run_end') {
+            patch(
+              event.result === 'completed'
+                ? { previewStatus: 'done', previewText: String(event.answer ?? '') }
+                : { previewStatus: 'error', previewError: String(event.reason ?? 'failed') },
+            );
+          }
+        });
+        previewClosers.current.set(state.id, close);
+      } catch (error) {
+        patch({
+          previewStatus: 'error',
+          previewError: error instanceof Error ? error.message : String(error),
+        });
+      }
+    })();
+  }, []);
 
   /* ---------- 每张卡片独立滚动位置 ---------- */
   useLayoutEffect(() => {
@@ -76,12 +156,23 @@ export function CardStage() {
     (id: string) => {
       rememberScroll();
       setSel(null);
-      setConcept(null);
+      setConcepts([]);
       setCurrentCard(id);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [currentCardId, setCurrentCard],
   );
+
+  useEffect(() => setConcepts([]), [currentCardId]);
+
+  /* 切卡/卸载时关闭所有按需概念会话的 SSE */
+  useEffect(() => {
+    const closers = previewClosers.current;
+    return () => {
+      closers.forEach((close) => close());
+      closers.clear();
+    };
+  }, [currentCardId]);
 
   /* ---------- 流式时自动滚到底 ---------- */
   useEffect(() => {
@@ -168,7 +259,6 @@ export function CardStage() {
           id: `t-${Date.now()}`,
           role: 'user',
           content: opts?.text ? `深挖：${opts.text}` : `深挖：请把「${card.title}」再往下讲一层。`,
-          createdAt: Date.now(),
         },
       ],
     });
@@ -184,7 +274,7 @@ export function CardStage() {
       sourceCardId: card.id,
       title: topic.slice(0, 26),
       seedTurns: [
-        { id: `t-${Date.now()}`, role: 'user', content: `发散：${topic}`, createdAt: Date.now() },
+        { id: `t-${Date.now()}`, role: 'user', content: `发散：${topic}` },
       ],
     });
   };
@@ -201,7 +291,6 @@ export function CardStage() {
           id: `t-${Date.now()}`,
           role: 'user',
           content: `从第 ${index} 轮改道：换一个前提重新往下推。`,
-          createdAt: Date.now(),
         },
       ],
     });
@@ -219,13 +308,25 @@ export function CardStage() {
     }
   };
 
-  const enter = lastCreated?.cardId === card.id ? EDGE_META[lastCreated.type].enterFrom : { x: 0, y: 18, rotate: 0 };
+  /* 卡片进入方向（对齐 2026-08-01 代码复核：统一 350ms 慢-快-慢，按关系分方向） */
+  const enter = (() => {
+    // 新建卡：从上方以 120%、全透明落入
+    if (lastCreated?.cardId === card.id) return { x: 0, y: -60, rotate: 0, scale: 1.2 };
+    // 进入已有子卡/concept：从中心略偏右上，120%、顺 5°
+    if (inEdge?.type === 'child' || inEdge?.type === 'concept') return { x: 24, y: -24, rotate: 5, scale: 1.2 };
+    // 去发散卡：从右边进入
+    if (inEdge?.type === 'divergent') return { x: 80, y: 0, rotate: 0, scale: 1 };
+    // 去分支卡：从下方进入
+    if (inEdge?.type === 'branch') return { x: 0, y: 80, rotate: 0, scale: 1 };
+    // 根卡/无关卡：95% 淡入
+    return { x: 0, y: 0, rotate: 0, scale: 0.95 };
+  })();
   const aiTurns = card.turns.filter((t) => t.role === 'ai');
 
   return (
     <div className="stage">
       <div className="stack">
-        {/* 后方祖先卡片 */}
+        {/* 后方祖先卡片：逐层缩小 4%、左歪 5°、向左上错位，露出可点纸边（对齐 ai.explore.poker 实测） */}
         {ancestors.map((id, i) => {
           const c = cards.find((x) => x.id === id);
           if (!c) return null;
@@ -241,12 +342,15 @@ export function CardStage() {
               onKeyDown={(ev) => ev.key === 'Enter' && goCard(id)}
               title={`返回「${c.title}」`}
               style={{
-                transform: `translateY(calc(var(--peek) * ${-depth})) scaleX(${1 - depth * 0.032}) rotate(${
-                  depth % 2 ? -0.4 : 0.45
-                }deg)`,
-                transformOrigin: 'center top',
+                /* 对齐 2026-08-01 代码复核：每层左错 16px、下错 0.7·d² px、-5°、96%、
+                   模糊 0.5px、亮度 -5%、透明 -10%；露边保留可点（琴疏拍板） */
+                transform: `translate(${-16 * depth}px, ${0.7 * depth * depth}px) rotate(${-5 * depth}deg) scale(${
+                  1 - depth * 0.04
+                })`,
+                transformOrigin: 'center center',
                 zIndex: 10 - depth,
-                filter: `brightness(${1 - depth * 0.02})`,
+                opacity: 1 - depth * 0.1,
+                filter: `blur(${depth * 0.5}px) brightness(${1 - depth * 0.05})`,
               }}
             >
               <div className="back-card-label">
@@ -275,14 +379,16 @@ export function CardStage() {
             key={card.id}
             className="card"
             style={{ zIndex: 20 }}
-            initial={{ opacity: 0, x: enter.x, y: enter.y, rotate: enter.rotate, scale: 0.975 }}
+            initial={{ opacity: 0, x: enter.x, y: enter.y, rotate: enter.rotate, scale: enter.scale }}
             animate={{ opacity: 1, x: 0, y: 0, rotate: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.985, transition: { duration: 0.16 } }}
-            transition={spring}
+            exit={{ opacity: 0, scale: 0.985, transition: { duration: 0.2 } }}
+            transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
           >
             <header className="card-head">
               <div style={{ flex: 1, minWidth: 0 }}>
-                <h1 className="card-title">{card.title}</h1>
+                <h1 className="card-title" title="双击重命名卡片" onDoubleClick={askRenameCard}>
+                  {card.title}
+                </h1>
                 <div className="card-meta">
                   <span className={`rel-pill ${inEdge ? inEdge.type : 'root'}`}>
                     {inEdge ? (
@@ -341,6 +447,16 @@ export function CardStage() {
                         <button
                           className="menu-item"
                           onClick={() => {
+                            setMenuOpen(false);
+                            askRenameCard();
+                          }}
+                        >
+                          <Pencil size={14} />
+                          重命名卡片
+                        </button>
+                        <button
+                          className="menu-item"
+                          onClick={() => {
                             copy(card.turns.map((t) => t.content).join('\n\n'), 'card');
                             setMenuOpen(false);
                           }}
@@ -394,20 +510,36 @@ export function CardStage() {
                   <TurnBlock
                     key={turn.id}
                     turn={turn}
-                    card={card}
+                    cardTitle={card.title}
+                    conceptState={concepts}
                     index={aiTurns.findIndex((t) => t.id === turn.id) + 1}
                     isBranchPoint={flashTurn === turn.id}
                     streaming={streamingTurnId === turn.id}
-                    onConcept={(term, blockText, el) => {
+                    openConceptTerms={concepts
+                      .filter((item) => item.cardId === card.id && item.turnId === turn.id)
+                      .map((item) => item.term)}
+                    onConcept={(concept, blockText, el) => {
                       const r = el.getBoundingClientRect();
-                      setConcept({
-                        term,
+                      const existing = concepts.find((item) => item.id === concept.id);
+                      if (existing) {
+                        setConcepts((open) => [...open.filter((item) => item.id !== concept.id), existing]);
+                        return;
+                      }
+                      const stagger = Math.min(concepts.length, 6) * 22;
+                      const state: ConceptState = {
+                        ...concept,
                         blockText,
                         cardId: card.id,
                         turnId: turn.id,
-                        x: Math.min(r.left, window.innerWidth - 440),
-                        y: Math.min(r.bottom + 10, window.innerHeight - 340),
-                      });
+                        sourceRunId: turn.runId!,
+                        x: Math.max(8, Math.min(r.left + stagger, window.innerWidth - 440)),
+                        y: Math.max(8, Math.min(r.bottom + 10 + stagger, window.innerHeight - 340)),
+                        previewStatus: concept.body ? 'legacy' : 'loading',
+                        previewText: concept.body ?? '',
+                      };
+                      setConcepts((open) => [...open, state]);
+                      // 旧数据自带正文直接展示；新链路点击后才启动按需概念会话
+                      if (!concept.body) startConceptPreview(state);
                     }}
                     onChild={() => spawnChild({ turnId: turn.id, blockText: turn.content.slice(0, 200) })}
                     onDivergent={() => setSpawn({ kind: 'divergent' })}
@@ -442,7 +574,7 @@ export function CardStage() {
                   <span className="rel-dir">
                     <GitBranch size={13} />
                   </span>
-                  改道 <small>向左分岔</small>
+                  改道
                 </button>
                 {spawn?.kind === 'branch' && (
                   <>
@@ -487,7 +619,7 @@ export function CardStage() {
                 <span className="rel-dir">
                   <ArrowDownRight size={13} />
                 </span>
-                深挖 <small>沿路径向下</small>
+                深挖
               </button>
 
               <div style={{ position: 'relative' }}>
@@ -502,7 +634,7 @@ export function CardStage() {
                   <span className="rel-dir">
                     <Split size={13} />
                   </span>
-                  发散 <small>向右展开</small>
+                  发散
                 </button>
                 {spawn?.kind === 'divergent' && (
                   <>
@@ -583,54 +715,85 @@ export function CardStage() {
         </div>
       )}
 
-      {/* 概念预览 */}
-      {concept && (
+      {/* AI 概念临时卡：只存在于当前页面，可同时打开多张 */}
+      {concepts.map((concept, layer) => (
         <ConceptPreview
+          key={concept.id}
           state={concept}
           sourceTitle={card.title}
-          onClose={() => setConcept(null)}
+          layer={layer}
+          onActivate={() =>
+            setConcepts((open) => {
+              const active = open.find((item) => item.id === concept.id);
+              return active ? [...open.filter((item) => item.id !== concept.id), active] : open;
+            })
+          }
+          onClose={() => closeConcept(concept.id)}
           onQuote={(text) => {
             addReference(
-              { cardId: card.id, turnId: concept.turnId, text, blockText: concept.blockText },
+              {
+                cardId: concept.cardId,
+                turnId: concept.turnId,
+                text,
+                blockText: concept.blockText,
+              },
               card.title,
             );
-            setConcept(null);
+            closeConcept(concept.id);
           }}
-          onPromote={(term, body) => {
+          onPromote={() => {
             rememberScroll();
             createCard({
-              type: 'child',
-              sourceCardId: card.id,
+              type: 'concept',
+              sourceCardId: concept.cardId,
               sourceTurnId: concept.turnId,
-              sourceText: term,
+              sourceText: concept.term,
               sourceBlockText: concept.blockText,
-              title: term,
+              sourceRunId: concept.sourceRunId,
+              conceptId: concept.id,
+              previewRunId: concept.previewRunId,
+              title: concept.term,
               seedTurns: [
                 {
                   id: `t-${Date.now()}-u`,
                   role: 'user',
-                  content: `深挖概念：${term}`,
-                  createdAt: Date.now(),
+                  content: concept.question,
                 },
-                { id: `t-${Date.now()}-a`, role: 'ai', content: body, createdAt: Date.now() },
               ],
             });
-            setConcept(null);
+            setConcepts([]);
           }}
         />
-      )}
+      ))}
     </div>
   );
 }
 
 /* ---------------------------------------------------------- */
 
-function TurnBlock({
+interface TurnBlockProps {
+  turn: Turn;
+  cardTitle: string;
+  conceptState: readonly ConceptState[];
+  index: number;
+  isBranchPoint: boolean;
+  streaming: boolean;
+  openConceptTerms: string[];
+  onConcept: (concept: ConceptInsight, blockText: string, el: HTMLElement) => void;
+  onChild: () => void;
+  onDivergent: () => void;
+  onBranch: () => void;
+  onQuote: () => void;
+  onCopy: () => void;
+  copied: boolean;
+}
+
+const TurnBlock = memo(function TurnBlock({
   turn,
-  card,
   index,
   isBranchPoint,
   streaming,
+  openConceptTerms,
   onConcept,
   onChild,
   onDivergent,
@@ -638,20 +801,7 @@ function TurnBlock({
   onQuote,
   onCopy,
   copied,
-}: {
-  turn: Turn;
-  card: Card;
-  index: number;
-  isBranchPoint: boolean;
-  streaming: boolean;
-  onConcept: (term: string, blockText: string, el: HTMLElement) => void;
-  onChild: () => void;
-  onDivergent: () => void;
-  onBranch: () => void;
-  onQuote: () => void;
-  onCopy: () => void;
-  copied: boolean;
-}) {
+}: TurnBlockProps) {
   const [more, setMore] = useState(false);
   const cited = useMemo(() => extractCitations(turn.content), [turn.content]);
 
@@ -718,7 +868,9 @@ function TurnBlock({
 
       <ActivityStrip turn={turn} streaming={streaming} />
 
-      {streaming && turn.content.length === 0 && (
+      <ThinkingBlock turn={turn} streaming={streaming} />
+
+      {streaming && turn.content.length === 0 && !turn.thinking?.length && (
         <div className="thinking">
           <span className="dot-pulse" />
           {turn.phase === 'tools' ? '正在检索和读取资料…' : '正在规划下一步…'}
@@ -726,14 +878,40 @@ function TurnBlock({
       )}
 
       <div className="md" data-turn-ai={turn.id}>
-        <Markdown content={cited.text} concepts={card.concepts} onConcept={onConcept} />
+        <MarkdownView
+          content={turn.content}
+          concepts={turn.concepts?.map((concept) => concept.term)}
+          activeConcepts={openConceptTerms}
+          onConcept={(term, blockText, el) => {
+            const concept = turn.concepts?.find((item) => item.term === term);
+            if (concept) onConcept(concept, blockText, el);
+          }}
+          onCite={(n) => {
+            const source = document.querySelector<HTMLDetailsElement>(
+              `#turn-${turn.id} [data-cite-order="${n}"]`,
+            );
+            if (source) {
+              source.open = true;
+              source.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }}
+        />
         {streaming && turn.content.length > 0 && <span className="caret" />}
       </div>
 
       <RunFooter turn={turn} streaming={streaming} citeOrder={cited.ids} />
     </div>
   );
-}
+}, (previous, next) =>
+  previous.turn === next.turn
+  && previous.cardTitle === next.cardTitle
+  && previous.conceptState === next.conceptState
+  && previous.index === next.index
+  && previous.isBranchPoint === next.isBranchPoint
+  && previous.streaming === next.streaming
+  && previous.copied === next.copied
+  && previous.openConceptTerms.length === next.openConceptTerms.length
+  && previous.openConceptTerms.every((term, index) => term === next.openConceptTerms[index]));
 
 const TOOL_LABEL: Record<string, string> = {
   search_notes: '检索笔记',
@@ -788,18 +966,23 @@ function ActivityStrip({ turn, streaming }: { turn: Turn; streaming: boolean }) 
   );
 }
 
-/** 把正文里的 [[source:chunkId]] 标记替换为行内角标，并返回出现顺序 */
-function extractCitations(content: string): { text: string; ids: string[] } {
-  const ids: string[] = [];
-  const text = content.replace(/\s*\[\[source:([^\]]+)\]\]/g, (_m, id: string) => {
-    let index = ids.indexOf(id);
-    if (index < 0) {
-      ids.push(id);
-      index = ids.length - 1;
-    }
-    return ` §${index + 1}`;
-  });
-  return { text, ids };
+function ThinkingBlock({ turn, streaming }: { turn: Turn; streaming: boolean }) {
+  const items = turn.thinking ?? [];
+  if (items.length === 0) return null;
+  const running = items.some((item) => item.status === 'running');
+  return (
+    <details className="thinking-block" open={streaming && running}>
+      <summary>
+        {running && <span className="dot-pulse small" />}
+        {running ? '思考中…' : `思考过程 · ${items.length} 段`}
+      </summary>
+      <div className="thinking-content">
+        {items.map((item) => (
+          <div key={item.id}>{item.content || '正在组织思路…'}</div>
+        ))}
+      </div>
+    </details>
+  );
 }
 
 /** 引用芯片 + 终局态 + 采纳（金子） */
@@ -815,9 +998,11 @@ function RunFooter({
   const { adoptRun, retryRun } = useStore();
   const [adopting, setAdopting] = useState(false);
   const [handle, setHandle] = useState('');
+  const [conclusion, setConclusion] = useState('');
   if (streaming) return null;
 
   const citations = turn.citations ?? [];
+  const verdictUsed = turn.verdictUse?.used ?? [];
   const failedish = turn.status && turn.status !== 'completed';
 
   return (
@@ -827,11 +1012,34 @@ function RunFooter({
           {citations.map((c, i) => {
             const order = c.chunkId ? citeOrder.indexOf(String(c.chunkId)) : -1;
             return (
-              <span key={`${c.chunkId ?? i}`} className="cite-chip" title={String(c.excerpt ?? '')}>
-                §{order >= 0 ? order + 1 : ''} {String(c.relativePath ?? c.chunkId ?? '来源')}
-              </span>
+              <details
+                key={`${c.chunkId ?? i}`}
+                className="cite-chip"
+                data-cite-order={order >= 0 ? order + 1 : undefined}
+              >
+                <summary>
+                  §{order >= 0 ? order + 1 : ''} {String(c.path ?? c.relativePath ?? c.chunkId)}
+                </summary>
+                <div className="cite-excerpt">{String(c.excerpt ?? '未返回引用内容')}</div>
+              </details>
             );
           })}
+        </div>
+      )}
+
+      {verdictUsed.length > 0 && (
+        <div className="cite-row verdict-use-row">
+          <span className="verdict-use-label">本回答参考了你确认过的判断：</span>
+          {verdictUsed.map((v, i) => (
+            <details key={v.id ?? i} className="cite-chip verdict-chip">
+              <summary>
+                ✦ {String(v.snapshot).length > 24 ? `${String(v.snapshot).slice(0, 24)}…` : String(v.snapshot)}
+              </summary>
+              <div className="cite-excerpt">
+                {v.verdictType === 'gold' ? '金子' : '墓碑'} · {String(v.snapshot)}
+              </div>
+            </details>
+          ))}
         </div>
       )}
 
@@ -850,25 +1058,39 @@ function RunFooter({
       )}
 
       {turn.runId && turn.status === 'completed' && !adopting && (
-        <button className="adopt-btn" onClick={() => setAdopting(true)} title="把这轮回答采纳为金子，入判决簿">
+        <button
+          className="adopt-btn"
+          onClick={() => {
+            setConclusion(defaultGoldConclusion(turn.content));
+            setAdopting(true);
+          }}
+          title="把这轮回答采纳为金子，入判决簿"
+        >
           ✦ 采纳为金子
         </button>
       )}
       {turn.runId && adopting && (
         <div className="adopt-row">
           <input
-            autoFocus
+            className="tombstone-input"
+            placeholder="确认或改写这条一行结论"
+            value={conclusion}
+            maxLength={500}
+            onChange={(e) => setConclusion(e.target.value)}
+          />
+          <input
             className="tombstone-input"
             placeholder="用你自己的话铸一个概念把手，如：火车—隧道"
             value={handle}
             maxLength={60}
             onChange={(e) => setHandle(e.target.value)}
             onKeyDown={async (e) => {
-              if (e.key === 'Enter' && handle.trim()) {
-                const ok = await adoptRun(turn.runId!, handle.trim());
+              if (e.key === 'Enter' && handle.trim() && conclusion.trim()) {
+                const ok = await adoptRun(turn.runId!, handle.trim(), conclusion.trim());
                 if (ok) {
                   setAdopting(false);
                   setHandle('');
+                  setConclusion('');
                 }
               }
               if (e.key === 'Escape') setAdopting(false);
@@ -876,12 +1098,13 @@ function RunFooter({
           />
           <button
             className="btn primary"
-            disabled={!handle.trim()}
+            disabled={!handle.trim() || !conclusion.trim()}
             onClick={async () => {
-              const ok = await adoptRun(turn.runId!, handle.trim());
+              const ok = await adoptRun(turn.runId!, handle.trim(), conclusion.trim());
               if (ok) {
                 setAdopting(false);
                 setHandle('');
+                setConclusion('');
               }
             }}
           >
@@ -894,4 +1117,9 @@ function RunFooter({
       )}
     </div>
   );
+}
+
+function defaultGoldConclusion(content: string): string {
+  const plain = content.replace(/\[\[source:[^\]]+\]\]/g, '').replace(/\s+/g, ' ').trim();
+  return (plain.match(/^.{10,}?[。！？.!?]/)?.[0] ?? plain).slice(0, 500);
 }
