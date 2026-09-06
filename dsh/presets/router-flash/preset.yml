@@ -1,0 +1,3 @@
+name: Router Flash (opencode-go)
+description: Flash 专属锚定预设——首轮使用官方 Minimal 真实工具对（持久 bash + str_replace_editor）与 Minimal 完整系统提示，剥离 AGENTS.md/skill 注入，锚定深度 We need 推理轨迹；晋升后为最小常驻目录 + dev_tool_search 按需解锁（机制源自 dsh-anchored-standard，适配 deepseek-v4-flash / opencode-go）
+order: 4

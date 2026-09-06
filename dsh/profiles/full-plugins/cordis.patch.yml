@@ -1,0 +1,73 @@
+# Profile patch layer: applied after every bundle layer.
+# 1) memos memory-MCP insert (from dsh-plugins/memos-mcp-overlay; parameterized by
+#    MEMOS_MCP_URL / MEMOS_MCP_COMMAND / MEMOS_MCP_ARGS at process start).
+# 2) memory-discipline 热记忆配置覆盖 — MCP 桥接后实际注册的工具名带 mcp__memos__ 前缀
+#    （dsh-mcp-client 的 serverName: memos）。插件 bundle 层默认名 get_hot_context 不带
+#    前缀，永远找不到工具，导致每次新会话都注入"热记忆不可用"通知。id-targeted patch
+#    REPLACES the whole config，故需整行覆盖（policyLines 省略 = 用内置默认）。
+# 3) guardrails config override — id-targeted patch REPLACES the whole config,
+#    so the four bundle defaults are restated plus local additions.
+- insert:
+    - id: memory-memos
+      name: '@deepseek-ai/dsh-mcp-client'
+      config: !!js >-
+        (process.env.MEMOS_MCP_URL?.trim()
+          ? {
+              transport: 'streamable-http',
+              serverName: 'memos',
+              url: process.env.MEMOS_MCP_URL.trim(),
+            }
+          : {
+              transport: 'stdio',
+              serverName: 'memos',
+              command: process.env.MEMOS_MCP_COMMAND?.trim() || '<your-memory-mcp-command>',
+              args: JSON.parse(process.env.MEMOS_MCP_ARGS || '[]'),
+              cwd: process.cwd(),
+            })
+- id: guardrails
+  config:
+    protected:
+      - glob: '.github/workflows/**'
+        reason: 'CI workflow definitions are protected: agents must not modify the checks that verify their own work.'
+      - glob: 'scripts/verify-*'
+        reason: 'Verification scripts are protected: agents must not modify the checks that verify their own work.'
+      - glob: '**/*.env'
+        reason: 'Environment files may hold credentials.'
+      - glob: '**/.env*'
+        reason: 'Environment files may hold credentials.'
+      - glob: 'agent-bridge/GUARDRAILS.md'
+        reason: 'The guardrails document is protected: agents must not rewrite the rules that constrain themselves.'
+      - glob: 'Library/LaunchAgents/**'
+        reason: 'Deployment and resident-process definitions require human approval.'
+      - glob: 'agent-bridge/briefs/**'
+        reason: 'Task briefs are the human dispatch channel: agents read them, only the dispatcher writes.'
+
+# dsh-memory-discipline 热记忆配置覆盖（修复：工具名须带 mcp__memos__ 前缀）
+- id: memory-discipline
+  config:
+    hotContextTool: mcp__memos__get_hot_context
+    # 首轮保持原始 user prompt；按需记忆工具仍保留注册，但不自动注入上下文。
+    autoFetch: false
+    # 简报34：toolWaitAttempts 10→20，注册等待窗口 4.5s→约 10s（临时缓解 P1 竞态；
+    # 根治靠插件 B1 late-registration 补拉，无需此值过大）。
+    toolWaitAttempts: 20
+    # toolRetryAttempts/toolRetryDelayMs: MemOS 服务被 watchdog 重启后 MCP 会话失效，
+    # 插件会重试几次等 dsh-mcp-client 重建连接（见 dsh-mcp-client lib 的会话失效修复）。
+    toolRetryAttempts: 3
+    toolRetryDelayMs: 1500
+    toolVocabulary:
+      route: mcp__memos__route_memory
+      search: mcp__memos__search_memories
+      add: mcp__memos__add_memory
+
+# 首轮只保留原始 user prompt 与 router 的核心工具门控。
+- id: agent-instructions
+  disabled: true
+
+# dsh-wechat 微信入口（iLink 单轮询，仅 web profile 装载）
+- id: dsh-wechat
+  config:
+    allowFrom: ['o9cq807dEMfDwFNyGGEr5MzMIqD4@im.wechat']
+    agentProvider: opencode-zen
+    agentModel: deepseek-v4-flash
+    cwd: /Users/qinshu/Documents/papertableV1

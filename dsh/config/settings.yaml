@@ -1,0 +1,32 @@
+agent-default-model:
+  provider: opencode-zen
+  model: deepseek-v4-flash
+  reasoningEffort: low
+llm-pi-ai:
+  providers:
+    opencode-zen:
+      displayName: OpenCode Zen
+      apiKeyEnv: OPENCODE_ZEN_API_KEY
+      api: anthropic-messages
+      baseURL: http://127.0.0.1:8790
+      reasoning: max
+      thinkingBudgets:
+        minimal: 1024
+        low: 4096
+        medium: 8192
+        high: 65536
+      models:
+        - id: deepseek-v4-flash
+          name: DeepSeek V4 Flash
+          contextWindow: 1000000
+          reasoningEfforts:
+            off: null
+            low: low
+            medium: medium
+            high: high
+            max: high
+          maxTokens: 1000000
+agent-presets:
+  default: minimal
+ui-onboarding:
+  welcomeNoticeVersion: 2026-08-13.1

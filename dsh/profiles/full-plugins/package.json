@@ -1,0 +1,30 @@
+{
+  "name": "dsh-profile-web",
+  "private": true,
+  "dependencies": {
+    "@deepseek-ai/dsh-tool-time": "github:omdsh-dev/dsh-tool-time",
+    "@dsh-external/dsh-super-injector": "file:/Users/qinshu/.dsh/plugin-packages/dsh-external-dsh-super-injector-0.3.3.tgz",
+    "dsh-guardrails": "link:/Users/qinshu/Documents/papertableV1/dsh-plugins/dsh-guardrails",
+    "dsh-memory-discipline": "link:/Users/qinshu/Documents/papertableV1/dsh-plugins/dsh-memory-discipline",
+    "dsh-proposal-gate": "link:/Users/qinshu/Documents/papertableV1/dsh-plugins/dsh-proposal-gate",
+    "dsh-scheduled-prompt": "link:/Users/qinshu/Documents/papertableV1/dsh-plugins/dsh-scheduled-prompt",
+    "dsh-time-context": "link:/Users/qinshu/Documents/papertableV1/dsh-plugins/dsh-time-context",
+    "dsh-wechat": "link:/Users/qinshu/Documents/papertableV1/dsh-plugins/dsh-wechat"
+  },
+  "dsh": {
+    "profile": {
+      "bundles": [
+        "@deepseek-ai/dsh-base",
+        "@deepseek-ai/dsh-web-app",
+        "dsh-guardrails",
+        "dsh-memory-discipline",
+        "dsh-proposal-gate",
+        "dsh-scheduled-prompt",
+        "@deepseek-ai/dsh-tool-time",
+        "dsh-time-context",
+        "dsh-wechat",
+        "@dsh-external/dsh-super-injector"
+      ]
+    }
+  }
+}

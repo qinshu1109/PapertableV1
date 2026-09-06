@@ -1,0 +1,22 @@
+{
+  "name": "dsh-profile-web",
+  "private": true,
+  "dependencies": {
+    "@dsh-external/dsh-mobile-nav": "github:mexiaosqwq/dsh-web-mobile",
+    "@papertable/dsh-paperweight": "link:/Users/qinshu/Documents/papertableV1/dsh-plugins/dsh-paperweight",
+    "dsh-jspace-suite": "link:/Users/qinshu/.dsh-source/marketplace-install/dsh-jspace-suite",
+    "dsh-plugin-marketplace": "github:AwesomeHou/dsh-plugin-marketplace"
+  },
+  "dsh": {
+    "profile": {
+      "bundles": [
+        "@deepseek-ai/dsh-base",
+        "@deepseek-ai/dsh-web-app",
+        "@dsh-external/dsh-mobile-nav",
+        "dsh-plugin-marketplace",
+        "@papertable/dsh-paperweight",
+        "dsh-jspace-suite"
+      ]
+    }
+  }
+}

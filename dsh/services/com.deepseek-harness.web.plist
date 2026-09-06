@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>DSH_HOME</key>
+		<string>/Users/qinshu/.dsh-source</string>
+		<key>DSH_QWEN_LOCAL_API_KEY</key>
+		<string>local-only</string>
+		<key>HOME</key>
+		<string>/Users/qinshu</string>
+		<key>LANG</key>
+		<string>zh_CN.UTF-8</string>
+		<key>PATH</key>
+		<string>/Users/qinshu/.local/bin:/Users/qinshu/.local/node/bin:/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+	</dict>
+	<key>KeepAlive</key>
+	<true/>
+	<key>Label</key>
+	<string>com.deepseek-harness.web</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/sh</string>
+		<string>/Users/qinshu/.dsh-source/run-web.sh</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StandardErrorPath</key>
+	<string>/Users/qinshu/Library/Logs/dsh-web.err.log</string>
+	<key>StandardOutPath</key>
+	<string>/Users/qinshu/Library/Logs/dsh-web.log</string>
+	<key>WorkingDirectory</key>
+	<string>/Users/qinshu/Documents/ChatGPT/MemOS/deepseek-harness</string>
+</dict>
+</plist>

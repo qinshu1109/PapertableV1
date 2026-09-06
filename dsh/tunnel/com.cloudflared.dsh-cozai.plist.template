@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.cloudflared.dsh-cozai</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/sh</string>
+        <string>/Users/qinshu/.cloudflared/run-dsh-cozai.sh</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <!-- token 通过 ~/.cloudflared/dsh-cozai.env 注入（见 run 脚本读取），
+             或在此直接填写；文件权限 600。 -->
+        <key>DSH_COZAI_TOKEN</key>
+        <string>__TOKEN_PLACEHOLDER__</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/qinshu/Library/Logs/dsh-cozai-tunnel.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/qinshu/Library/Logs/dsh-cozai-tunnel.err.log</string>
+</dict>
+</plist>
