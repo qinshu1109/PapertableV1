@@ -24,6 +24,7 @@ import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { callMemosMcp, defaultDraftStatePath, draftConfigSummary, DraftHook } from "./pw-feishu-draft.ts";
+import { EvidenceHook } from "./pw-evidence-hook.ts";
 
 export type RelayConfig = {
   appId: string;
@@ -229,6 +230,7 @@ async function handleMessage(
   client: FeishuClient,
   seen: SeenIds,
   draft?: DraftHook,
+  evidence?: EvidenceHook,
 ): Promise<void> {
   const message = extractReceiveMessage(data);
   const chatType = message?.chat_type ?? "";
@@ -260,7 +262,11 @@ async function handleMessage(
   if (intercepted) {
     await replyBestEffort(client, messageId, intercepted.reply);
     if (intercepted.followUp) {
-      await replyBestEffort(client, messageId, await intercepted.followUp());
+      // 出稿可能跑几十秒；不阻塞事件处理，完成后再回一条
+      const followUp = intercepted.followUp;
+      void followUp()
+        .then((text) => replyBestEffort(client, messageId, text))
+        .catch((error) => log({ event: "followup_error", message_id: messageId, error: safeErrorText(error) }));
     }
     return;
   }
@@ -278,6 +284,12 @@ async function handleMessage(
   log({ event: "written", message_id: messageId, memo: memoName });
   const reply = (draft ? await draft.afterWritten({ text, messageId, memo: memoName }) : null) ?? "已记";
   await replyBestEffort(client, messageId, reply);
+
+  // PW-76：搜证在「已记」之后异步进行；evidence.enabled 关闭时 onNote 立即返回，零网络请求
+  if (evidence) {
+    void evidence.onNote({ text, messageId, memo: memoName })
+      .catch((error) => log({ event: "evidence_hook_error", message_id: messageId, error: safeErrorText(error) }));
+  }
 }
 
 /** 取消息文本：content 是 JSON 字符串（{"text":"..."}）；解析失败按空文本。 */
@@ -379,6 +391,16 @@ async function main(): Promise<void> {
 
   const lark = await import("@larksuiteoapi/node-sdk");
   const client = new lark.Client({ appId: config.appId, appSecret: config.appSecret }) as FeishuClient;
+
+  const evidence = new EvidenceHook(configPath, {
+    now: () => new Date(),
+    fetch,
+    log,
+    appId: config.appId,
+    appSecret: config.appSecret,
+    reply: (messageId, text) => replyBestEffort(client, messageId, text),
+  });
+
   const wsClient = new lark.WSClient({
     appId: config.appId,
     appSecret: config.appSecret,
@@ -389,7 +411,7 @@ async function main(): Promise<void> {
   const dispatcher = new lark.EventDispatcher({}).register({
     "im.message.receive_v1": async (data: ReceiveV1Data) => {
       try {
-        await handleMessage(data, config, client, seen, draft);
+        await handleMessage(data, config, client, seen, draft, evidence);
       } catch (error) {
         log({ event: "message_error", error: safeErrorText(error) });
       }
@@ -397,7 +419,7 @@ async function main(): Promise<void> {
   });
 
   await wsClient.start({ eventDispatcher: dispatcher });
-  log({ event: "started", config: configPath, draft: draftConfigSummary(configPath) });
+  log({ event: "started", config: configPath, draft: draftConfigSummary(configPath), evidence: evidence.summary() });
 
   let closing = false;
   const shutdown = (code: number): void => {
