@@ -1,0 +1,6 @@
+---
+description: Route durable personalized memory through the local MemOS index
+alwaysApply: true
+---
+
+Use `memos-local` as the only persistent personalized memory. At the start of each new session, call `get_hot_context` once. When past context may matter, call `route_memory`, then search only its one or two explicit Cube IDs with `search_mode: "hybrid"` and the returned routing decision ID. Use `index` only when the hot map is unclear; use explicit full-library search only as a final fallback. Save only durable facts, preferences, decisions, constraints, goals, and reusable knowledge. Tags never directly create Brain nodes or edges. Never write ordinary knowledge into `index`, omit `cube_ids`, bypass capacity controls, or claim an unavailable operation succeeded.

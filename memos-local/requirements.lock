@@ -1,0 +1,6 @@
+MemoryOS==2.0.24
+qdrant-client==1.16.1
+fastmcp==2.13.0.2
+numpy==2.4.6
+# MemoryOS 2.0.24 instantiates this chunker but does not declare it as a core dependency.
+chonkie==1.7.0

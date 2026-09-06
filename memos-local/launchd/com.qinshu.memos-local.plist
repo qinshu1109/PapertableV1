@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.qinshu.memos-local</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>/Users/qinshu/Library/Application Support/MemOSLocal/run/run-service.sh</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+  <key>ProcessType</key>
+  <string>Standard</string>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/qinshu/Library/Application Support/MemOSLocal</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/Users/qinshu/miniforge3/envs/memos-local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/Users/qinshu/Library/Application Support/MemOSLocal/logs/console.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/qinshu/Library/Application Support/MemOSLocal/logs/console.log</string>
+</dict>
+</plist>

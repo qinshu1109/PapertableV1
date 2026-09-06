@@ -1,0 +1,34 @@
+{
+  "autoMemoryEnabled": false,
+  "hooks": {
+    "SessionStart": [{
+      "matcher": "startup|resume|clear|compact",
+      "hooks": [{
+        "type": "command",
+        "command": "/Users/qinshu/Documents/MemOSLocal/bin/memos-hook.py claude",
+        "timeout": 3
+      }]
+    }],
+    "UserPromptSubmit": [{
+      "hooks": [{
+        "type": "command",
+        "command": "/Users/qinshu/Documents/MemOSLocal/bin/memos-hook.py claude",
+        "timeout": 3
+      }]
+    }],
+    "Stop": [{
+      "hooks": [{
+        "type": "command",
+        "command": "/Users/qinshu/Documents/MemOSLocal/bin/memos-hook.py claude",
+        "timeout": 3
+      }]
+    }],
+    "SessionEnd": [{
+      "hooks": [{
+        "type": "command",
+        "command": "/Users/qinshu/Documents/MemOSLocal/bin/memos-hook.py claude",
+        "timeout": 3
+      }]
+    }]
+  }
+}

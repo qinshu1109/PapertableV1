@@ -1,0 +1,30 @@
+{
+  "description": "MemOS Local hot context and session ingestion",
+  "hooks": {
+    "SessionStart": [{
+      "matcher": "startup|resume|clear|compact",
+      "hooks": [{
+        "type": "command",
+        "command": "/Users/qinshu/Documents/MemOSLocal/bin/memos-hook.py codex",
+        "timeout": 3,
+        "statusMessage": "Loading MemOS hot context"
+      }]
+    }],
+    "UserPromptSubmit": [{
+      "hooks": [{
+        "type": "command",
+        "command": "/Users/qinshu/Documents/MemOSLocal/bin/memos-hook.py codex",
+        "timeout": 3,
+        "statusMessage": "Checking local memory route"
+      }]
+    }],
+    "Stop": [{
+      "hooks": [{
+        "type": "command",
+        "command": "/Users/qinshu/Documents/MemOSLocal/bin/memos-hook.py codex",
+        "timeout": 3,
+        "statusMessage": "Queuing MemOS session increment"
+      }]
+    }]
+  }
+}
