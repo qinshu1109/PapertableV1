@@ -112,6 +112,45 @@ export function createPapertableProvider(): PapertableProvider {
   };
 }
 
+/** TASK-PW-61：从注册表单独构造 DeepSeek，不改 activeProviderId 与 PAPERTABLE_*。 */
+export function createDeepSeekProvider(dataDir: string): PapertableProvider {
+  const config = readProviderSettings(dataDir).settings.providers.deepseek;
+  if (!config.baseUrl || !config.apiKey || !config.model) {
+    throw new Error("DeepSeek 官方未配置");
+  }
+  const baseUrl = config.baseUrl.replace(/\/+$/u, "").replace(/\/v1\/?$/u, "");
+  const model: Model<"anthropic-messages"> = {
+    id: config.model,
+    name: "DeepSeek 官方",
+    api: "anthropic-messages",
+    provider: "papertable-deepseek",
+    baseUrl,
+    headers: { "user-agent": "Papertable/0.2" },
+    reasoning: true,
+    input: ["text"],
+    cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+    contextWindow: 200_000,
+    maxTokens: 32_000,
+  };
+  const models = createModels();
+  models.setProvider(createProvider({
+    id: "papertable-deepseek",
+    name: "DeepSeek 官方",
+    baseUrl,
+    auth: {
+      apiKey: {
+        name: "DeepSeek API key",
+        async resolve() {
+          return { auth: { apiKey: config.apiKey }, source: "provider.json" };
+        },
+      },
+    },
+    models: [model],
+    api: anthropicMessagesApi(),
+  }));
+  return { models, model, thinkingLevel: "high", supportsToolChoice: false };
+}
+
 type ProviderConfig = {
   protocol: ProviderProtocol;
   baseUrl: string;

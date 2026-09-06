@@ -1,0 +1,107 @@
+模型站点
+plus-倍率
+{"_type":"newapi_channel_conn","key":"sk-V0PiI1OTMHn4b7RHllHDNPoQMgnzvgsMy4uFuFIqZuV4XDEO","url":"https://www.sheapi.top"} 0.08倍率plus
+
+009plus
+[model_providers.OpenAI]
+name = "OpenAI"
+base_url = "https://sub.ai.mosshubs.com"
+wire_api = "responses"
+requires_openai_auth = true
+
+[features]
+goals = true
+~/.codex/auth.json
+复制
+{
+  "OPENAI_API_KEY": "sk-a9d7d2d7e6703985deb0a810d2a93356aa94c1a2e8251d6278ed14c5432ad9ac"
+}
+wawa
+006plus
+ase_url = "https://wawapii.com"
+wire_api = "responses"
+requires_openai_auth = false
+http_headers = { "x-openai-actor-authorization" = "local-image-extension" }
+
+[features]
+goals = true
+~/.codex/auth.json
+复制
+{
+  "OPENAI_API_KEY": "sk-f856a28ae96a76223bf18f0741a5d4300d6c1119c49928b9419a5086e9efb0c7"
+}
+a哥008
+{"_type":"newapi_channel_conn","key":"sk-937ebb22c5a1e13bf923d209103a55bc79606c8666db83212e09378f14b48b72","url":"https://hk.getelucid.com"}
+009plus
+[model_providers.OpenAI]
+name = "OpenAI"
+base_url = "https://sub.ai.mosshubs.com"
+wire_api = "responses"
+requires_openai_auth = true
+
+[features]
+goals = true
+~/.codex/auth.json
+复制
+{
+  "OPENAI_API_KEY": "sk-a9d7d2d7e6703985deb0a810d2a93356aa94c1a2e8251d6278ed14c5432ad9ac"
+}
+
+018pro
+[model_providers.OpenAI]
+name = "OpenAI"
+base_url = "https://sub.ai.mosshubs.com"
+wire_api = "responses"
+requires_openai_auth = true
+
+[features]
+goals = true
+~/.codex/auth.json
+复制
+{
+  "OPENAI_API_KEY": "sk-22bc95d4ee9392febf0dbfc402faa9b9fc7fee0a22e49214faa4825bac63938d"
+}
+011混池
+[model_providers.OpenAI]
+name = "OpenAI"
+base_url = "https://wawapii.com"
+wire_api = "responses"
+requires_openai_auth = true
+
+[features]
+goals = true
+~/.codex/auth.json
+复制
+{
+  "OPENAI_API_KEY": "sk-22026e9cefbc3ac3df3a8fdd4f0f52bb10e6c414158ca2a95f41816690f9f9a8"
+}
+018pro
+model_providers.OpenAI]
+name = "OpenAI"
+base_url = "https://wawapii.com"
+wire_api = "responses"
+requires_openai_auth = true
+
+[features]
+goals = true
+~/.codex/auth.json
+复制
+{
+  "OPENAI_API_KEY": "sk-226cfa90e39132db2c32838afee113121add4b9d4de6d9b07b8a6c1605538c31"
+}
+020Pro
+{"_type":"newapi_channel_conn","key":"sk-hVKVMKz2je4g4YddW5QiYavJPpfNicscelBkVYqAum1Xk233","url":"https://www.sheapi.top"}
+013Pro
+[model_providers.OpenAI]
+name = "OpenAI"
+base_url = "https://codekey.ai"
+wire_api = "responses"
+requires_openai_auth = true
+
+[features]
+goals = true
+~/.codex/auth.json
+复制
+{
+  "OPENAI_API_KEY": "sk-6e942c1b1bdb9e53d8eb8f9b73426b69b902c725119a8e8c3e4fa416f0f3496b"
+}

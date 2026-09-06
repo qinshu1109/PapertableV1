@@ -1,0 +1,44 @@
+# Generic memory-MCP overlay for DeepSeek Harness (dsh), MemOS-first.
+#
+# One insert row mounts `@deepseek-ai/dsh-mcp-client` against a memory MCP
+# server. The row is fully parameterized through environment variables read by
+# the dsh process at config interpolation time:
+#
+#   MEMOS_MCP_URL       when set (non-blank), connect over Streamable HTTP to
+#                       this MCP endpoint URL (transport: streamable-http).
+#   MEMOS_MCP_COMMAND   otherwise: the stdio executable to spawn. Defaults to
+#                       the placeholder '<your-memory-mcp-command>', which
+#                       fails tool discovery loudly in the dsh log until you
+#                       set a real command (failOnStartupError stays false, so
+#                       the composition still boots).
+#   MEMOS_MCP_ARGS      optional JSON array of stdio arguments, e.g. '["serve"]'.
+#
+# Real local MemOS example (read from ~/.cursor/mcp.json on this machine):
+# the `memos-local` entry is an HTTP MCP at http://127.0.0.1:8002/mcp — it is
+# NOT a stdio command, so the HTTP branch is the one that matches it:
+#
+#   MEMOS_MCP_URL=http://127.0.0.1:8002/mcp dsh --profile headless --patch <this file> "task"
+#
+# Any other stdio memory MCP fits the same row, e.g.:
+#
+#   MEMOS_MCP_COMMAND=memorix MEMOS_MCP_ARGS='["serve"]' dsh --patch <this file> ...
+#
+# Discovered tools register as `mcp__memos__<rawName>` (serverName: memos).
+# Edit serverName below if you mount several memory servers side by side.
+- insert:
+    - id: memory-memos
+      name: '@deepseek-ai/dsh-mcp-client'
+      config: !!js >-
+        (process.env.MEMOS_MCP_URL?.trim()
+          ? {
+              transport: 'streamable-http',
+              serverName: 'memos',
+              url: process.env.MEMOS_MCP_URL.trim(),
+            }
+          : {
+              transport: 'stdio',
+              serverName: 'memos',
+              command: process.env.MEMOS_MCP_COMMAND?.trim() || '<your-memory-mcp-command>',
+              args: JSON.parse(process.env.MEMOS_MCP_ARGS || '[]'),
+              cwd: process.cwd(),
+            })

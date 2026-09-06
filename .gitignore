@@ -9,3 +9,6 @@ frontend/tsconfig.tsbuildinfo
 *.sqlite
 *.sqlite3
 *.sqlite3-*
+.jspace/
+*.zip
+*-latest.jpg

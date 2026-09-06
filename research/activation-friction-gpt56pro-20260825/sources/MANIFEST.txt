@@ -1,0 +1,13 @@
+# sources 清单
+
+sources/docs/PRD-Paperweight.md
+sources/docs/SPEC-decision-layer-mvp.md
+sources/docs/SPEC-harness-write-boundary.md
+sources/docs/TASK-PW-52-batch.md
+sources/docs/TASK-PW-58-note-rollup.md
+sources/docs/TASK-PW-61-note-board.md
+sources/docs/USER-JOURNEY-note-value-loop.md
+sources/dsh-plugins/dsh-paperweight/README.md
+sources/dsh-plugins/dsh-scheduled-prompt/README.md
+sources/dsh-plugins/dsh-wechat/README.zh.md
+sources/MANIFEST.txt

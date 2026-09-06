@@ -207,9 +207,9 @@ export function ProjectSidebar({
                       }}
                     >
                       <Trash2 size={14} />
-                      移入回收站
+                      删除项目
                     </button>
-                    <div className="menu-note">删除可在 6 秒内撤销</div>
+                    <div className="menu-note">级联物理删除，确认后不可恢复</div>
                   </div>
                 </>
               )}

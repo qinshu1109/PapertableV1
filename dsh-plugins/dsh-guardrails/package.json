@@ -1,0 +1,29 @@
+{
+  "name": "dsh-guardrails",
+  "version": "0.1.0",
+  "description": "Protected-path human-approval gate for DeepSeek Harness: configured globs require explicit approval before any write-capable tool touches them; fail-closed without an answerer.",
+  "type": "module",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "guardrails.js",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "dshCompatibility": {
+    "harnessCommit": "47f943859bef60e4160492346772ded9b24f765a",
+    "harnessDate": "2026-08-13",
+    "note": "deepseek-harness is pre-release with no compatibility promise; re-verify against newer commits before upgrading."
+  },
+  "dependencies": {
+    "picomatch": "^4.0.2"
+  },
+  "scripts": {
+    "test": "node --test \"tests/**/*.test.js\""
+  }
+}

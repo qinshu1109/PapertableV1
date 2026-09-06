@@ -1,0 +1,13 @@
+# dsh-time-context bundle layer: one row. Override this row's whole config
+# from your profile's cordis.patch.yml (id-targeted patches replace the entire
+# config value; restate every field you keep).
+- insert:
+    - id: time-context
+      name: dsh-time-context
+      config:
+        # 刷新粒度：注入文本最多每 refreshSeconds 秒变一次（默认 60 = 分钟级）。
+        # <60 → 秒级精度；60–3599 → 分钟级；≥3600 → 小时级。显示时间被 floor 到
+        # 粒度桶，可能滞后最多一个桶（粒度越大越省 KV cache）。
+        refreshSeconds: 60
+        # 时区：IANA 名（如 Asia/Shanghai）；缺省 = 系统时区。
+        # timezone: Asia/Shanghai

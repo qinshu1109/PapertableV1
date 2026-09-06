@@ -1,0 +1,14 @@
+# dsh-scheduled-prompt bundle layer: one scheduler row. The shipped default
+# declares NO jobs (the same convention as the base bundle's empty
+# `agent-loop.agents` row): installing the bundle changes nothing until a
+# later patch layer declares jobs. Override this row from your profile's
+# cordis.patch.yml — an id-targeted patch replaces the WHOLE config value,
+# so restate `storePath` when you add jobs.
+- insert:
+    - id: scheduled-prompt
+      name: dsh-scheduled-prompt
+      config:
+        # Run records append to <storePath>/runs.jsonl. dshHomePath() is the
+        # boot-provided Harness-home resolver available to !!js expressions.
+        storePath: !!js dshHomePath('scheduled-prompt')
+        jobs: []

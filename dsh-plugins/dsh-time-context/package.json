@@ -1,0 +1,26 @@
+{
+  "name": "dsh-time-context",
+  "version": "0.1.0",
+  "description": "Proactive time awareness for DeepSeek Harness: injects the current local time into the model context through the systemPrompt runtime context (change-only appends, KV-cache friendly) plus a short relative-time rule section. Pure config; zero business vocabulary.",
+  "type": "module",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "time-context.js",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "dshCompatibility": {
+    "harnessCommit": "47f943859bef60e4160492346772ded9b24f765a",
+    "harnessDate": "2026-08-13",
+    "note": "deepseek-harness is pre-release with no compatibility promise; re-verify against newer commits before upgrading. The runtime context and section APIs are pinned to the harnessCommit above; no npm dependencies."
+  },
+  "scripts": {
+    "test": "node --test \"tests/**/*.test.js\""
+  }
+}

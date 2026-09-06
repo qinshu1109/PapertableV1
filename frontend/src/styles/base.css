@@ -2282,3 +2282,41 @@ textarea {
 }
 .activity-toggle:hover { color: var(--ink); }
 .dot-pulse.small { transform: scale(0.7); }
+
+/* ---------- TASK-PW-62：决策链总结弹层 ---------- */
+.modal-hint {
+  color: var(--ink-2);
+  font-size: 13px;
+  line-height: 1.7;
+  margin: 0 0 10px;
+}
+.modal-hint.error {
+  color: #b8422e;
+}
+.modal-hint a {
+  color: var(--accent);
+}
+.chain-export-entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  padding: 3px 10px;
+  margin-left: auto;
+}
+.chain-export-md {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--ink);
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+.chain-export-md:focus {
+  outline: 1.5px solid var(--accent);
+}

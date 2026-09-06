@@ -1,0 +1,27 @@
+{
+  "name": "dsh-proposal-gate",
+  "version": "0.1.0",
+  "description": "Human review channel for DeepSeek Harness: models submit structured change proposals via tools; review/apply/verify exist only as a human command; durable store with append-only audit ledger and stale-base_version refusal.",
+  "type": "module",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "machine.js",
+    "store.js",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "dshCompatibility": {
+    "harnessCommit": "47f943859bef60e4160492346772ded9b24f765a",
+    "harnessDate": "2026-08-13",
+    "note": "deepseek-harness is pre-release with no compatibility promise; re-verify against newer commits before upgrading. Bare-imports @deepseek-ai/dsh-tools at runtime (provided by the harness install)."
+  },
+  "scripts": {
+    "test": "node --test \"tests/**/*.test.js\""
+  }
+}

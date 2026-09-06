@@ -23,6 +23,8 @@ export type CardRow = {
   branch_context_json: string | null;
   created_at: string;
   updated_at: string;
+  /** 回收站软删除时间戳；NULL = 未删 */
+  trashed_at: string | null;
 };
 
 export type RunRow = {
@@ -140,7 +142,8 @@ export function openDataStore(dataDirectory = process.env.PAPERTABLE_DATA_DIR): 
       source_card_id TEXT REFERENCES pt_cards(id) ON DELETE SET NULL,
       branch_context_json TEXT,
       created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL
+      updated_at TEXT NOT NULL,
+      trashed_at TEXT
     );
     CREATE INDEX IF NOT EXISTS pt_cards_project ON pt_cards(project_id, created_at);
 
@@ -225,6 +228,49 @@ export function openDataStore(dataDirectory = process.env.PAPERTABLE_DATA_DIR): 
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
+
+    -- 简报 23 · 第二期学习闭环编译层：三张新表（用户 2026-08-14 逐项批准，仅新增，不改任何旧表结构）。
+    -- 父表 pw_verdicts / pw_bets 由各自模块 ensure 建表（晚于本文件），SQLite 允许前向引用，写入期才校验 FK。
+    CREATE TABLE IF NOT EXISTS pw_verdict_promotions (
+      id TEXT PRIMARY KEY,
+      verdict_id TEXT NOT NULL REFERENCES pw_verdicts(id),
+      level TEXT NOT NULL CHECK(level IN ('case_only','prior','warning','hard_constraint','action_item')),
+      scope TEXT,                -- 适用范围（人写）
+      review_by TEXT,            -- 复核期限（日期）
+      reason TEXT,               -- 晋级理由
+      status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','superseded','expired')),
+      superseded_by TEXT REFERENCES pw_verdict_promotions(id),
+      decided_by TEXT NOT NULL DEFAULT 'human' CHECK(decided_by='human'),
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS pw_verdict_promotions_verdict_status
+      ON pw_verdict_promotions(verdict_id, status);
+
+    CREATE TABLE IF NOT EXISTS pw_precedent_dispositions (
+      id TEXT PRIMARY KEY,
+      bet_id TEXT NOT NULL REFERENCES pw_bets(id),
+      verdict_id TEXT NOT NULL,
+      promotion_id TEXT REFERENCES pw_verdict_promotions(id),
+      disposition TEXT NOT NULL CHECK(disposition IN ('adopted','distinguished','not_applicable','overridden')),
+      reason TEXT,               -- overridden 必填（后端校验）
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS pw_precedent_dispositions_bet
+      ON pw_precedent_dispositions(bet_id);
+
+    CREATE TABLE IF NOT EXISTS pw_verdict_exposures (
+      id TEXT PRIMARY KEY,
+      surface TEXT NOT NULL,      -- collab / sieve / miner / activation / 其他注入点
+      bet_id TEXT,
+      verdict_ids_json TEXT NOT NULL,  -- 本次放进上下文的判决 id 数组
+      actor TEXT NOT NULL,        -- system / ai
+      run_id TEXT,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS pw_verdict_exposures_created
+      ON pw_verdict_exposures(created_at);
+    CREATE INDEX IF NOT EXISTS pw_verdict_exposures_bet
+      ON pw_verdict_exposures(bet_id);
   `);
 
   migrateSchema(db);
@@ -235,6 +281,8 @@ function migrateSchema(db: DatabaseSync): void {
   const row = db.prepare("SELECT version FROM pt_schema LIMIT 1").get() as { version: number };
   if (row.version >= 2) {
     migrateRunsV3(db, row.version);
+    migrateTrashedAtV4(db);
+    migratePhase2V5(db);
     return;
   }
 
@@ -296,6 +344,8 @@ function migrateSchema(db: DatabaseSync): void {
   if (violations.length > 0) throw new Error("Schema migration left invalid foreign keys");
 
   migrateRunsV3(db, 2);
+  migrateTrashedAtV4(db);
+  migratePhase2V5(db);
 }
 
 /** v3：pt_runs 增加按需概念会话所需的列（正式轮不受影响，默认 kind='answer'）。 */
@@ -317,6 +367,36 @@ function migrateRunsV3(db: DatabaseSync, version: number): void {
     UPDATE pt_schema SET version = 3;
     COMMIT;
   `);
+}
+
+/** v4：pt_cards 增加回收站软删除标记 trashed_at（NULL=未删）。幂等：判列存在才 ALTER。 */
+function migrateTrashedAtV4(db: DatabaseSync): void {
+  const row = db.prepare("SELECT version FROM pt_schema LIMIT 1").get() as { version: number };
+  if (row.version >= 4) return;
+  const columns = (db.prepare("PRAGMA table_info(pt_cards)").all() as Array<{ name: string }>)
+    .map((column) => column.name);
+  // 全新库的 pt_cards 已带 trashed_at，只需升版本号
+  if (columns.includes("trashed_at")) {
+    db.exec("UPDATE pt_schema SET version = 4");
+    return;
+  }
+  db.exec(`
+    BEGIN IMMEDIATE;
+    ALTER TABLE pt_cards ADD COLUMN trashed_at TEXT;
+    UPDATE pt_schema SET version = 4;
+    COMMIT;
+  `);
+}
+
+/**
+ * v5：简报 23 第二期学习闭环编译层——三张新表（pw_verdict_promotions /
+ * pw_precedent_dispositions / pw_verdict_exposures）已在顶部 CREATE TABLE IF NOT EXISTS
+ * 幂等建好（新库旧库同路径），本迁移只升版本号；v4 库升级到 v5 即三表就位。
+ */
+function migratePhase2V5(db: DatabaseSync): void {
+  const row = db.prepare("SELECT version FROM pt_schema LIMIT 1").get() as { version: number };
+  if (row.version >= 5) return;
+  db.exec("UPDATE pt_schema SET version = 5");
 }
 
 export function nowIso(): string {
@@ -341,8 +421,11 @@ export function requireRun(db: DatabaseSync, runId: string): RunRow {
   return row;
 }
 
-export function httpError(status: number, message: string): Error & { status: number } {
-  return Object.assign(new Error(message), { status });
+/** TASK-PW-65：第三个可选参数 details——服务端错误响应在带 details 时随 {error} 一并返回（对账失败详情等结构化载荷）。向后兼容（既有调用只传前两参）。 */
+export function httpError(status: number, message: string, details?: unknown): Error & { status: number; details?: unknown } {
+  const error = Object.assign(new Error(message), { status }) as Error & { status: number; details?: unknown };
+  if (details !== undefined) error.details = details;
+  return error;
 }
 
 export function jsonObject(value: string | null | undefined): Record<string, unknown> {

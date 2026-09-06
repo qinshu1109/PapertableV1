@@ -40,6 +40,20 @@ const PROVIDE_LIMIT = 10;
 const DEFAULT_REMOTE = createVerdictRemote(callMemos);
 const pendingActions = new Map<string, Promise<unknown>>();
 
+// TASK-PW-26：金子确认订阅——确认成功后逐个调监听（自动镜像等自主动作）；
+// 单个监听抛错只吞掉自身，不拖垮确认返回。接线由主代理在 main.ts 完成。
+type VerdictConfirmedListener = (db: DatabaseSync, verdictId: string) => void;
+let verdictConfirmedListeners: VerdictConfirmedListener[] = [];
+
+export function onVerdictConfirmed(fn: VerdictConfirmedListener): void {
+  verdictConfirmedListeners.push(fn);
+}
+
+/** TASK-PW-26：测试复位模块级订阅（跨用例隔离）。 */
+export function _resetVerdictConfirmedListenersForTest(): void {
+  verdictConfirmedListeners = [];
+}
+
 export type VerdictAvailability = "available" | "degraded" | "unavailable";
 
 export type VerdictTrace = {
@@ -851,7 +865,16 @@ export async function confirmVerdict(
     }
     await syncVerdictToMemos(store, id, remote).catch(() => undefined);
     const runId = await resumeReroute(store, engine, id);
-    return { verdict: publicVerdict(requireVerdict(store.db, id)), runId };
+    const result = { verdict: publicVerdict(requireVerdict(store.db, id)), runId };
+    // TASK-PW-26：确认成功后逐个调监听（自动镜像 actor=system）；监听抛错不拖垮确认。
+    for (const listener of verdictConfirmedListeners) {
+      try {
+        listener(store.db, id);
+      } catch {
+        // 镜像等自主动作失败不拖垮确认（人工后路按钮/路由仍在）。
+      }
+    }
+    return result;
   });
 }
 

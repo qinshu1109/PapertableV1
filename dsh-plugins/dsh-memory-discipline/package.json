@@ -1,0 +1,29 @@
+{
+  "name": "dsh-memory-discipline",
+  "version": "0.1.0",
+  "description": "Memory-usage discipline for DeepSeek Harness: a stable system-prompt policy section plus automatic hot-context fetch-and-inject at session start, generic over any configured memory tool family.",
+  "type": "module",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "discipline.js",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "dependencies": {
+    "@deepseek-ai/dsh-llm": "0.1.0-rc.6"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "dshCompatibility": {
+    "harnessCommit": "47f943859bef60e4160492346772ded9b24f765a",
+    "harnessDate": "2026-08-13",
+    "note": "deepseek-harness is pre-release with no compatibility promise; re-verify against newer commits before upgrading. The runtime import @deepseek-ai/dsh-llm is an explicit dependency so linked installs resolve it from the plugin source directory; tests may still resolve @deepseek-ai/dsh-tools through the harness profile fallback."
+  },
+  "scripts": {
+    "test": "node --test \"tests/**/*.test.js\""
+  }
+}

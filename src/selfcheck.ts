@@ -90,8 +90,8 @@ try {
   const migrated = openDataStore(legacyDir);
   assert.equal(
     (migrated.db.prepare("SELECT version FROM pt_schema").get() as { version: number }).version,
-    3,
-    "旧数据库必须无损升级到按需概念会话 schema",
+    5,
+    "旧数据库必须无损升级到 v5（v2 关系表重建 + v3 按需概念 + v4 trashed_at + v5 学习闭环三新表）",
   );
   migrated.db.prepare(
     "INSERT INTO pt_projects(id, name, created_at, updated_at) VALUES('p', 'p', 'n', 'n')",
@@ -515,6 +515,18 @@ try {
   );
   assert.equal(deep.selectedText, "精确选区", "深挖只冻结精确选区");
   assert.equal(deep.sourceTurn, 1, "深挖必须冻结来源回答轮次");
+  const deepFromUser = buildBranchContext(
+    { id: "source", title: "来源标题" },
+    {
+      kind: "deep_dive",
+      question: "为什么",
+      selection: { entryId: "u1", text: "旧问题", start: 0, end: 3 },
+    },
+    conversation,
+  );
+  assert.equal(deepFromUser.kind, "deep_dive", "深挖可指向 user 轮（导入卡无 AI 回答）");
+  assert.equal(deepFromUser.selectedText, "旧问题", "user 轮选区冻结全文");
+  assert.equal(deepFromUser.sourceTurn, 0, "无 assistant 轮时 sourceTurn 为 0");
   const divergent = buildBranchContext(
     { id: "source", title: "来源标题" },
     { kind: "diverge", question: "发散什么", topic: "只继承主题" },

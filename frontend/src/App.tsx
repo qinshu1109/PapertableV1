@@ -8,11 +8,13 @@ import { GraphNavigator } from './components/GraphNavigator';
 import { Composer } from './components/Composer';
 import { ExportDialog, ImportDialog, SettingsDialog, TrashDialog } from './components/Dialogs';
 import { VerdictPanel } from './components/VerdictPanel';
+import { PaperweightApp } from './pw/PaperweightApp';
 import { EDGE_META } from './types';
 import { incomingEdge, layoutGraph, pathToRoot } from './lib/graph';
 
 export function App() {
   const { cards, edges, currentCardId, setCurrentCard, collapsed, toast, dismissToast, showToast } = useStore();
+  const [area, setArea] = useState<'explore' | 'pw'>('explore');
   const [sbCollapsed, setSbCollapsed] = useState(false);
   const [drawer, setDrawer] = useState(false);
   const [modal, setModal] = useState<null | 'import' | 'export' | 'settings' | 'trash'>(null);
@@ -55,19 +57,23 @@ export function App() {
 
   return (
     <div className="app">
-      {drawer && <div className="drawer-scrim" onClick={() => setDrawer(false)} />}
-      <ProjectSidebar
-        collapsed={sbCollapsed}
-        onToggle={() => setSbCollapsed((v) => !v)}
-        drawerOpen={drawer}
-        onCloseDrawer={() => setDrawer(false)}
-        onImport={() => setModal('import')}
-        onExport={() => setModal('export')}
-        onSettings={() => setModal('settings')}
-        onTrash={() => setModal('trash')}
-      />
+      {area === 'pw' ? (
+        <PaperweightApp onGoExplore={() => setArea('explore')} />
+      ) : (
+        <>
+          {drawer && <div className="drawer-scrim" onClick={() => setDrawer(false)} />}
+          <ProjectSidebar
+            collapsed={sbCollapsed}
+            onToggle={() => setSbCollapsed((v) => !v)}
+            drawerOpen={drawer}
+            onCloseDrawer={() => setDrawer(false)}
+            onImport={() => setModal('import')}
+            onExport={() => setModal('export')}
+            onSettings={() => setModal('settings')}
+            onTrash={() => setModal('trash')}
+          />
 
-      <main className="workspace">
+          <main className="workspace">
         {/* 移动端顶部横向迷你关系导航 */}
         <div className="mini-nav">
           <button className="icon-btn" onClick={() => setDrawer(true)} aria-label="打开项目抽屉">
@@ -106,24 +112,47 @@ export function App() {
         <CardStage />
         <Composer onLocate={locate} />
         <VerdictPanel />
-      </main>
+          </main>
 
-      <GraphNavigator />
+          <GraphNavigator />
 
-      {modal === 'import' && (
-        <ImportDialog
-          onClose={() => setModal(null)}
-          onDone={(label) => showToast({ text: `已按「${label}」完成导入 · 新增 1 个项目、6 张卡片` })}
-        />
+          {modal === 'import' && (
+            <ImportDialog
+              onClose={() => setModal(null)}
+              onDone={(label) => showToast({ text: `已按「${label}」完成导入 · 新增 1 个项目、6 张卡片` })}
+            />
+          )}
+          {modal === 'export' && (
+            <ExportDialog
+              onClose={() => setModal(null)}
+              onDone={(label) => showToast({ text: `已导出为「${label}」· 6 张卡片、5 条关系` })}
+            />
+          )}
+          {modal === 'settings' && <SettingsDialog onClose={() => setModal(null)} />}
+          {modal === 'trash' && <TrashDialog onClose={() => setModal(null)} />}
+        </>
       )}
-      {modal === 'export' && (
-        <ExportDialog
-          onClose={() => setModal(null)}
-          onDone={(label) => showToast({ text: `已导出为「${label}」· 6 张卡片、5 条关系` })}
-        />
-      )}
-      {modal === 'settings' && <SettingsDialog onClose={() => setModal(null)} />}
-      {modal === 'trash' && <TrashDialog onClose={() => setModal(null)} />}
+
+      <div className="area-switch" role="tablist" aria-label="区域切换">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={area === 'explore'}
+          className={area === 'explore' ? 'on' : ''}
+          onClick={() => setArea('explore')}
+        >
+          探索
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={area === 'pw'}
+          className={area === 'pw' ? 'on' : ''}
+          onClick={() => setArea('pw')}
+        >
+          镇纸
+        </button>
+      </div>
 
       <AnimatePresence>
         {toast && (

@@ -1,0 +1,16 @@
+# dsh-memory-discipline bundle layer: one discipline row. Override this row's
+# whole config from your profile's cordis.patch.yml (id-targeted patches
+# replace the entire config value; restate every field you keep). Tool names
+# are the MODEL-FACING registered names — for an MCP-bridged memory server
+# they carry the `mcp__<serverName>__` prefix.
+- insert:
+    - id: memory-discipline
+      name: dsh-memory-discipline
+      config:
+        hotContextTool: get_hot_context
+        autoFetch: true
+        # policyLines omitted: built-in English default (see README).
+        toolVocabulary:
+          route: route_memory
+          search: search_memories
+          add: add_memory

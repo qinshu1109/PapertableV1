@@ -16,7 +16,7 @@ const EXPORT_FORMATS = [
   { id: 'bundle', icon: Package, name: '无损项目包', desc: '保留全部字段，可在本工具之间完整往返。' },
 ];
 
-function Shell({
+export function Shell({
   title,
   icon,
   onClose,
@@ -204,7 +204,7 @@ export function TrashDialog({ onClose }: { onClose: () => void }) {
     >
       {trashed.length === 0 && (
         <p className="note-line">
-          回收站是空的。卡片菜单里的「移入回收站」只是本地隐藏，随时可以从这里还原。
+          回收站是空的。删除的卡片在服务端留有标记，随时可以从这里还原；「彻底删除」才会物理移除。
         </p>
       )}
       {trashed.map((card) => (

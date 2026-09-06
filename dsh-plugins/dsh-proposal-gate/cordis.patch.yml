@@ -1,0 +1,15 @@
+# dsh-proposal-gate bundle layer. Override this row's whole config from your
+# profile's cordis.patch.yml (id-targeted patches replace the entire config;
+# restate what you keep). The vocabularies below are a generic starter set —
+# deployments are expected to replace them with their own review taxonomy.
+- insert:
+    - id: proposal-gate
+      name: dsh-proposal-gate
+      config:
+        storePath: !!js dshHomePath('proposal-gate')
+        lanes: [default]
+        targetKinds: [document, config, code, data, other]
+        requestedActions: [create, update, delete, custom]
+        riskLevels: [low, medium, high]
+        requireEvidence: true
+        # expireAfterDays: 14   # optional: system sweep expires idle pre-decision proposals

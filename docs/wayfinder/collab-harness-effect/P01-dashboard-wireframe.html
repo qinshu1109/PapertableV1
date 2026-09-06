@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P01 线框稿 · 协作台「今日值得看」大屏</title>
+<style>
+  :root {
+    --ink: #2b2620;
+    --ink-dim: #8a8175;
+    --paper: #f7f4ee;
+    --card: #fffdf9;
+    --line: #d8d2c6;
+    --accent: #b58a3c;
+    --draft: #7a6f5f;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "PingFang SC", "Hiragino Sans GB", sans-serif;
+    background: var(--paper); color: var(--ink);
+    padding: 24px; max-width: 1280px; margin: 0 auto;
+  }
+  .toggle { display: flex; gap: 8px; margin-bottom: 16px; }
+  .toggle button {
+    font-size: 14px; padding: 6px 16px; border: 1px solid var(--line);
+    background: var(--card); color: var(--ink-dim); border-radius: 6px; cursor: pointer;
+  }
+  .toggle button.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .note { font-size: 12px; color: var(--ink-dim); }
+  .anno {
+    font-size: 11px; color: var(--accent); border: 1px dashed var(--accent);
+    border-radius: 4px; padding: 1px 6px; display: inline-block; margin-left: 6px;
+  }
+  /* ===== 大屏骨架 ===== */
+  .screen { border: 2px solid var(--ink); border-radius: 12px; overflow: hidden; background: var(--card); }
+  .topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 20px; border-bottom: 1px solid var(--line);
+  }
+  .topbar .brand { font-weight: 700; font-size: 15px; }
+  .topbar .sieve { font-size: 12px; color: var(--ink-dim); }
+  .layout { display: grid; grid-template-columns: 240px 1fr; min-height: 560px; }
+  .rail { border-right: 1px solid var(--line); padding: 16px; }
+  .rail h3 { font-size: 12px; color: var(--ink-dim); margin-bottom: 10px; letter-spacing: 1px; }
+  .rail .bet { font-size: 13px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 8px; background: var(--paper); }
+  .rail .bet .hot { color: var(--accent); }
+  .main { padding: 20px; }
+  .main h2 { font-size: 15px; margin-bottom: 4px; }
+  .main .sub { font-size: 12px; color: var(--ink-dim); margin-bottom: 16px; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .card {
+    border: 1.5px solid var(--ink); border-radius: 10px; padding: 14px;
+    background: var(--card); display: flex; flex-direction: column; gap: 8px; position: relative;
+  }
+  .card .rank { position: absolute; top: -9px; left: 10px; background: var(--ink); color: var(--paper); font-size: 10px; padding: 1px 8px; border-radius: 8px; }
+  .quote { font-size: 14px; font-weight: 600; line-height: 1.5; }
+  .quote .src { display: block; font-size: 11px; font-weight: 400; color: var(--ink-dim); margin-top: 2px; }
+  .field { font-size: 12px; line-height: 1.5; }
+  .field b { color: var(--ink-dim); font-weight: 600; }
+  .field.draft { color: var(--draft); border-left: 3px solid var(--accent); padding-left: 8px; }
+  .actions { display: flex; gap: 6px; margin-top: auto; padding-top: 6px; }
+  .actions span {
+    font-size: 12px; border: 1px solid var(--line); border-radius: 6px;
+    padding: 3px 12px; background: var(--paper);
+  }
+  .actions .pick { border-color: var(--ink); font-weight: 700; }
+  .wild {
+    margin-top: 18px; border: 1.5px dashed var(--accent); border-radius: 10px; padding: 14px;
+  }
+  .wild h3 { font-size: 13px; color: var(--accent); margin-bottom: 8px; }
+  .wild li { font-size: 12.5px; line-height: 1.8; list-style: none; }
+  .wild li::before { content: "· "; color: var(--accent); font-weight: 700; }
+  .chatbar {
+    border-top: 1px solid var(--line); padding: 12px 20px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .chatbar .input { color: var(--ink-dim); font-size: 13px; }
+  /* ===== 单卡钻取 ===== */
+  .detail { display: grid; grid-template-columns: 1.2fr 1fr; min-height: 560px; }
+  .detail .left { padding: 20px; border-right: 1px solid var(--line); }
+  .detail .right { padding: 20px; background: var(--paper); }
+  .back { font-size: 12px; color: var(--ink-dim); margin-bottom: 12px; }
+  .betline { font-size: 13px; line-height: 2; border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; background: var(--paper); }
+  .draftbox { border: 1.5px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; position: relative; }
+  .draftbox::after {
+    content: "草稿"; position: absolute; top: -9px; right: 12px;
+    background: var(--accent); color: #fff; font-size: 10px; padding: 1px 8px; border-radius: 8px;
+  }
+  .draftbox h4 { font-size: 13px; margin-bottom: 6px; }
+  .draftbox p { font-size: 12px; color: var(--ink-dim); line-height: 1.7; }
+  .final { border: 1.5px solid var(--ink); }
+  .final::after { content: "人定稿"; background: var(--ink); }
+  .msg { font-size: 12.5px; line-height: 1.7; margin-bottom: 12px; }
+  .msg .who { font-weight: 700; font-size: 11px; color: var(--ink-dim); display: block; margin-bottom: 2px; }
+  .msg .ref { color: var(--accent); }
+  .legend { margin-top: 16px; font-size: 12px; color: var(--ink-dim); line-height: 2; }
+  .legend b { color: var(--ink); }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="toggle">
+  <button id="btn1" class="active" onclick="show(1)">层 1 · 今日值得看（聚合入口）</button>
+  <button id="btn2" onclick="show(2)">层 2 · 单卡钻取 + 对话深挖</button>
+</div>
+<p class="note" style="margin-bottom:16px">P01 线框稿 · 只表达区块布局与内容形态，不表达最终视觉。虚线橙标 = 停线/纪律注记。对应规格 <code>docs/SPEC-collab-harness-effect.md</code> §2/§4/§5。</p>
+
+<!-- ================= 层 1 ================= -->
+<div id="screen1" class="screen">
+  <div class="topbar">
+    <span class="brand">镇纸 Paperweight · 协作台</span>
+    <span class="sieve">筛子：昨夜 02:10 已筛 2 批（6,840 条评论 → 6 张候选）<span class="anno">数据到达触发，你没叫过它</span></span>
+  </div>
+  <div class="layout">
+    <aside class="rail">
+      <h3>在途押注 · 今日动态<span class="anno">聚合入口</span></h3>
+      <div class="bet"><b>BET-03</b> 开头钩子<br><span class="hot">● 新语料 212 条评论已筛</span></div>
+      <div class="bet"><b>BET-05</b> 资料过滤演示<br><span class="hot">● 距看结果日 2 天</span></div>
+      <div class="bet"><b>BET-07</b> AI 周报困惑<br><span class="note">○ 无新动静</span></div>
+      <div class="legend">
+        <b>这一栏回答</b>：今天哪张卡值得我睁眼？<br>多卡之间的筛选由筛子做，不由你翻。
+      </div>
+    </aside>
+    <main class="main">
+      <h2>选题候选 · 按证据强度排序<span class="anno">停线①：只有排序，没有「推荐」</span></h2>
+      <p class="sub">排序依据印在卡脚（规模感 × 新鲜度），你一眼可复核。每张卡 = 一条能拍的内容的最小证据包。</p>
+      <div class="cards">
+        <div class="card">
+          <span class="rank">证据 1</span>
+          <p class="quote">「我让 AI 查资料，它给我编了三本书」<span class="src">B 站评论区 @某用户 · 原文<span class="anno">停线④原文原则：不改写</span></span></p>
+          <p class="field"><b>规模感</b>　30+ 视频下出现 · 单条最高 200 赞</p>
+          <p class="field draft"><b>可演示</b>　只信你喂的料 vs 凭空编（Paperweight 资料过滤）<span class="anno">最易平庸字段，主要改它</span></p>
+          <p class="field"><b>新鲜度</b>　本周集中涌出</p>
+          <div class="actions"><span class="pick">挑</span><span>改</span><span>否</span></div>
+        </div>
+        <div class="card">
+          <span class="rank">证据 2</span>
+          <p class="quote">「用 AI 写周报写到凌晨，格式改了八遍」<span class="src">B 站评论区 @办公族小李 · 原文</span></p>
+          <p class="field"><b>规模感</b>　职场区 17 个视频下高频 · 多条 100+ 赞</p>
+          <p class="field draft"><b>可演示</b>　喂模板+喂素材，3 分钟出周报（对照：徒手改格式 40 分钟）</p>
+          <p class="field"><b>新鲜度</b>　持续高热（周一峰）</p>
+          <div class="actions"><span class="pick">挑</span><span>改</span><span>否</span></div>
+        </div>
+        <div class="card">
+          <span class="rank">证据 3</span>
+          <p class="quote">「AI 总结 meeting notes 比我自己记还乱」<span class="src">小红书评论 · 原文</span></p>
+          <p class="field"><b>规模感</b>　8 个视频下出现 · 赞数中等</p>
+          <p class="field draft"><b>可演示</b>　先定「什么算重点」再让 AI 记（对照：直接丢给它）</p>
+          <p class="field"><b>新鲜度</b>　近两周</p>
+          <div class="actions"><span class="pick">挑</span><span>改</span><span>否</span></div>
+        </div>
+        <div class="card">
+          <span class="rank">证据 4</span>
+          <p class="quote">「知道 AI 能帮忙，但打开对话框不知道输入啥」<span class="src">B 站评论区 · 原文</span></p>
+          <p class="field"><b>规模感</b>　泛 AI 视频下普遍 · 单赞不高但面广</p>
+          <p class="field draft"><b>可演示</b>　从「一张押注卡」开始而不是从空白对话框开始</p>
+          <p class="field"><b>新鲜度</b>　长期存在</p>
+          <div class="actions"><span class="pick">挑</span><span>改</span><span>否</span></div>
+        </div>
+        <div class="card">
+          <span class="rank">证据 5</span>
+          <p class="quote">「让 AI 帮我看文献，看完还是不知道哪篇重要」<span class="src">知乎评论 · 原文</span></p>
+          <p class="field"><b>规模感</b>　12 个内容下出现</p>
+          <p class="field draft"><b>可演示</b>　先立判断标准（金子）再筛，AI 只搬不判</p>
+          <p class="field"><b>新鲜度</b>　本月</p>
+          <div class="actions"><span class="pick">挑</span><span>改</span><span>否</span></div>
+        </div>
+        <div class="card">
+          <span class="rank">证据 6</span>
+          <p class="quote">「AI 给的建议永远正确但没用，像健身教练说少吃多动」<span class="src">B 站评论区 · 原文</span></p>
+          <p class="field"><b>规模感</b>　9 个视频下出现 · 共鸣强</p>
+          <p class="field draft"><b>可演示</b>　把「正确废话」钉到具体数据上（对照：空对空建议）</p>
+          <p class="field"><b>新鲜度</b>　本周</p>
+          <div class="actions"><span class="pick">挑</span><span>改</span><span>否</span></div>
+        </div>
+      </div>
+
+      <div class="wild">
+        <h3>少数派 · 长尾（未归堆）<span class="anno">停线④异类保留：机会藏在这里</span></h3>
+        <ul>
+          <li>「想用 AI 盯竞品价格，但不知道怎么让它每天自己跑」—— 仅 1 人提及，但带完整场景和预算</li>
+          <li>「AI 写的脚本跑了，但我不敢信，又逐行检查了一遍，等于没省」—— 仅 2 人，都是千赞长评</li>
+          <li>「我妈用语音助手只问天气，我教她别的她说学不会」—— 仅 1 人，跨年龄层视角</li>
+        </ul>
+      </div>
+    </main>
+  </div>
+  <div class="chatbar">
+    <span class="input">就今天的大屏，问点什么……（例：证据 1 的吐槽都是什么语气？）</span>
+    <span class="note">对话区 · 顺着疑点深挖<span class="anno">推主拉辅</span></span>
+  </div>
+</div>
+
+<!-- ================= 层 2 ================= -->
+<div id="screen2" class="screen hidden">
+  <div class="topbar">
+    <span class="brand">← 返回大屏　｜　BET-05「资料过滤演示」· 内容押注卡</span>
+    <span class="sieve">挑中后生成 · 押转化不押播放</span>
+  </div>
+  <div class="detail">
+    <div class="left">
+      <p class="back">单卡钻取层：卡明细 + 素材区（左），对话深挖（右，按卡隔离）</p>
+      <div class="betline">
+        <b>押注三行（生产版）</b><br>
+        演示困惑：「我让 AI 查资料，它给我编了三本书」<br>
+        转化信号：一周内 ≥10 人加私域群 / 问工具<br>
+        看结果日：2026-08-10
+      </div>
+      <div class="draftbox">
+        <h4>候选结构 A · 痛点先行</h4>
+        <p>困惑引文开场 → 演示 Paperweight 只信喂的料 → 落差对照收尾（料已摆进格子）</p>
+      </div>
+      <div class="draftbox">
+        <h4>候选结构 B · 结果先行</h4>
+        <p>「3 分钟筛完 500 条评论」甩结果 → 回头讲怎么做到 → 引文做点缀</p>
+      </div>
+      <div class="draftbox">
+        <h4>对照步骤草案 v2</h4>
+        <p>不用时：翻 500 条评论手抄 2 小时 ｜ 用时：打开协作台看筛好的卡 3 分钟（每步挂实据）</p>
+      </div>
+      <div class="draftbox final">
+        <h4>大纲 v1</h4>
+        <p>你已把草案改成自己的话并定稿。AI 不定稿，只出上面的草稿。</p>
+      </div>
+    </div>
+    <div class="right">
+      <p class="msg"><span class="who">你</span>证据 1 的那些吐槽都是什么语气？是生气还是无奈？</p>
+      <p class="msg"><span class="who">AI · 副驾驶</span>捞了原文 3 条：①「气笑了，参考文献全是编的」<span class="ref">［语料·BV1NprhBPEtR 评论区］</span> ②……<br>整体偏「无奈自嘲」而非愤怒——引文原文在这，你自己读。<span class="ref">（引原文，不替你下结论）</span></p>
+      <p class="msg"><span class="who">你</span>把第 ② 条挂到大纲的开头。</p>
+      <p class="msg"><span class="who">AI · 副驾驶</span>已在大纲草稿里挂好，等你确认。<span class="ref">（草稿制：它挂，你定）</span></p>
+    </div>
+  </div>
+</div>
+
+<div class="legend">
+  <b>看图时重点反应</b>：①候选卡区块该不该在正中央、六宫格挤不挤；②「少数派」区的位置和体量对不对；③左栏「在途押注动态」有没有存在的必要；④对话区放底栏（层1）vs 右栏（层2）两种形态哪个顺手；⑤还缺什么你一眼想找的区块。
+</div>
+
+<script>
+  function show(n) {
+    document.getElementById('screen1').classList.toggle('hidden', n !== 1);
+    document.getElementById('screen2').classList.toggle('hidden', n !== 2);
+    document.getElementById('btn1').classList.toggle('active', n === 1);
+    document.getElementById('btn2').classList.toggle('active', n === 2);
+  }
+</script>
+</body>
+</html>

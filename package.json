@@ -9,13 +9,17 @@
     "start": "node src/main.ts",
     "run": "node src/main.ts",
     "selfcheck": "node src/selfcheck.ts",
-    "test": "node --test src/gate.test.ts src/verdict-memos.test.ts src/verdicts.test.ts",
+    "test": "node --test src/gate.test.ts src/card-import.test.ts src/card-trash.test.ts src/verdict-memos.test.ts src/verdicts.test.ts src/pw-bets.test.ts src/pw-bet-gate.test.ts src/pw-bet-health.test.ts src/pw-artifacts.test.ts src/pw-data-docs.test.ts src/pw-verdicts.test.ts src/pw-gold-sync.test.ts src/pw-gold-format.test.ts src/pw-voice.test.ts src/pw-voice-promote.test.ts src/pw-voice-collect.test.ts src/pw-voice-cards.test.ts src/pw-voice-sieve.test.ts src/pw-voice-sieve-matrix.test.ts src/pw-voice-sieve-track.test.ts src/pw-drafts.test.ts src/pw-runs.test.ts src/pw-context.test.ts src/pw-connections.test.ts src/pw-corpus.test.ts src/pw-collab.test.ts src/pw-notes.test.ts src/pw-note-recall.test.ts src/pw-recall-events.test.ts src/pw-mode-bar.test.ts src/pw-proposals.test.ts src/pw-note-tree.test.ts src/pw-miner.test.ts src/pw-note-board.test.ts src/pw-read-paths.test.ts src/pw-sieve.test.ts src/pw-sieve-direction.test.ts src/pw-sieve-resieve.test.ts src/pw-direction-stats.test.ts src/pw-content-bets.test.ts src/pw-draft-content-bet.test.ts src/pw-gate-e2e.test.ts src/pw-deepdive-tools.test.ts src/pw-global-collab.test.ts src/pw-audit-foundation.test.ts src/pw-exec-tools.test.ts src/pw-mint-undo.test.ts src/pw-autonomous.test.ts src/pw-supervision.test.ts src/pw-verdict-refs.test.ts src/pw-content-drafts.test.ts src/pw-draft-pipeline.test.ts src/pw-draft-autofire.test.ts src/pw-source-stats.test.ts src/pw-day-summary.test.ts src/pw-feishu-relay.test.ts src/pw-note-insight.test.ts src/pw-note-rollup.test.ts src/pw-bet-video-snapshot.test.ts src/pt-chain-export.test.ts src/pw-closed-loop.test.ts src/pw-notify.test.ts",
+    "audit:harness": "node scripts/pw-harness-audit.mjs",
+    "eval:sieve": "node src/pw-eval-sieve.ts",
+    "eval:drafts": "node src/pw-eval-drafts.ts",
     "verify": "npm test && npm run selfcheck && npm --prefix frontend run build"
   },
   "dependencies": {
     "@earendil-works/pi-agent-core": "0.82.1",
     "@earendil-works/pi-ai": "0.82.1",
     "@earendil-works/pi-storage-sqlite-node": "0.82.1",
+    "@larksuiteoapi/node-sdk": "^1.72.0",
     "@modelcontextprotocol/sdk": "1.30.0"
   }
 }

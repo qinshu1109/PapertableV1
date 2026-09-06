@@ -1,0 +1,7 @@
+# dsh-paperweight bundle patch: host 半装配行。
+# client 半由 Claude 在 package.json 补 dsh.client 声明（见 src/types.ts 契约备注）。
+- insert:
+    - id: dsh-paperweight
+      name: '@papertable/dsh-paperweight'
+      config:
+        baseUrl: http://127.0.0.1:4317

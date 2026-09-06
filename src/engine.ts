@@ -40,6 +40,7 @@ import {
   type RunRow,
 } from "./data.ts";
 import {
+  addProjectMaterial,
   freezeProjectScope,
   inheritDefaultLibrary,
   readNotes,
@@ -59,6 +60,10 @@ import {
   createPapertableProvider,
   type PapertableProvider,
 } from "./provider-settings.ts";
+import {
+  getPwVoiceSieveRun,
+  PW_VOICE_SIEVE_BUCKETS,
+} from "./pw-voice-sieve.ts";
 
 type ActiveRun = {
   harness?: AgentHarness<RunContext>;
@@ -161,6 +166,129 @@ export class PapertableEngine {
     `).run(cardId, projectId, metadata.id, cleanTitle(title || cleanQuestion), now, now);
     const runId = await this.startRun(cardId, cleanQuestion);
     return { cardId, runId };
+  }
+
+  /**
+   * TASK-PW-67：把筛子精选评论静态落成 root 卡（不触发任何 AI run）。
+   * TASK-PW-69：corpusRunIds 可选——把对应筛子 run 的信号评论写成项目临时材料（project_material），
+   * 供探索区深挖时检索闸门读到（评论语料不再在冻结语料之外必拒答）。
+   * 处理顺序：先校验全部 corpusRunIds（未知 id 或 status 非 done 抛 400 fail-fast），
+   * 再跑现有卡片循环，最后写语料（语料写入与卡片是否被去重跳过无关）。
+   * 每张卡照 createRootCard 前半段建一个独立 session（拿 session_id 即落 pt_cards，
+   * branch_kind='root'、source_card_id=NULL、branch_context_json 带 source 来源），再往
+   * transcript 追加一条 user 消息 = 评论原文 + 来源行。同项目内已导入的来源去重后跳过。
+   * 两种形态：kind="comment"（单条评论，bvid/rpid 必填，按 rpid 去重）与
+   * kind="bucket"（一次筛子的一个桶整张卡，bvid/rpid 可空、bucket 必填，按标题去重）。
+   * 返回 {imported:[cardId...], skipped:[...], corpus:{imported:[材料名], skipped:[材料名（原因）]}}。
+   * cards 上限 50 张，超出 400。
+   */
+  async importCommentCards(
+    projectId: string,
+    cardsRaw: unknown,
+    options: { corpusRunIds?: unknown } = {},
+  ): Promise<{ imported: string[]; skipped: string[]; corpus: { imported: string[]; skipped: string[] } }> {
+    requireProject(this.store.db, projectId);
+    const corpusRunIds = options.corpusRunIds === undefined ? [] : corpusRunIdsArray(options.corpusRunIds);
+    // 先校验全部 corpusRunIds：未知 id 或 status 非 done → 400 fail-fast
+    if (corpusRunIds.length) {
+      for (const runId of corpusRunIds) {
+        const run = this.store.db.prepare(
+          `SELECT status FROM pw_voice_sieve_runs WHERE id=?`,
+        ).get(runId) as { status: string } | undefined;
+        if (!run || run.status !== "done") throw httpError(400, `筛子 run 不存在或未完成：${runId}`);
+      }
+    }
+    const cards = Array.isArray(cardsRaw) ? cardsRaw : null;
+    if (!cards) throw httpError(400, "缺少 cards（应为数组）");
+    if (!cards.length) throw httpError(400, "没有可导入的卡片");
+    if (cards.length > 50) throw httpError(400, "一次最多导入 50 张卡片");
+
+    // 去重集合：comment 卡按 rpid，bucket 卡按标题（已存标题经 cleanTitle 归一）。
+    // TASK-PW-70：回收站里的卡不算数——只有 trashed_at IS NULL 的在册卡才挡重送。
+    const commentRpids = new Set<string>();
+    const bucketTitles = new Set<string>();
+    const rows = this.store.db.prepare(
+      `SELECT title, branch_context_json FROM pt_cards WHERE project_id=? AND trashed_at IS NULL AND branch_context_json IS NOT NULL`,
+    ).all(projectId) as Array<{ title: string; branch_context_json: string }>;
+    for (const row of rows) {
+      const source = parseSource(row.branch_context_json);
+      if (!source) continue;
+      if (source.kind === "bucket") bucketTitles.add(row.title);
+      else if (source.rpid !== null && source.rpid !== undefined) commentRpids.add(String(source.rpid));
+    }
+
+    const imported: string[] = [];
+    const skipped: string[] = [];
+    for (const [index, raw] of cards.entries()) {
+      const card = normalizeImportCard(raw, index);
+      if (card.kind === "comment") {
+        if (commentRpids.has(card.rpid)) {
+          skipped.push(card.rpid);
+          continue;
+        }
+      } else {
+        const key = cleanTitle(card.title);
+        if (bucketTitles.has(key)) {
+          skipped.push(key);
+          continue;
+        }
+      }
+      const session = await this.sessions.create({
+        cwd: sessionCwd(projectId),
+        metadata: { projectId, kind: "root" },
+      });
+      try {
+        const metadata = await session.getMetadata();
+        const cardId = randomUUID();
+        const now = nowIso();
+        const sourceLine = card.kind === "comment"
+          ? `—— B站 ${card.bvid} @${card.uname} · ${card.like}赞 · rpid:${card.rpid}`
+          : `—— 评论筛子桶卡 · ${card.bucket} · 共 ${card.count} 条`;
+        const context = card.kind === "comment"
+          ? JSON.stringify({ source: { platform: card.platform, bvid: card.bvid, rpid: Number(card.rpid), uname: card.uname, like: card.like } })
+          : JSON.stringify({ source: { kind: "bucket", bucket: card.bucket } });
+        this.store.db.prepare(`
+          INSERT INTO pt_cards(
+            id, project_id, session_id, title, branch_kind, source_card_id,
+            branch_context_json, created_at, updated_at
+          ) VALUES(?, ?, ?, ?, 'root', NULL, ?, ?, ?)
+        `).run(cardId, projectId, metadata.id, cleanTitle(card.title), context, now, now);
+        await session.appendMessage({
+          role: "user",
+          content: `${card.message}\n\n${sourceLine}`,
+          timestamp: Date.now(),
+        });
+        if (card.kind === "comment") commentRpids.add(card.rpid);
+        else bucketTitles.add(cleanTitle(card.title));
+        imported.push(cardId);
+      } finally {
+        await closeSession(session).catch(() => undefined);
+      }
+    }
+    // 最后写语料：与卡片是否被去重跳过无关，卡片全跳过也要写
+    const corpusImported: string[] = [];
+    const corpusSkipped: string[] = [];
+    for (const runId of corpusRunIds) {
+      const detail = getPwVoiceSieveRun(this.store.db, runId);
+      const name = corpusMaterialName(runId, detail.run);
+      const markdown = buildCorpusMaterial(runId, detail.run, detail.signals);
+      if (markdown === null) {
+        corpusSkipped.push(`${name}（语料原文不可读）`);
+        continue;
+      }
+      try {
+        await addProjectMaterial(this.store, projectId, name, new TextEncoder().encode(markdown));
+        corpusImported.push(name);
+      } catch (error) {
+        if (error && typeof error === "object" && "status" in error
+          && (error as { status: number }).status === 409) {
+          corpusSkipped.push(`${name}（已存在）`);
+        } else {
+          throw error;
+        }
+      }
+    }
+    return { imported, skipped, corpus: { imported: corpusImported, skipped: corpusSkipped } };
   }
 
   async continueCard(cardId: string, question: string): Promise<{ runId: string }> {
@@ -1160,14 +1288,16 @@ export function buildBranchContext(
       throw httpError(400, "深挖必须携带精确选区和文本偏移");
     }
     const source = conversation.find((message) => message.entryId === selection.entryId);
-    if (!source || source.role !== "assistant") throw httpError(400, "深挖选区必须来自一段已完成回答");
+    if (!source || (source.role !== "assistant" && source.role !== "user")) {
+      throw httpError(400, "深挖选区必须来自卡内已有内容");
+    }
     if (
       selection.start < 0
       || selection.end <= selection.start
       || selection.end > source.text.length
       || source.text.slice(selection.start, selection.end) !== selection.text
     ) {
-      throw httpError(400, "深挖选区文本与冻结回答不一致");
+      throw httpError(400, "深挖选区文本与冻结内容不一致");
     }
     return {
       kind: "deep_dive",
@@ -1214,6 +1344,7 @@ export function publicCard(card: CardRow): Record<string, unknown> {
     sourceCardId: card.source_card_id,
     createdAt: card.created_at,
     updatedAt: card.updated_at,
+    trashedAt: card.trashed_at,
   };
 }
 
@@ -1421,6 +1552,167 @@ function requiredQuestion(value: string): string {
 
 function cleanTitle(value: string): string {
   return value.replace(/\s+/gu, " ").trim().slice(0, 100) || "未命名卡片";
+}
+
+/** TASK-PW-67：从既有卡 branch_context_json 取出 source 对象，无来源/坏 JSON 返回 null。 */
+function parseSource(contextJson: string): Record<string, unknown> | null {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(contextJson);
+  } catch {
+    return null;
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+  const source = (parsed as Record<string, unknown>).source;
+  return source && typeof source === "object" && !Array.isArray(source)
+    ? source as Record<string, unknown>
+    : null;
+}
+
+type ImportCard =
+  | {
+      kind: "comment";
+      title: string;
+      message: string;
+      platform: string;
+      bvid: string;
+      rpid: string;
+      uname: string;
+      like: number;
+    }
+  | {
+      kind: "bucket";
+      title: string;
+      message: string;
+      bucket: string;
+      count: number;
+    };
+
+/** TASK-PW-67：校验并归一单张导入卡；字段缺失/非法抛 400 带卡片序号。 */
+function normalizeImportCard(value: unknown, index: number): ImportCard {
+  const where = `第 ${index + 1} 张卡片`;
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw httpError(400, `${where}不是对象`);
+  }
+  const raw = value as Record<string, unknown>;
+  const title = strValue(raw.title);
+  if (!title) throw httpError(400, `${where}缺 title`);
+  const message = strValue(raw.message);
+  if (!message) throw httpError(400, `${where}缺 message`);
+  if (message.length > 20_000) throw httpError(400, `${where}的 message 过长`);
+  const source = raw.source;
+  if (!source || typeof source !== "object" || Array.isArray(source)) {
+    throw httpError(400, `${where}缺 source`);
+  }
+  const src = source as Record<string, unknown>;
+  const kind = strValue(src.kind) || "comment";
+  if (kind === "bucket") {
+    const bucket = strValue(src.bucket);
+    if (!bucket) throw httpError(400, `${where}缺 source.bucket`);
+    return {
+      kind: "bucket",
+      title,
+      message,
+      bucket,
+      count: optionalNonNegativeInt(raw.count, `${where}的 count`) ?? lineCount(message),
+    };
+  }
+  if (kind !== "comment") throw httpError(400, `${where}的 source.kind 非法（${kind}）`);
+  const bvid = strValue(src.bvid);
+  if (!bvid) throw httpError(400, `${where}缺 source.bvid`);
+  if (src.rpid === null || src.rpid === undefined || src.rpid === "") {
+    throw httpError(400, `${where}缺 source.rpid`);
+  }
+  const rpidNum = Number(String(src.rpid).trim());
+  if (!Number.isSafeInteger(rpidNum) || rpidNum < 0) {
+    throw httpError(400, `${where}的 source.rpid 非法`);
+  }
+  return {
+    kind: "comment",
+    title,
+    message,
+    platform: strValue(src.platform) || "bilibili",
+    bvid,
+    rpid: String(rpidNum),
+    uname: strValue(src.uname),
+    like: importLike(src.like, where),
+  };
+}
+
+function optionalNonNegativeInt(value: unknown, where: string): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  const number = typeof value === "number" ? value : Number(String(value).trim());
+  if (!Number.isInteger(number) || number < 0) throw httpError(400, `${where}必须是非负整数`);
+  return number;
+}
+
+function lineCount(text: string): number {
+  return text.split(/\r?\n/u).filter((line) => line.trim()).length;
+}
+
+/** TASK-PW-69：校验 corpusRunIds（字符串数组，去重）；非法抛 400。 */
+function corpusRunIdsArray(value: unknown): string[] {
+  if (!Array.isArray(value)) throw httpError(400, "corpusRunIds 必须是字符串数组");
+  const ids: string[] = [];
+  for (const item of value) {
+    if (typeof item !== "string" || !item.trim()) throw httpError(400, "corpusRunIds 元素必须是非空字符串");
+    const id = item.trim();
+    if (!ids.includes(id)) ids.push(id);
+  }
+  return ids;
+}
+
+/** TASK-PW-69：材料名 = 评论语料·{bvid}·{YYYY-MM-DD}·{runId前8位}.md。 */
+function corpusMaterialName(runId: string, run: Record<string, unknown>): string {
+  const bvid = String(run.bvid);
+  const date = String(run.createdAt).slice(0, 10);
+  return `评论语料·${bvid}·${date}·${runId.slice(0, 8)}.md`;
+}
+
+/**
+ * TASK-PW-69：把 run 的信号评论按桶写成材料 markdown。按 PW_VOICE_SIEVE_BUCKETS 顺序
+ * 输出非空桶，message 为空的条目跳过。所有信号 message 全空（语料原文被删）返回 null。
+ */
+function buildCorpusMaterial(
+  runId: string,
+  run: Record<string, unknown>,
+  signals: Record<string, Array<Record<string, unknown>>>,
+): string | null {
+  const bvid = String(run.bvid);
+  const date = String(run.createdAt).slice(0, 10);
+  const buckets: Array<{ bucket: string; items: Array<Record<string, unknown>> }> = [];
+  let total = 0;
+  for (const bucket of PW_VOICE_SIEVE_BUCKETS) {
+    const items = (signals[bucket] ?? []).filter((item) => item.message !== "");
+    if (items.length) buckets.push({ bucket, items });
+    total += items.length;
+  }
+  if (!total) return null;
+
+  const lines: string[] = [
+    `# 评论语料 · ${bvid} · ${date}`,
+    "",
+    `来源：B站视频 ${bvid} 评论筛子 run ${runId}（${String(run.provider)}/${String(run.model)}）`,
+    `信号共 ${total} 条 · 噪音已剔除 · 按桶分组`,
+  ];
+  for (const { bucket, items } of buckets) {
+    lines.push("", `## ${bucket}（${items.length} 条）`);
+    for (const item of items) {
+      lines.push("", String(item.message), `  —— @${String(item.uname)} · ${Number(item.like)}赞 · rpid:${String(item.rpid)}`);
+    }
+  }
+  return lines.join("\n");
+}
+
+function strValue(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function importLike(value: unknown, where: string): number {
+  if (value === null || value === undefined || value === "") return 0;
+  const number = typeof value === "number" ? value : Number(String(value).trim());
+  if (!Number.isInteger(number) || number < 0) throw httpError(400, `${where}的 like 必须是非负整数`);
+  return number;
 }
 
 function asRecord(value: unknown): Record<string, unknown> {

@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { rm } from "node:fs/promises";
+import { join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import {
   httpError,
@@ -108,10 +110,122 @@ export function purgeCards(
   return { purged, skipped };
 }
 
+/**
+ * TASK-PW-70：回收站软删除。项目内存在的卡置 trashed_at=nowIso()；已删的重复删幂等照返回；
+ * 不属于该项目或不存在的 id 静默跳过。不设任何保护（可逆操作，运行中的卡也允许删）。
+ */
+export function trashCards(
+  store: DataStore,
+  projectId: string,
+  cardIds: readonly string[],
+): { trashed: string[] } {
+  requireProject(store.db, projectId);
+  const stamp = nowIso();
+  const cardStmt = store.db.prepare(
+    "SELECT id, trashed_at FROM pt_cards WHERE id = ? AND project_id = ?",
+  );
+  const trashStmt = store.db.prepare(
+    "UPDATE pt_cards SET trashed_at = ?, updated_at = ? WHERE id = ?",
+  );
+  const trashed: string[] = [];
+  store.db.exec("BEGIN IMMEDIATE");
+  try {
+    for (const cardId of cardIds) {
+      const card = cardStmt.get(cardId, projectId) as
+        | { id: string; trashed_at: string | null }
+        | undefined;
+      if (!card) continue;
+      if (card.trashed_at === null) trashStmt.run(stamp, stamp, cardId);
+      trashed.push(cardId);
+    }
+    store.db.exec("COMMIT");
+  } catch (error) {
+    store.db.exec("ROLLBACK");
+    throw error;
+  }
+  return { trashed };
+}
+
+/** TASK-PW-70：恢复回收站卡片（清 trashed_at）。跨项目/不存在的 id 静默跳过。 */
+export function restoreCards(
+  store: DataStore,
+  projectId: string,
+  cardIds: readonly string[],
+): { restored: string[] } {
+  requireProject(store.db, projectId);
+  const stamp = nowIso();
+  const cardStmt = store.db.prepare(
+    "SELECT id FROM pt_cards WHERE id = ? AND project_id = ?",
+  );
+  const restoreStmt = store.db.prepare(
+    "UPDATE pt_cards SET trashed_at = NULL, updated_at = ? WHERE id = ?",
+  );
+  const restored: string[] = [];
+  store.db.exec("BEGIN IMMEDIATE");
+  try {
+    for (const cardId of cardIds) {
+      if (!cardStmt.get(cardId, projectId)) continue;
+      restoreStmt.run(stamp, cardId);
+      restored.push(cardId);
+    }
+    store.db.exec("COMMIT");
+  } catch (error) {
+    store.db.exec("ROLLBACK");
+    throw error;
+  }
+  return { restored };
+}
+
+/**
+ * TASK-PW-70：整删项目，无任何保护。先把手持 running 的 pt_runs 直接置为
+ * ended/interrupted（避免后台 run 之后回写库报错），再级联删本项目全部数据，
+ * 最后递归删磁盘目录与 pt_projects 本体。项目不存在抛 404。
+ */
+export async function deleteProject(
+  store: DataStore,
+  projectId: string,
+): Promise<{ deleted: true }> {
+  requireProject(store.db, projectId);
+  const now = nowIso();
+  store.db.exec("BEGIN IMMEDIATE");
+  try {
+    store.db.prepare(`
+      UPDATE pt_runs
+      SET status = 'ended', result = 'interrupted', reason = 'project_deleted', ended_at = ?
+      WHERE project_id = ? AND status = 'running'
+    `).run(now, projectId);
+    store.db.prepare(
+      "DELETE FROM pt_run_events WHERE run_id IN (SELECT id FROM pt_runs WHERE project_id = ?)",
+    ).run(projectId);
+    store.db.prepare(
+      "DELETE FROM pt_run_sources WHERE run_id IN (SELECT id FROM pt_runs WHERE project_id = ?)",
+    ).run(projectId);
+    store.db.prepare("DELETE FROM pt_runs WHERE project_id = ?").run(projectId);
+    store.db.prepare("DELETE FROM pt_edges WHERE project_id = ?").run(projectId);
+    store.db.prepare("DELETE FROM pt_stage_exports WHERE project_id = ?").run(projectId);
+    store.db.prepare("DELETE FROM pt_promotions WHERE project_id = ?").run(projectId);
+    store.db.prepare("DELETE FROM pt_verdict_events WHERE project_id = ?").run(projectId);
+    store.db.prepare("DELETE FROM pt_verdicts WHERE project_id = ?").run(projectId);
+    store.db.prepare("DELETE FROM pt_chunks_fts WHERE project_id = ?").run(projectId);
+    store.db.prepare("DELETE FROM pt_chunks WHERE project_id = ?").run(projectId);
+    store.db.prepare("DELETE FROM pt_documents WHERE project_id = ?").run(projectId);
+    store.db.prepare("DELETE FROM pt_cards WHERE project_id = ?").run(projectId);
+    store.db.prepare("DELETE FROM pt_project_libraries WHERE project_id = ?").run(projectId);
+    store.db.prepare("DELETE FROM pw_gold_mirror WHERE project_id = ?").run(projectId);
+    store.db.prepare("DELETE FROM pt_projects WHERE id = ?").run(projectId);
+    store.db.exec("COMMIT");
+  } catch (error) {
+    store.db.exec("ROLLBACK");
+    throw error;
+  }
+  await rm(join(store.projectsDir, projectId), { recursive: true, force: true });
+  return { deleted: true };
+}
+
 export function listProjects(db: DatabaseSync): Array<Record<string, unknown>> {
   const rows = db.prepare(`
     SELECT p.*,
-      (SELECT COUNT(*) FROM pt_cards c WHERE c.project_id = p.id) AS card_count,
+      (SELECT COUNT(*) FROM pt_cards c WHERE c.project_id = p.id AND c.trashed_at IS NULL) AS card_count,
       (SELECT COUNT(*) FROM pt_documents d
         WHERE d.project_id = p.id AND d.source_kind = 'project_material') AS material_count
     FROM pt_projects p

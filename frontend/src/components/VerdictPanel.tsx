@@ -5,8 +5,9 @@
  */
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { BookMarked, Check, Gem, Landmark, X } from 'lucide-react';
+import { BookMarked, Check, Gem, Landmark, ScrollText, X } from 'lucide-react';
 import { useStore } from '../store';
+import { ChainExportDialog } from './ChainExportDialog';
 
 export function VerdictPanel() {
   const {
@@ -22,6 +23,7 @@ export function VerdictPanel() {
     setCurrentCard,
   } = useStore();
   const [draft, setDraft] = useState('');
+  const [chainExportOpen, setChainExportOpen] = useState(false);
 
   useEffect(() => {
     setDraft(pendingTombstone?.text ?? '');
@@ -98,6 +100,15 @@ export function VerdictPanel() {
                 <BookMarked size={15} />
                 <h3>判决簿</h3>
                 <span className="ledger-sub">只存判决，其余皆耗材</span>
+                <button
+                  type="button"
+                  className="btn chain-export-entry"
+                  title="AI 总结这个项目卡组的决策链，确认后写进 Memos"
+                  onClick={() => setChainExportOpen(true)}
+                >
+                  <ScrollText size={13} />
+                  项目差不多了
+                </button>
                 <button className="icon-btn" onClick={() => setLedgerOpen(false)} aria-label="关闭">
                   <X size={15} />
                 </button>
@@ -198,6 +209,8 @@ export function VerdictPanel() {
           </>
         )}
       </AnimatePresence>
+
+      {chainExportOpen && <ChainExportDialog onClose={() => setChainExportOpen(false)} />}
     </>
   );
 }

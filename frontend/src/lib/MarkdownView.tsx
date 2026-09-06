@@ -13,6 +13,8 @@ interface Props {
   onConcept?: (term: string, blockText: string, el: HTMLElement) => void;
   /** 点击行内引用角标 §N */
   onCite?: (n: number) => void;
+  /** 角标悬停提示（如「金子 §3 · …」）；不传则无 title */
+  citeTitle?: (n: number) => string | undefined;
 }
 
 /** 递归把字符串子节点拍平成纯文本（onConcept 的 blockText 用） */
@@ -26,7 +28,7 @@ function flattenText(children: React.ReactNode): string {
     .join('');
 }
 
-export const MarkdownView = memo(function MarkdownView({ content, concepts = [], activeConcepts = [], onConcept, onCite }: Props) {
+export const MarkdownView = memo(function MarkdownView({ content, concepts = [], activeConcepts = [], onConcept, onCite, citeTitle }: Props) {
   const md = useMemo(() => {
     const cited = extractCitations(content);
     return normalizeModelMarkdown(extractVerdictMarks(cited.text));
@@ -56,6 +58,7 @@ export const MarkdownView = memo(function MarkdownView({ content, concepts = [],
             key={`${keyPrefix}-s${i}`}
             className="cite-ref"
             aria-label={`引用 ${n}，查看来源内容`}
+            title={citeTitle?.(n)}
             onClick={() => onCite?.(n)}
           >
             {n}
@@ -183,7 +186,7 @@ export const MarkdownView = memo(function MarkdownView({ content, concepts = [],
       },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [md, conceptRe, activeConcepts, onCite, onConcept],
+    [md, conceptRe, activeConcepts, onCite, onConcept, citeTitle],
   );
 
   return <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>{md}</ReactMarkdown>;

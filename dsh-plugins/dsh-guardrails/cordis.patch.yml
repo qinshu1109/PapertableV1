@@ -1,0 +1,18 @@
+# dsh-guardrails bundle layer: one gate row. Override this row's whole config
+# from your profile's cordis.patch.yml (id-targeted patches replace the entire
+# config value; restate every rule you keep).
+- insert:
+    - id: guardrails
+      name: dsh-guardrails
+      config:
+        protected:
+          # Flagship rule: agents must never rewrite the checks that judge
+          # their own output.
+          - glob: '.github/workflows/**'
+            reason: 'CI workflow definitions are protected: agents must not modify the checks that verify their own work.'
+          - glob: 'scripts/verify-*'
+            reason: 'Verification scripts are protected: agents must not modify the checks that verify their own work.'
+          - glob: '**/*.env'
+            reason: 'Environment files may hold credentials.'
+          - glob: '**/.env*'
+            reason: 'Environment files may hold credentials.'

@@ -1,0 +1,13 @@
+# dsh-wechat bundle layer: mounts the iLink gateway and the
+# WeChat conversation node as one composed plugin row.
+# Fork of Jesse-njx/dsh-chatnode-wechat (MIT), renamed for local install.
+#
+# `allowFrom` is REQUIRED with no permissive default: an agent that accepts
+# instructions from any WeChat contact is a prompt-injection front door.
+# Messages from non-allowlisted senders are logged and ignored, never fed
+# to the model. See README.md for the full config.
+- insert:
+    - id: dsh-wechat
+      name: dsh-wechat
+      config:
+        allowFrom: []

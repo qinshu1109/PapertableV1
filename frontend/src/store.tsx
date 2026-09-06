@@ -2,7 +2,8 @@
  * 服务端数据层：替换原型的 mock store，对接 PapertableV1 引擎。
  *
  * - 项目 / 卡片 / 四种关系边 / 逐句流式回答全部来自 127.0.0.1:4317；
- * - 收藏、置顶、回收站、折叠为本地 UI 覆盖层（localStorage），不进服务端；
+ * - 收藏、置顶、折叠为本地 UI 覆盖层（localStorage），不进服务端；
+ *   回收站 PW-70 起服务端化（trashed_at），localStorage 遗留仅作一次性迁移；
  * - 判决簿（墓碑确认 / 金子采纳 / supersede）直连后端判决端点。
  */
 import React, {
@@ -396,7 +397,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       try {
         const detail = await refreshProject(projectId);
         void refreshVerdicts(projectId);
-        const alive = detail.cards.filter((c) => !overlay.trashedCards.includes(c.id));
+        const alive = detail.cards.filter((c) => !c.trashedAt);
         const target =
           (preferCardId && alive.find((c) => c.id === preferCardId)?.id) ||
           (alive.length ? alive[alive.length - 1].id : '');
@@ -412,7 +413,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         fail(error, '加载项目失败');
       }
     },
-    [refreshProject, refreshVerdicts, overlay.trashedCards, loadCard, subscribe, fail],
+    [refreshProject, refreshVerdicts, loadCard, subscribe, fail],
   );
 
   useEffect(() => {
@@ -427,6 +428,27 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return () => stopSubscription();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /* TASK-PW-70：一次性迁移——旧回收站是 localStorage 本地隐藏，逐项目推到服务端后从覆盖层清掉 */
+  const migratedTrashRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!activeProjectId || migratedTrashRef.current.has(activeProjectId)) return;
+    migratedTrashRef.current.add(activeProjectId);
+    const legacy = overlay.trashedCards;
+    if (!legacy.length) return;
+    void (async () => {
+      try {
+        const r = await api.trashCards(activeProjectId, legacy);
+        if (r.trashed.length) {
+          setOverlay((o) => ({ ...o, trashedCards: o.trashedCards.filter((x) => !r.trashed.includes(x)) }));
+          await refreshProject(activeProjectId);
+        }
+      } catch {
+        /* 迁移失败不打扰，下次启动再试 */
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeProjectId]);
 
   useEffect(() => {
     if (!activeProjectId) return;
@@ -449,7 +471,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         favorite: overlay.favoriteCards.includes(row.id),
         unread: false,
         concepts: [],
-        trashed: overlay.trashedCards.includes(row.id),
+        trashed: !!row.trashedAt,
         createdAt: Date.parse(row.createdAt) || Date.now(),
       };
     });
@@ -548,9 +570,33 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const deleteProject = useCallback(
     (id: string) => {
-      showToast({ text: '服务端为本地单用户库，项目删除请直接操作数据目录（防误删）' });
+      // TASK-PW-70：项目物理级联删除、不设保护；确认 toast 只是防误触点
+      const target = projects.find((p) => p.id === id);
+      showToast({
+        text: `确定删除项目「${target?.name ?? id}」？卡片、语料、资料绑定全部物理删除，不可恢复`,
+        actionLabel: '确认删除',
+        onAction: () => {
+          void (async () => {
+            try {
+              await api.deleteProject(id);
+              dismissToast();
+              const rows = await refreshProjects();
+              if (activeProjectId === id) {
+                if (rows.length) await openProject(rows[0].id);
+                else {
+                  setActiveProjectId('');
+                  setCurrentCardId('');
+                }
+              }
+              showToast({ text: '项目已删除' });
+            } catch (error) {
+              fail(error, '项目删除失败');
+            }
+          })();
+        },
+      });
     },
-    [showToast],
+    [projects, activeProjectId, refreshProjects, openProject, showToast, dismissToast, fail],
   );
 
   /* ================= 卡片操作 ================= */
@@ -621,8 +667,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             const turns = cardTurns[input.sourceCardId] ?? [];
             const target =
               (input.sourceTurnId && turns.find((t) => t.id === input.sourceTurnId && t.role === 'ai')) ||
-              [...turns].reverse().find((t) => t.role === 'ai' && t.entryId);
-            if (!target?.entryId) throw new Error('当前卡片还没有已完成的回答，无法深挖');
+              [...turns].reverse().find((t) => t.role === 'ai' && t.entryId) ||
+              // 导入的素材卡（评论/桶卡）没有 AI 回答：回退到卡内 user 轮，把素材原文冻结为深挖选区
+              [...turns].reverse().find((t) => t.role === 'user' && t.entryId);
+            if (!target?.entryId) throw new Error('当前卡片还没有可深挖的内容');
             const selection = resolveSelection(target, input.sourceText);
             payload = { kind: 'deep_dive' as const, question, selection };
           } else if (input.type === 'divergent') {
@@ -653,43 +701,54 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const deleteCard = useCallback(
     (id: string) => {
-      // 服务端不物理删除（探索痕迹允许蒸发但可审计）；本地标记回收站并隐藏子树
+      // TASK-PW-70：回收站服务端化（trashed_at 可逆标记），撤销=restore
+      if (!activeProjectId) return;
       const ids = collectSubtree(serverEdges, id);
-      setOverlay((o) => ({ ...o, trashedCards: [...new Set([...o.trashedCards, ...ids])] }));
       const fallback = serverEdges.find((e) => e.targetCardId === id)?.sourceCardId
-        || serverCards.find((c) => !ids.includes(c.id) && !overlay.trashedCards.includes(c.id))?.id;
+        || serverCards.find((c) => !ids.includes(c.id) && !c.trashedAt)?.id;
       if (ids.includes(currentCardId) && fallback) setCurrentCardId(fallback);
+      void api.trashCards(activeProjectId, ids)
+        .then(() => refreshProject(activeProjectId))
+        .catch((error) => fail(error, '移入回收站失败'));
       showToast({
-        text: `已移入回收站（本地隐藏）· ${ids.length} 张卡片`,
+        text: `已移入回收站 · ${ids.length} 张卡片`,
         actionLabel: '撤销',
         onAction: () => {
-          setOverlay((o) => ({ ...o, trashedCards: o.trashedCards.filter((x) => !ids.includes(x)) }));
+          void api.restoreCards(activeProjectId, ids)
+            .then(() => refreshProject(activeProjectId))
+            .catch((error) => fail(error, '撤销失败'));
           setCurrentCardId(id);
           dismissToast();
         },
       });
     },
-    [serverEdges, serverCards, overlay.trashedCards, currentCardId, showToast, dismissToast],
+    [activeProjectId, serverEdges, serverCards, currentCardId, refreshProject, showToast, dismissToast, fail],
   );
 
   const restoreCards = useCallback(
     (ids: string[]) => {
-      if (!ids.length) return;
-      // 还原只改本地覆盖层：卡片从未离开服务端
-      setOverlay((o) => ({ ...o, trashedCards: o.trashedCards.filter((x) => !ids.includes(x)) }));
-      showToast({ text: `已还原 ${ids.length} 张卡片` });
+      if (!ids.length || !activeProjectId) return;
+      // TASK-PW-70：还原清服务端 trashed_at
+      void (async () => {
+        try {
+          await api.restoreCards(activeProjectId, ids);
+          await refreshProject(activeProjectId);
+          showToast({ text: `已还原 ${ids.length} 张卡片` });
+        } catch (error) {
+          fail(error, '还原失败');
+        }
+      })();
     },
-    [showToast],
+    [activeProjectId, refreshProject, showToast, fail],
   );
 
   const purgeCards = useCallback(
     async (ids: string[]) => {
       if (!ids.length || !activeProjectId) return;
       const result = await api.purgeCards(activeProjectId, ids);
-      setOverlay((o) => ({ ...o, trashedCards: o.trashedCards.filter((x) => !result.purged.includes(x)) }));
       if (result.purged.includes(currentCardId)) {
         const fallback = serverCards.find(
-          (c) => !result.purged.includes(c.id) && !overlay.trashedCards.includes(c.id),
+          (c) => !result.purged.includes(c.id) && !c.trashedAt,
         )?.id;
         if (fallback) setCurrentCardId(fallback);
       }
@@ -699,7 +758,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         : '';
       showToast({ text: `已彻底删除 ${result.purged.length} 张卡片${skippedText}` });
     },
-    [activeProjectId, currentCardId, serverCards, overlay.trashedCards, refreshProject, showToast],
+    [activeProjectId, currentCardId, serverCards, refreshProject, showToast],
   );
 
   const toggleFavoriteCard = useCallback((id: string) => {
