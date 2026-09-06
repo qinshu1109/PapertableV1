@@ -15,11 +15,15 @@
  * - 纯函数（buildMemoContent / SeenIds / loadRelayConfig）可单测；SDK 长连接
  *   接线部分不做单测（动态 import，测试不加载 SDK）。
  * - 配置：~/Library/Application Support/Papertable/feishu-relay.json（0600）。
+ *
+ * TASK-PW-75 扩展（pw-feishu-draft.ts）：同一进程内的「像个坑 → 出稿」挂点。总开关是配置里的
+ * draftOffer（缺省 false，每条消息重读，改配置即生效）。关闭时本文件行为与 PW-52 完全一致。
  */
 import { chmodSync, readFileSync, renameSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { callMemosMcp, defaultDraftStatePath, draftConfigSummary, DraftHook } from "./pw-feishu-draft.ts";
 
 export type RelayConfig = {
   appId: string;
@@ -218,12 +222,13 @@ export function extractReceiveMessage(data: ReceiveV1Data | null | undefined): R
   return data?.event?.message ?? data?.message ?? undefined;
 }
 
-/** 单条消息处理：类型过滤 → 取文本 → 去重 → 写 Memos → 回执。 */
+/** 单条消息处理：类型过滤 → 取文本 → 去重 →（PW-75 命令拦截）→ 写 Memos → 回执。 */
 async function handleMessage(
   data: ReceiveV1Data,
   config: RelayConfig,
   client: FeishuClient,
   seen: SeenIds,
+  draft?: DraftHook,
 ): Promise<void> {
   const message = extractReceiveMessage(data);
   const chatType = message?.chat_type ?? "";
@@ -250,7 +255,17 @@ async function handleMessage(
   seen.add(messageId);
   seen.save();
 
-  const content = buildMemoContent(text, config.defaultTag);
+  // PW-75：draftOffer 关闭时 intercept 恒为 null，"1" /「别问了」按普通速记继续往下写
+  const intercepted = draft ? await draft.intercept(text, messageId) : null;
+  if (intercepted) {
+    await replyBestEffort(client, messageId, intercepted.reply);
+    if (intercepted.followUp) {
+      await replyBestEffort(client, messageId, await intercepted.followUp());
+    }
+    return;
+  }
+
+  const content = buildMemoContent(text, config.defaultTag) + (draft ? draft.memoSuffix(text) : "");
   let memoName: string;
   try {
     memoName = await writeMemo(config, content);
@@ -261,7 +276,8 @@ async function handleMessage(
     return;
   }
   log({ event: "written", message_id: messageId, memo: memoName });
-  await replyBestEffort(client, messageId, "已记");
+  const reply = (draft ? await draft.afterWritten({ text, messageId, memo: memoName }) : null) ?? "已记";
+  await replyBestEffort(client, messageId, reply);
 }
 
 /** 取消息文本：content 是 JSON 字符串（{"text":"..."}）；解析失败按空文本。 */
@@ -349,6 +365,18 @@ async function main(): Promise<void> {
   const seen = new SeenIds(join(dirname(configPath), SEEN_FILE_NAME));
   seen.load();
 
+  const draft = new DraftHook({
+    configPath,
+    statePath: defaultDraftStatePath(configPath),
+    deps: {
+      now: () => new Date(),
+      fetch,
+      log,
+      memos: { url: config.memosUrl, token: config.memosToken },
+      callMemosTool: callMemosMcp,
+    },
+  });
+
   const lark = await import("@larksuiteoapi/node-sdk");
   const client = new lark.Client({ appId: config.appId, appSecret: config.appSecret }) as FeishuClient;
   const wsClient = new lark.WSClient({
@@ -361,7 +389,7 @@ async function main(): Promise<void> {
   const dispatcher = new lark.EventDispatcher({}).register({
     "im.message.receive_v1": async (data: ReceiveV1Data) => {
       try {
-        await handleMessage(data, config, client, seen);
+        await handleMessage(data, config, client, seen, draft);
       } catch (error) {
         log({ event: "message_error", error: safeErrorText(error) });
       }
@@ -369,7 +397,7 @@ async function main(): Promise<void> {
   });
 
   await wsClient.start({ eventDispatcher: dispatcher });
-  log({ event: "started", config: configPath });
+  log({ event: "started", config: configPath, draft: draftConfigSummary(configPath) });
 
   let closing = false;
   const shutdown = (code: number): void => {
