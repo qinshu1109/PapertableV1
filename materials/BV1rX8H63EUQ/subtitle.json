@@ -1,0 +1,1812 @@
+{
+  "font_size": 0.4,
+  "font_color": "#FFFFFF",
+  "background_alpha": 0.5,
+  "background_color": "#9C27B0",
+  "Stroke": "none",
+  "type": "AIsubtitle",
+  "lang": "zh",
+  "version": "v1.7.0.4",
+  "body": [
+    {
+      "from": 0,
+      "to": 0.16,
+      "sid": 1,
+      "location": 2,
+      "content": "Hello",
+      "music": 0
+    },
+    {
+      "from": 0.16,
+      "to": 0.6,
+      "sid": 2,
+      "location": 2,
+      "content": "大家好",
+      "music": 0
+    },
+    {
+      "from": 0.6,
+      "to": 2,
+      "sid": 3,
+      "location": 2,
+      "content": "前两天我给大家分享了一下",
+      "music": 0
+    },
+    {
+      "from": 2,
+      "to": 2.92,
+      "sid": 4,
+      "location": 2,
+      "content": "我通过一个插件",
+      "music": 0
+    },
+    {
+      "from": 2.92,
+      "to": 4.4,
+      "sid": 5,
+      "location": 2,
+      "content": "把我本地的deep sick harness",
+      "music": 0
+    },
+    {
+      "from": 4.4,
+      "to": 6.35,
+      "sid": 6,
+      "location": 2,
+      "content": "改造为了一个内容创作的工作台",
+      "music": 0
+    },
+    {
+      "from": 6.35,
+      "to": 10.02,
+      "sid": 7,
+      "location": 2,
+      "content": "然后他把我电脑上的所有视频资源里面的封面",
+      "music": 0
+    },
+    {
+      "from": 10.02,
+      "to": 13.28,
+      "sid": 8,
+      "location": 2,
+      "content": "脚本字幕文章全部都管理起来了",
+      "music": 0
+    },
+    {
+      "from": 13.28,
+      "to": 16.22,
+      "sid": 9,
+      "location": 2,
+      "content": "而且我还可以通过跟AIA卷对话的方式",
+      "music": 0
+    },
+    {
+      "from": 16.22,
+      "to": 18.1,
+      "sid": 10,
+      "location": 2,
+      "content": "来用AI来管理我的内容",
+      "music": 0
+    },
+    {
+      "from": 18.1,
+      "to": 19.4,
+      "sid": 11,
+      "location": 2,
+      "content": "比如说去帮我剪辑视频",
+      "music": 0
+    },
+    {
+      "from": 19.4,
+      "to": 20.38,
+      "sid": 12,
+      "location": 2,
+      "content": "帮我生成字幕",
+      "music": 0
+    },
+    {
+      "from": 20.38,
+      "to": 21.7,
+      "sid": 13,
+      "location": 2,
+      "content": "帮我生成封面",
+      "music": 0
+    },
+    {
+      "from": 21.7,
+      "to": 23.1,
+      "sid": 14,
+      "location": 2,
+      "content": "那在那期视频发布之后",
+      "music": 0
+    },
+    {
+      "from": 23.1,
+      "to": 25.18,
+      "sid": 15,
+      "location": 2,
+      "content": "很多朋友都想尝试一下这个插件",
+      "music": 0
+    },
+    {
+      "from": 25.18,
+      "to": 26.81,
+      "sid": 16,
+      "location": 2,
+      "content": "用它来管理自己的内容",
+      "music": 0
+    },
+    {
+      "from": 26.81,
+      "to": 29.09,
+      "sid": 17,
+      "location": 2,
+      "content": "于是呢我就把这个插件给开源了",
+      "music": 0
+    },
+    {
+      "from": 29.09,
+      "to": 31.27,
+      "sid": 18,
+      "location": 2,
+      "content": "名字叫做d s h for your creator",
+      "music": 0
+    },
+    {
+      "from": 31.27,
+      "to": 33.82,
+      "sid": 19,
+      "location": 2,
+      "content": "然后这里呢我们可以看到底下会有一个命令",
+      "music": 0
+    },
+    {
+      "from": 33.82,
+      "to": 34.74,
+      "sid": 20,
+      "location": 2,
+      "content": "好复制这个命令",
+      "music": 0
+    },
+    {
+      "from": 34.74,
+      "to": 36.78,
+      "sid": 21,
+      "location": 2,
+      "content": "我们本地装了这个deep sick harness之后",
+      "music": 0
+    },
+    {
+      "from": 36.78,
+      "to": 37.74,
+      "sid": 22,
+      "location": 2,
+      "content": "我们复制这个命令",
+      "music": 0
+    },
+    {
+      "from": 37.74,
+      "to": 39.76,
+      "sid": 23,
+      "location": 2,
+      "content": "然后到终端粘贴执行之后",
+      "music": 0
+    },
+    {
+      "from": 39.76,
+      "to": 41.43,
+      "sid": 24,
+      "location": 2,
+      "content": "我们就可以看到啊",
+      "music": 0
+    },
+    {
+      "from": 41.43,
+      "to": 42.95,
+      "sid": 25,
+      "location": 2,
+      "content": "我们的这个depc harness",
+      "music": 0
+    },
+    {
+      "from": 42.95,
+      "to": 45.289,
+      "sid": 26,
+      "location": 2,
+      "content": "增加了一个内容的这个tab",
+      "music": 0
+    },
+    {
+      "from": 45.289,
+      "to": 47.849,
+      "sid": 27,
+      "location": 2,
+      "content": "然后我们点击设置在这里面呢",
+      "music": 0
+    },
+    {
+      "from": 47.849,
+      "to": 48.769,
+      "sid": 28,
+      "location": 2,
+      "content": "我们点击插件",
+      "music": 0
+    },
+    {
+      "from": 48.769,
+      "to": 50.95,
+      "sid": 29,
+      "location": 2,
+      "content": "这里我们可以看到有个内容工作台",
+      "music": 0
+    },
+    {
+      "from": 50.95,
+      "to": 52.57,
+      "sid": 30,
+      "location": 2,
+      "content": "点开内容工作台之后",
+      "music": 0
+    },
+    {
+      "from": 52.57,
+      "to": 56.35,
+      "sid": 31,
+      "location": 2,
+      "content": "我们这里可以检查我们这个本地环境状态",
+      "music": 0
+    },
+    {
+      "from": 56.35,
+      "to": 57.47,
+      "sid": 32,
+      "location": 2,
+      "content": "这里要跟大家说一个点",
+      "music": 0
+    },
+    {
+      "from": 57.47,
+      "to": 58.43,
+      "sid": 33,
+      "location": 2,
+      "content": "就是这个工作流",
+      "music": 0
+    },
+    {
+      "from": 58.43,
+      "to": 58.95,
+      "sid": 34,
+      "location": 2,
+      "content": "它是适",
+      "music": 0
+    },
+    {
+      "from": 58.95,
+      "to": 62.11,
+      "sid": 35,
+      "location": 2,
+      "content": "原本是比较适配我自己的一个这种视频内容的",
+      "music": 0
+    },
+    {
+      "from": 62.11,
+      "to": 63.73,
+      "sid": 36,
+      "location": 2,
+      "content": "他跟我本地的一些啊",
+      "music": 0
+    },
+    {
+      "from": 63.73,
+      "to": 65.27,
+      "sid": 37,
+      "location": 2,
+      "content": "比如说我用来录制的软件",
+      "music": 0
+    },
+    {
+      "from": 65.27,
+      "to": 67.21,
+      "sid": 38,
+      "location": 2,
+      "content": "或者说我自己的一些skill",
+      "music": 0
+    },
+    {
+      "from": 67.21,
+      "to": 68.23,
+      "sid": 39,
+      "location": 2,
+      "content": "它是强相关的",
+      "music": 0
+    },
+    {
+      "from": 68.23,
+      "to": 70.45,
+      "sid": 40,
+      "location": 2,
+      "content": "虽然说我做了很多通用性的优化",
+      "music": 0
+    },
+    {
+      "from": 70.45,
+      "to": 72.78,
+      "sid": 41,
+      "location": 2,
+      "content": "为了让这个插件能够给其他人也用得上",
+      "music": 0
+    },
+    {
+      "from": 72.78,
+      "to": 74.18,
+      "sid": 42,
+      "location": 2,
+      "content": "但它对于里面的一些",
+      "music": 0
+    },
+    {
+      "from": 74.18,
+      "to": 75.4,
+      "sid": 43,
+      "location": 2,
+      "content": "比如说你自动剪辑",
+      "music": 0
+    },
+    {
+      "from": 75.4,
+      "to": 77.66,
+      "sid": 44,
+      "location": 2,
+      "content": "它是依赖你使用screen studio来录制",
+      "music": 0
+    },
+    {
+      "from": 77.66,
+      "to": 79.05,
+      "sid": 45,
+      "location": 2,
+      "content": "它才能自动剪辑的",
+      "music": 0
+    },
+    {
+      "from": 79.05,
+      "to": 81.05,
+      "sid": 46,
+      "location": 2,
+      "content": "然后包括这种自动发布数据采集",
+      "music": 0
+    },
+    {
+      "from": 81.05,
+      "to": 82.45,
+      "sid": 47,
+      "location": 2,
+      "content": "你需要装这个ego browser",
+      "music": 0
+    },
+    {
+      "from": 82.45,
+      "to": 84.61,
+      "sid": 48,
+      "location": 2,
+      "content": "然后这里会有一个环境状态的检测",
+      "music": 0
+    },
+    {
+      "from": 84.61,
+      "to": 85.65,
+      "sid": 49,
+      "location": 2,
+      "content": "所以现在整体来说",
+      "music": 0
+    },
+    {
+      "from": 85.65,
+      "to": 88.009,
+      "sid": 50,
+      "location": 2,
+      "content": "它在Mac环境上使用会比较方便一点",
+      "music": 0
+    },
+    {
+      "from": 88.009,
+      "to": 90.269,
+      "sid": 51,
+      "location": 2,
+      "content": "然后在这里呢还可以选择影片目录",
+      "music": 0
+    },
+    {
+      "from": 90.269,
+      "to": 91.8,
+      "sid": 52,
+      "location": 2,
+      "content": "包括我们要启用的平台",
+      "music": 0
+    },
+    {
+      "from": 91.8,
+      "to": 93.48,
+      "sid": 53,
+      "location": 2,
+      "content": "就是我们在哪个平台发视频",
+      "music": 0
+    },
+    {
+      "from": 93.48,
+      "to": 95.12,
+      "sid": 54,
+      "location": 2,
+      "content": "我们可以在这里勾选的",
+      "music": 0
+    },
+    {
+      "from": 95.12,
+      "to": 97.8,
+      "sid": 55,
+      "location": 2,
+      "content": "然后还有就是我们如果想要让AI来帮我们",
+      "music": 0
+    },
+    {
+      "from": 97.8,
+      "to": 99.26,
+      "sid": 56,
+      "location": 2,
+      "content": "写这个视频脚本的时候",
+      "music": 0
+    },
+    {
+      "from": 99.26,
+      "to": 102.14,
+      "sid": 57,
+      "location": 2,
+      "content": "我们可以在这里写自己的这种视频的",
+      "music": 0
+    },
+    {
+      "from": 102.14,
+      "to": 103.12,
+      "sid": 58,
+      "location": 2,
+      "content": "这种文案的风格",
+      "music": 0
+    },
+    {
+      "from": 103.12,
+      "to": 105.66,
+      "sid": 59,
+      "location": 2,
+      "content": "这里还依赖两个外部的API key",
+      "music": 0
+    },
+    {
+      "from": 105.66,
+      "to": 106.38,
+      "sid": 60,
+      "location": 2,
+      "content": "一个是百炼的",
+      "music": 0
+    },
+    {
+      "from": 106.38,
+      "to": 107.3,
+      "sid": 61,
+      "location": 2,
+      "content": "一个是the max的",
+      "music": 0
+    },
+    {
+      "from": 107.3,
+      "to": 109.21,
+      "sid": 62,
+      "location": 2,
+      "content": "这个是用来呃剪辑视频",
+      "music": 0
+    },
+    {
+      "from": 109.21,
+      "to": 111.01,
+      "sid": 63,
+      "location": 2,
+      "content": "然后这个还有生成封面",
+      "music": 0
+    },
+    {
+      "from": 111.01,
+      "to": 113.04,
+      "sid": 64,
+      "location": 2,
+      "content": "百炼是用来生成字幕的",
+      "music": 0
+    },
+    {
+      "from": 113.04,
+      "to": 115.64,
+      "sid": 65,
+      "location": 2,
+      "content": "OK然后我自己本地已经把这些东西都给配好了",
+      "music": 0
+    },
+    {
+      "from": 115.64,
+      "to": 117.28,
+      "sid": 66,
+      "location": 2,
+      "content": "可以看到这里是已已配置了",
+      "music": 0
+    },
+    {
+      "from": 117.28,
+      "to": 118.24,
+      "sid": 67,
+      "location": 2,
+      "content": "这些都是可选的",
+      "music": 0
+    },
+    {
+      "from": 118.24,
+      "to": 120.43,
+      "sid": 68,
+      "location": 2,
+      "content": "如果你不需要其中的某个流程",
+      "music": 0
+    },
+    {
+      "from": 120.43,
+      "to": 123.39,
+      "sid": 69,
+      "location": 2,
+      "content": "那你可以就不用不去配置这些API key",
+      "music": 0
+    },
+    {
+      "from": 123.39,
+      "to": 124.65,
+      "sid": 70,
+      "location": 2,
+      "content": "然后配置完成之后呢",
+      "music": 0
+    },
+    {
+      "from": 124.65,
+      "to": 125.97,
+      "sid": 71,
+      "location": 2,
+      "content": "我们第一次进入这个系统",
+      "music": 0
+    },
+    {
+      "from": 125.97,
+      "to": 127.6,
+      "sid": 72,
+      "location": 2,
+      "content": "大家可能和我这里不一样",
+      "music": 0
+    },
+    {
+      "from": 127.6,
+      "to": 129.12,
+      "sid": 73,
+      "location": 2,
+      "content": "就是大家还没有这个内容吗",
+      "music": 0
+    },
+    {
+      "from": 129.12,
+      "to": 130.68,
+      "sid": 74,
+      "location": 2,
+      "content": "那我们要怎么让AI去整理呢",
+      "music": 0
+    },
+    {
+      "from": 130.68,
+      "to": 131.84,
+      "sid": 75,
+      "location": 2,
+      "content": "其实这里有个非常简单的方式",
+      "music": 0
+    },
+    {
+      "from": 131.84,
+      "to": 133.18,
+      "sid": 76,
+      "location": 2,
+      "content": "就让AI帮我们整理",
+      "music": 0
+    },
+    {
+      "from": 133.18,
+      "to": 135.98,
+      "sid": 77,
+      "location": 2,
+      "content": "我们这里可以斜杠叫做creator workbench",
+      "music": 0
+    },
+    {
+      "from": 135.98,
+      "to": 138.08,
+      "sid": 78,
+      "location": 2,
+      "content": "我们可以问DEPSICK帮我们做什么事情",
+      "music": 0
+    },
+    {
+      "from": 138.08,
+      "to": 139.6,
+      "sid": 79,
+      "location": 2,
+      "content": "你可以帮我做什么事情",
+      "music": 0
+    },
+    {
+      "from": 139.6,
+      "to": 140.66,
+      "sid": 80,
+      "location": 2,
+      "content": "那我们发送给他",
+      "music": 0
+    },
+    {
+      "from": 140.66,
+      "to": 141.72,
+      "sid": 81,
+      "location": 2,
+      "content": "OK这里我们也看到",
+      "music": 0
+    },
+    {
+      "from": 141.72,
+      "to": 143.52,
+      "sid": 82,
+      "location": 2,
+      "content": "我给他提供用了一个自取的工具",
+      "music": 0
+    },
+    {
+      "from": 143.52,
+      "to": 145.34,
+      "sid": 83,
+      "location": 2,
+      "content": "就是我这个插件里面所有的功能",
+      "music": 0
+    },
+    {
+      "from": 145.34,
+      "to": 148.46,
+      "sid": 84,
+      "location": 2,
+      "content": "它都可以基于这个creator workbench去查看到",
+      "music": 0
+    },
+    {
+      "from": 148.46,
+      "to": 150.18,
+      "sid": 85,
+      "location": 2,
+      "content": "比如说这个片库的管理",
+      "music": 0
+    },
+    {
+      "from": 150.18,
+      "to": 153.25,
+      "sid": 86,
+      "location": 2,
+      "content": "我们里面这些是映射到本地文件的什么格式",
+      "music": 0
+    },
+    {
+      "from": 153.25,
+      "to": 154.13,
+      "sid": 87,
+      "location": 2,
+      "content": "我们都不需要关心",
+      "music": 0
+    },
+    {
+      "from": 154.13,
+      "to": 154.89,
+      "sid": 88,
+      "location": 2,
+      "content": "我们只要告诉他",
+      "music": 0
+    },
+    {
+      "from": 154.89,
+      "to": 157.95,
+      "sid": 89,
+      "location": 2,
+      "content": "比如说呃我的视频平时存在哪个目录里面的",
+      "music": 0
+    },
+    {
+      "from": 157.95,
+      "to": 158.43,
+      "sid": 90,
+      "location": 2,
+      "content": "你告诉他",
+      "music": 0
+    },
+    {
+      "from": 158.43,
+      "to": 160.33,
+      "sid": 91,
+      "location": 2,
+      "content": "或者说呃你自己来配置",
+      "music": 0
+    },
+    {
+      "from": 160.33,
+      "to": 161.85,
+      "sid": 92,
+      "location": 2,
+      "content": "或者让AI来帮你配置都可以",
+      "music": 0
+    },
+    {
+      "from": 161.85,
+      "to": 162.65,
+      "sid": 93,
+      "location": 2,
+      "content": "你告诉他就好了",
+      "music": 0
+    },
+    {
+      "from": 162.65,
+      "to": 163.99,
+      "sid": 94,
+      "location": 2,
+      "content": "然后他就可以去帮我们修改",
+      "music": 0
+    },
+    {
+      "from": 163.99,
+      "to": 167.329,
+      "sid": 95,
+      "location": 2,
+      "content": "插件里面这些配置都是可以让AI自己去改的",
+      "music": 0
+    },
+    {
+      "from": 167.329,
+      "to": 170.49,
+      "sid": 96,
+      "location": 2,
+      "content": "还包括这里选题脚本录制啊",
+      "music": 0
+    },
+    {
+      "from": 170.49,
+      "to": 171.95,
+      "sid": 97,
+      "location": 2,
+      "content": "还有这个生成字幕封面",
+      "music": 0
+    },
+    {
+      "from": 171.95,
+      "to": 173.63,
+      "sid": 98,
+      "location": 2,
+      "content": "这些我们都可以直接跟AI对话",
+      "music": 0
+    },
+    {
+      "from": 173.63,
+      "to": 174.61,
+      "sid": 99,
+      "location": 2,
+      "content": "让他去帮我们做",
+      "music": 0
+    },
+    {
+      "from": 174.61,
+      "to": 175.87,
+      "sid": 100,
+      "location": 2,
+      "content": "那这里我给大家演示一下",
+      "music": 0
+    },
+    {
+      "from": 175.87,
+      "to": 177.18,
+      "sid": 101,
+      "location": 2,
+      "content": "我们怎么写一个脚本",
+      "music": 0
+    },
+    {
+      "from": 177.18,
+      "to": 179.3,
+      "sid": 102,
+      "location": 2,
+      "content": "比如这里我先创建一个新的项目",
+      "music": 0
+    },
+    {
+      "from": 179.3,
+      "to": 180.9,
+      "sid": 103,
+      "location": 2,
+      "content": "我想要录制一个介绍",
+      "music": 0
+    },
+    {
+      "from": 180.9,
+      "to": 183.42,
+      "sid": 104,
+      "location": 2,
+      "content": "deep sick harness工作台的视频",
+      "music": 0
+    },
+    {
+      "from": 183.42,
+      "to": 185.48,
+      "sid": 105,
+      "location": 2,
+      "content": "请你帮我创建一个新的项目",
+      "music": 0
+    },
+    {
+      "from": 185.48,
+      "to": 186.66,
+      "sid": 106,
+      "location": 2,
+      "content": "发送给他",
+      "music": 0
+    },
+    {
+      "from": 186.66,
+      "to": 188.26,
+      "sid": 107,
+      "location": 2,
+      "content": "OK他这里在执行的时候",
+      "music": 0
+    },
+    {
+      "from": 188.26,
+      "to": 191.96,
+      "sid": 108,
+      "location": 2,
+      "content": "我们可以看到左侧它创建了一个新的这个工程",
+      "music": 0
+    },
+    {
+      "from": 191.96,
+      "to": 193.3,
+      "sid": 109,
+      "location": 2,
+      "content": "这个它是会实时更新的",
+      "music": 0
+    },
+    {
+      "from": 193.3,
+      "to": 195.44,
+      "sid": 110,
+      "location": 2,
+      "content": "它跟我们本地的这个文件管理系统",
+      "music": 0
+    },
+    {
+      "from": 195.44,
+      "to": 196.48,
+      "sid": 111,
+      "location": 2,
+      "content": "是实时绑定的",
+      "music": 0
+    },
+    {
+      "from": 196.48,
+      "to": 198.16,
+      "sid": 112,
+      "location": 2,
+      "content": "然后他这里项目已经建好了",
+      "music": 0
+    },
+    {
+      "from": 198.16,
+      "to": 199.92,
+      "sid": 113,
+      "location": 2,
+      "content": "他要看一下我们的这个脚本规则",
+      "music": 0
+    },
+    {
+      "from": 199.92,
+      "to": 201.08,
+      "sid": 114,
+      "location": 2,
+      "content": "是否已经配置好了",
+      "music": 0
+    },
+    {
+      "from": 201.08,
+      "to": 203.76,
+      "sid": 115,
+      "location": 2,
+      "content": "并且读一下这个工作台本身的材料",
+      "music": 0
+    },
+    {
+      "from": 203.76,
+      "to": 206.74,
+      "sid": 116,
+      "location": 2,
+      "content": "OK这里他问我们要不要把这个脚本给写出来",
+      "music": 0
+    },
+    {
+      "from": 206.74,
+      "to": 209.22,
+      "sid": 117,
+      "location": 2,
+      "content": "就是他已经知道了我们这个主题之后",
+      "music": 0
+    },
+    {
+      "from": 209.22,
+      "to": 210.14,
+      "sid": 118,
+      "location": 2,
+      "content": "他问我们要不要写脚本",
+      "music": 0
+    },
+    {
+      "from": 210.14,
+      "to": 211.18,
+      "sid": 119,
+      "location": 2,
+      "content": "我们这时候可以让他去写",
+      "music": 0
+    },
+    {
+      "from": 211.18,
+      "to": 211.94,
+      "sid": 120,
+      "location": 2,
+      "content": "也可以不让他去写",
+      "music": 0
+    },
+    {
+      "from": 211.94,
+      "to": 213,
+      "sid": 121,
+      "location": 2,
+      "content": "刚好我们演示一下",
+      "music": 0
+    },
+    {
+      "from": 213,
+      "to": 214.76,
+      "sid": 122,
+      "location": 2,
+      "content": "我们让他直接把脚本给写了",
+      "music": 0
+    },
+    {
+      "from": 214.76,
+      "to": 216.43,
+      "sid": 123,
+      "location": 2,
+      "content": "然后口语化好",
+      "music": 0
+    },
+    {
+      "from": 216.43,
+      "to": 218.07,
+      "sid": 124,
+      "location": 2,
+      "content": "OK开门见山",
+      "music": 0
+    },
+    {
+      "from": 218.07,
+      "to": 219.89,
+      "sid": 125,
+      "location": 2,
+      "content": "直接演示没有",
+      "music": 0
+    },
+    {
+      "from": 219.89,
+      "to": 221.27,
+      "sid": 126,
+      "location": 2,
+      "content": "然后我们提交",
+      "music": 0
+    },
+    {
+      "from": 221.27,
+      "to": 223.21,
+      "sid": 127,
+      "location": 2,
+      "content": "然后我们点击左侧这个项目",
+      "music": 0
+    },
+    {
+      "from": 223.21,
+      "to": 225.19,
+      "sid": 128,
+      "location": 2,
+      "content": "点击点击之后它会有详情",
+      "music": 0
+    },
+    {
+      "from": 225.19,
+      "to": 227.39,
+      "sid": 129,
+      "location": 2,
+      "content": "现在他的这个脚本这里是空的",
+      "music": 0
+    },
+    {
+      "from": 227.39,
+      "to": 229.83,
+      "sid": 130,
+      "location": 2,
+      "content": "然后他待会就会给我们在这里写脚本了",
+      "music": 0
+    },
+    {
+      "from": 229.83,
+      "to": 230.23,
+      "sid": 131,
+      "location": 2,
+      "content": "好",
+      "music": 0
+    },
+    {
+      "from": 230.23,
+      "to": 230.43,
+      "sid": 132,
+      "location": 2,
+      "content": "这里",
+      "music": 0
+    },
+    {
+      "from": 230.43,
+      "to": 233.09,
+      "sid": 133,
+      "location": 2,
+      "content": "我们可以看到他一瞬间就把这个脚本给想好",
+      "music": 0
+    },
+    {
+      "from": 233.09,
+      "to": 233.81,
+      "sid": 134,
+      "location": 2,
+      "content": "想好了",
+      "music": 0
+    },
+    {
+      "from": 233.81,
+      "to": 234.77,
+      "sid": 135,
+      "location": 2,
+      "content": "然后写在这里了",
+      "music": 0
+    },
+    {
+      "from": 234.77,
+      "to": 235.77,
+      "sid": 136,
+      "location": 2,
+      "content": "那我们录制的时候",
+      "music": 0
+    },
+    {
+      "from": 235.77,
+      "to": 238.09,
+      "sid": 137,
+      "location": 2,
+      "content": "我们可以基于这个脚本去录视频",
+      "music": 0
+    },
+    {
+      "from": 238.09,
+      "to": 239.73,
+      "sid": 138,
+      "location": 2,
+      "content": "然后视频录制完成之后呢",
+      "music": 0
+    },
+    {
+      "from": 239.73,
+      "to": 243.8,
+      "sid": 139,
+      "location": 2,
+      "content": "我们可能会给这个视频加字幕和做封面",
+      "music": 0
+    },
+    {
+      "from": 243.8,
+      "to": 245.62,
+      "sid": 140,
+      "location": 2,
+      "content": "那我们这个视频因为还没录嘛",
+      "music": 0
+    },
+    {
+      "from": 245.62,
+      "to": 247.94,
+      "sid": 141,
+      "location": 2,
+      "content": "我们用之前的一个视频来给大家演示一下",
+      "music": 0
+    },
+    {
+      "from": 247.94,
+      "to": 251.909,
+      "sid": 142,
+      "location": 2,
+      "content": "比如说字幕这里我可以让这个DEPSICK让他来",
+      "music": 0
+    },
+    {
+      "from": 251.909,
+      "to": 254.429,
+      "sid": 143,
+      "location": 2,
+      "content": "比如说我艾特这个deep sick harness这样子",
+      "music": 0
+    },
+    {
+      "from": 254.429,
+      "to": 256.009,
+      "sid": 144,
+      "location": 2,
+      "content": "deep sick harness上手",
+      "music": 0
+    },
+    {
+      "from": 256.009,
+      "to": 257.72,
+      "sid": 145,
+      "location": 2,
+      "content": "然后我让他来加字母",
+      "music": 0
+    },
+    {
+      "from": 257.72,
+      "to": 258.96,
+      "sid": 146,
+      "location": 2,
+      "content": "我也可以直接点这个按钮",
+      "music": 0
+    },
+    {
+      "from": 258.96,
+      "to": 261.149,
+      "sid": 147,
+      "location": 2,
+      "content": "然后我点一下给大家看一下点击",
+      "music": 0
+    },
+    {
+      "from": 261.149,
+      "to": 263.369,
+      "sid": 148,
+      "location": 2,
+      "content": "然后到现在的字幕在生成中",
+      "music": 0
+    },
+    {
+      "from": 263.369,
+      "to": 265.389,
+      "sid": 149,
+      "location": 2,
+      "content": "然后我们把封面也一起生成吧",
+      "music": 0
+    },
+    {
+      "from": 265.389,
+      "to": 266.32,
+      "sid": 150,
+      "location": 2,
+      "content": "点击这里",
+      "music": 0
+    },
+    {
+      "from": 266.32,
+      "to": 269.04,
+      "sid": 151,
+      "location": 2,
+      "content": "我们可以看到他这个封面已经生成完成了",
+      "music": 0
+    },
+    {
+      "from": 269.04,
+      "to": 270.27,
+      "sid": 152,
+      "location": 2,
+      "content": "然后字幕的话",
+      "music": 0
+    },
+    {
+      "from": 270.27,
+      "to": 271.27,
+      "sid": 153,
+      "location": 2,
+      "content": "它会打开一个这个",
+      "music": 0
+    },
+    {
+      "from": 271.27,
+      "to": 273.51,
+      "sid": 154,
+      "location": 2,
+      "content": "这个就是我之前那个加字幕的skill",
+      "music": 0
+    },
+    {
+      "from": 273.51,
+      "to": 274.47,
+      "sid": 155,
+      "location": 2,
+      "content": "然后演示在这里",
+      "music": 0
+    },
+    {
+      "from": 274.47,
+      "to": 276.96,
+      "sid": 156,
+      "location": 2,
+      "content": "然后我们在这里确认完成之后就可以去烧录了",
+      "music": 0
+    },
+    {
+      "from": 276.96,
+      "to": 278.96,
+      "sid": 157,
+      "location": 2,
+      "content": "然后当我们视频已经准备完成之后呢",
+      "music": 0
+    },
+    {
+      "from": 278.96,
+      "to": 280.28,
+      "sid": 158,
+      "location": 2,
+      "content": "我们可以去发布这里",
+      "music": 0
+    },
+    {
+      "from": 280.28,
+      "to": 280.8,
+      "sid": 159,
+      "location": 2,
+      "content": "我们可以看到",
+      "music": 0
+    },
+    {
+      "from": 280.8,
+      "to": 283.4,
+      "sid": 160,
+      "location": 2,
+      "content": "其实它这里面有一个可以点击发布视频的地方",
+      "music": 0
+    },
+    {
+      "from": 283.4,
+      "to": 284.8,
+      "sid": 161,
+      "location": 2,
+      "content": "就是因为发布视频",
+      "music": 0
+    },
+    {
+      "from": 284.8,
+      "to": 288.64,
+      "sid": 162,
+      "location": 2,
+      "content": "它是一个啊失败率比较高的一个任务呃",
+      "music": 0
+    },
+    {
+      "from": 288.64,
+      "to": 290.2,
+      "sid": 163,
+      "location": 2,
+      "content": "而且经常需要A卷去调试",
+      "music": 0
+    },
+    {
+      "from": 290.2,
+      "to": 291.96,
+      "sid": 164,
+      "location": 2,
+      "content": "所以说这里不是一个现成的脚本",
+      "music": 0
+    },
+    {
+      "from": 291.96,
+      "to": 294.16,
+      "sid": 165,
+      "location": 2,
+      "content": "我们可以把这个视频就像刚才这样子",
+      "music": 0
+    },
+    {
+      "from": 294.16,
+      "to": 296.8,
+      "sid": 166,
+      "location": 2,
+      "content": "我们在这边艾特lipstick上手这个视频",
+      "music": 0
+    },
+    {
+      "from": 296.8,
+      "to": 298.74,
+      "sid": 167,
+      "location": 2,
+      "content": "然后跟他说帮我发布这个视频",
+      "music": 0
+    },
+    {
+      "from": 298.74,
+      "to": 300.16,
+      "sid": 168,
+      "location": 2,
+      "content": "那我发送给他好",
+      "music": 0
+    },
+    {
+      "from": 300.16,
+      "to": 302.89,
+      "sid": 169,
+      "location": 2,
+      "content": "这里我们呃触发了这个自动发布之后",
+      "music": 0
+    },
+    {
+      "from": 302.89,
+      "to": 304.49,
+      "sid": 170,
+      "location": 2,
+      "content": "我们可以看到它调用了一个skill",
+      "music": 0
+    },
+    {
+      "from": 304.49,
+      "to": 306.02,
+      "sid": 171,
+      "location": 2,
+      "content": "在这里它调用了这个skill",
+      "music": 0
+    },
+    {
+      "from": 306.02,
+      "to": 309.26,
+      "sid": 172,
+      "location": 2,
+      "content": "然后呢我们在这个安装这个工作台之后",
+      "music": 0
+    },
+    {
+      "from": 309.26,
+      "to": 311.42,
+      "sid": 173,
+      "location": 2,
+      "content": "它会自动把我们这个depc harness",
+      "music": 0
+    },
+    {
+      "from": 311.42,
+      "to": 313.9,
+      "sid": 174,
+      "location": 2,
+      "content": "里面缺少了一些skill的补充进来",
+      "music": 0
+    },
+    {
+      "from": 313.9,
+      "to": 315.94,
+      "sid": 175,
+      "location": 2,
+      "content": "而且这里你看他会问我们要发布的",
+      "music": 0
+    },
+    {
+      "from": 315.94,
+      "to": 316.74,
+      "sid": 176,
+      "location": 2,
+      "content": "哪个视频文件",
+      "music": 0
+    },
+    {
+      "from": 316.74,
+      "to": 318.78,
+      "sid": 177,
+      "location": 2,
+      "content": "还会问我们视频的标题用什么标签",
+      "music": 0
+    },
+    {
+      "from": 318.78,
+      "to": 319.78,
+      "sid": 178,
+      "location": 2,
+      "content": "要用什么配置",
+      "music": 0
+    },
+    {
+      "from": 319.78,
+      "to": 320.26,
+      "sid": 179,
+      "location": 2,
+      "content": "完成之后",
+      "music": 0
+    },
+    {
+      "from": 320.26,
+      "to": 321.97,
+      "sid": 180,
+      "location": 2,
+      "content": "我们就可以自动去发布视频了",
+      "music": 0
+    },
+    {
+      "from": 321.97,
+      "to": 324.91,
+      "sid": 181,
+      "location": 2,
+      "content": "然后发布完成之后可能是到我现在的这个状态",
+      "music": 0
+    },
+    {
+      "from": 324.91,
+      "to": 326.29,
+      "sid": 182,
+      "location": 2,
+      "content": "我们发布完成视频之后",
+      "music": 0
+    },
+    {
+      "from": 326.29,
+      "to": 327.85,
+      "sid": 183,
+      "location": 2,
+      "content": "我们可能需要去同步他的数据",
+      "music": 0
+    },
+    {
+      "from": 327.85,
+      "to": 330.29,
+      "sid": 184,
+      "location": 2,
+      "content": "那我这里点击一下给大家看一下效果",
+      "music": 0
+    },
+    {
+      "from": 330.29,
+      "to": 333.49,
+      "sid": 185,
+      "location": 2,
+      "content": "点击那现在正在同步好",
+      "music": 0
+    },
+    {
+      "from": 333.49,
+      "to": 336.05,
+      "sid": 186,
+      "location": 2,
+      "content": "这里可以看到他已经把数据都同步好了",
+      "music": 0
+    },
+    {
+      "from": 336.05,
+      "to": 337.05,
+      "sid": 187,
+      "location": 2,
+      "content": "速度挺快的",
+      "music": 0
+    },
+    {
+      "from": 337.05,
+      "to": 338.23,
+      "sid": 188,
+      "location": 2,
+      "content": "然后有的时候同步不到",
+      "music": 0
+    },
+    {
+      "from": 338.23,
+      "to": 340.23,
+      "sid": 189,
+      "location": 2,
+      "content": "是因为我们这个平台这个登录太掉了",
+      "music": 0
+    },
+    {
+      "from": 340.23,
+      "to": 341.66,
+      "sid": 190,
+      "location": 2,
+      "content": "我重新登录一下就好了",
+      "music": 0
+    },
+    {
+      "from": 341.66,
+      "to": 342.6,
+      "sid": 191,
+      "location": 2,
+      "content": "然后除此以外",
+      "music": 0
+    },
+    {
+      "from": 342.6,
+      "to": 344.82,
+      "sid": 192,
+      "location": 2,
+      "content": "如果我们想把我们的视频内容",
+      "music": 0
+    },
+    {
+      "from": 344.82,
+      "to": 346.14,
+      "sid": 193,
+      "location": 2,
+      "content": "把它转成一篇文章",
+      "music": 0
+    },
+    {
+      "from": 346.14,
+      "to": 347.72,
+      "sid": 194,
+      "location": 2,
+      "content": "这里面也提供了对应的skill",
+      "music": 0
+    },
+    {
+      "from": 347.72,
+      "to": 350.04,
+      "sid": 195,
+      "location": 2,
+      "content": "我们直接在还是一样的对话方式",
+      "music": 0
+    },
+    {
+      "from": 350.04,
+      "to": 351.24,
+      "sid": 196,
+      "location": 2,
+      "content": "让他把这个视频",
+      "music": 0
+    },
+    {
+      "from": 351.24,
+      "to": 353.72,
+      "sid": 197,
+      "location": 2,
+      "content": "比如说半年时间2万粉转成一篇文章",
+      "music": 0
+    },
+    {
+      "from": 353.72,
+      "to": 356.21,
+      "sid": 198,
+      "location": 2,
+      "content": "那转成之后就可以像是这样子的啊",
+      "music": 0
+    },
+    {
+      "from": 356.21,
+      "to": 357.47,
+      "sid": 199,
+      "location": 2,
+      "content": "这个就是它转出来的",
+      "music": 0
+    },
+    {
+      "from": 357.47,
+      "to": 362.01,
+      "sid": 200,
+      "location": 2,
+      "content": "他要去截取里面对应的视频帧来把它作为配图",
+      "music": 0
+    },
+    {
+      "from": 362.45,
+      "to": 364.01,
+      "sid": 201,
+      "location": 2,
+      "content": "当然这个skill的话",
+      "music": 0
+    },
+    {
+      "from": 364.01,
+      "to": 365.93,
+      "sid": 202,
+      "location": 2,
+      "content": "搭配这个scream studio效果会更好",
+      "music": 0
+    },
+    {
+      "from": 365.93,
+      "to": 367.25,
+      "sid": 203,
+      "location": 2,
+      "content": "它搭配普通视频也行",
+      "music": 0
+    },
+    {
+      "from": 367.25,
+      "to": 368.37,
+      "sid": 204,
+      "location": 2,
+      "content": "因为普通视频",
+      "music": 0
+    },
+    {
+      "from": 368.37,
+      "to": 370.92,
+      "sid": 205,
+      "location": 2,
+      "content": "我们有可能把我们的脸也放在这上面了",
+      "music": 0
+    },
+    {
+      "from": 370.92,
+      "to": 372.4,
+      "sid": 206,
+      "location": 2,
+      "content": "那他作为一个公众号的一个配图",
+      "music": 0
+    },
+    {
+      "from": 372.4,
+      "to": 373.34,
+      "sid": 207,
+      "location": 2,
+      "content": "就没那么合适了",
+      "music": 0
+    },
+    {
+      "from": 373.34,
+      "to": 375.12,
+      "sid": 208,
+      "location": 2,
+      "content": "如果你是screen studio的话",
+      "music": 0
+    },
+    {
+      "from": 375.12,
+      "to": 377.57,
+      "sid": 209,
+      "location": 2,
+      "content": "他能够拿到原始工程里面",
+      "music": 0
+    },
+    {
+      "from": 377.57,
+      "to": 380.05,
+      "sid": 210,
+      "location": 2,
+      "content": "这个背后的这个视频不会带有人像的",
+      "music": 0
+    },
+    {
+      "from": 380.05,
+      "to": 382.91,
+      "sid": 211,
+      "location": 2,
+      "content": "然后放在我们这个文章里面就很合适",
+      "music": 0
+    },
+    {
+      "from": 382.91,
+      "to": 385.769,
+      "sid": 212,
+      "location": 2,
+      "content": "而且文章的自动发布也是有的好",
+      "music": 0
+    },
+    {
+      "from": 385.769,
+      "to": 387.809,
+      "sid": 213,
+      "location": 2,
+      "content": "如果大家对于这个工作台感兴趣的话",
+      "music": 0
+    },
+    {
+      "from": 387.809,
+      "to": 389.529,
+      "sid": 214,
+      "location": 2,
+      "content": "也可以自己去安装来配置一下",
+      "music": 0
+    },
+    {
+      "from": 389.529,
+      "to": 390.369,
+      "sid": 215,
+      "location": 2,
+      "content": "已经开源了",
+      "music": 0
+    },
+    {
+      "from": 390.369,
+      "to": 391.529,
+      "sid": 216,
+      "location": 2,
+      "content": "如果说有什么问题的话",
+      "music": 0
+    },
+    {
+      "from": 391.529,
+      "to": 393.38,
+      "sid": 217,
+      "location": 2,
+      "content": "也可以在啊里面有个链接",
+      "music": 0
+    },
+    {
+      "from": 393.38,
+      "to": 395.06,
+      "sid": 218,
+      "location": 2,
+      "content": "可以跳到我的官网来联络我",
+      "music": 0
+    },
+    {
+      "from": 395.06,
+      "to": 397.3,
+      "sid": 219,
+      "location": 2,
+      "content": "后续我也会持续的去迭代这个工作台",
+      "music": 0
+    },
+    {
+      "from": 397.3,
+      "to": 399.06,
+      "sid": 220,
+      "location": 2,
+      "content": "基于我自己的一些实际流程",
+      "music": 0
+    },
+    {
+      "from": 399.06,
+      "to": 400.54,
+      "sid": 221,
+      "location": 2,
+      "content": "并且提高它的这个通用性",
+      "music": 0
+    },
+    {
+      "from": 400.54,
+      "to": 401.68,
+      "sid": 222,
+      "location": 2,
+      "content": "兼容性好",
+      "music": 0
+    },
+    {
+      "from": 401.68,
+      "to": 402.72,
+      "sid": 223,
+      "location": 2,
+      "content": "我今天的分享就到这里",
+      "music": 0
+    },
+    {
+      "from": 402.72,
+      "to": 403.28,
+      "sid": 224,
+      "location": 2,
+      "content": "谢谢大家",
+      "music": 0
+    },
+    {
+      "from": 403.28,
+      "to": 403.88,
+      "sid": 225,
+      "location": 2,
+      "content": "拜拜",
+      "music": 0
+    }
+  ]
+}

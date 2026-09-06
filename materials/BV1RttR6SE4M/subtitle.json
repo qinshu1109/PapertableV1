@@ -1,0 +1,2116 @@
+{
+  "font_size": 0.4,
+  "font_color": "#FFFFFF",
+  "background_alpha": 0.5,
+  "background_color": "#9C27B0",
+  "Stroke": "none",
+  "type": "AIsubtitle",
+  "lang": "zh",
+  "version": "v1.7.0.4",
+  "body": [
+    {
+      "from": 0,
+      "to": 2.08,
+      "sid": 1,
+      "location": 2,
+      "content": "好在之前的视频里我有给大家分享过",
+      "music": 0
+    },
+    {
+      "from": 2.08,
+      "to": 3.46,
+      "sid": 2,
+      "location": 2,
+      "content": "我使用这个tipc harness",
+      "music": 0
+    },
+    {
+      "from": 3.46,
+      "to": 5.859,
+      "sid": 3,
+      "location": 2,
+      "content": "搭建了一个这个自媒体创作的工作台",
+      "music": 0
+    },
+    {
+      "from": 5.859,
+      "to": 7.419,
+      "sid": 4,
+      "location": 2,
+      "content": "然后我搭这个工作台的目的呢",
+      "music": 0
+    },
+    {
+      "from": 7.419,
+      "to": 9.539,
+      "sid": 5,
+      "location": 2,
+      "content": "其实就是相较于我用文件的形式去管理啊",
+      "music": 0
+    },
+    {
+      "from": 9.539,
+      "to": 11.32,
+      "sid": 6,
+      "location": 2,
+      "content": "它看起来会更加直观一点啊",
+      "music": 0
+    },
+    {
+      "from": 11.32,
+      "to": 13.32,
+      "sid": 7,
+      "location": 2,
+      "content": "这个是我本地的这些文件目录啊",
+      "music": 0
+    },
+    {
+      "from": 13.32,
+      "to": 15.44,
+      "sid": 8,
+      "location": 2,
+      "content": "这样子零散的去看其实没有那么方便",
+      "music": 0
+    },
+    {
+      "from": 15.44,
+      "to": 16.6,
+      "sid": 9,
+      "location": 2,
+      "content": "那我把它整理到这里之后",
+      "music": 0
+    },
+    {
+      "from": 16.6,
+      "to": 17.78,
+      "sid": 10,
+      "location": 2,
+      "content": "看起来就会更舒服一点",
+      "music": 0
+    },
+    {
+      "from": 17.78,
+      "to": 19.82,
+      "sid": 11,
+      "location": 2,
+      "content": "而且我使用这个depickness agent呢",
+      "music": 0
+    },
+    {
+      "from": 19.82,
+      "to": 22.88,
+      "sid": 12,
+      "location": 2,
+      "content": "我也可以让他去帮我进行一些啊任务的管理",
+      "music": 0
+    },
+    {
+      "from": 22.88,
+      "to": 24.88,
+      "sid": 13,
+      "location": 2,
+      "content": "但最近这段时间其实我并没有啊",
+      "music": 0
+    },
+    {
+      "from": 24.88,
+      "to": 26.24,
+      "sid": 14,
+      "location": 2,
+      "content": "呃坚持走这条路线",
+      "music": 0
+    },
+    {
+      "from": 26.24,
+      "to": 29.22,
+      "sid": 15,
+      "location": 2,
+      "content": "而是我改为使用这个codex加废除CLI的方式",
+      "music": 0
+    },
+    {
+      "from": 29.22,
+      "to": 30.42,
+      "sid": 16,
+      "location": 2,
+      "content": "来管理我的内容",
+      "music": 0
+    },
+    {
+      "from": 30.42,
+      "to": 32.71,
+      "sid": 17,
+      "location": 2,
+      "content": "那我给大家说说这个具体的原因啊",
+      "music": 0
+    },
+    {
+      "from": 32.71,
+      "to": 34.55,
+      "sid": 18,
+      "location": 2,
+      "content": "就是首先我大多数的这种日常工作",
+      "music": 0
+    },
+    {
+      "from": 34.55,
+      "to": 36.17,
+      "sid": 19,
+      "location": 2,
+      "content": "还是在codex里面去处理的",
+      "music": 0
+    },
+    {
+      "from": 36.17,
+      "to": 38.26,
+      "sid": 20,
+      "location": 2,
+      "content": "我换到这个deep sick harness",
+      "music": 0
+    },
+    {
+      "from": 38.26,
+      "to": 39.96,
+      "sid": 21,
+      "location": 2,
+      "content": "反而是要多一个入口的啊",
+      "music": 0
+    },
+    {
+      "from": 39.96,
+      "to": 40.52,
+      "sid": 22,
+      "location": 2,
+      "content": "除此以外啊",
+      "music": 0
+    },
+    {
+      "from": 40.52,
+      "to": 43.24,
+      "sid": 23,
+      "location": 2,
+      "content": "这个deep sick目前的模型能力相较于GPT来说",
+      "music": 0
+    },
+    {
+      "from": 43.24,
+      "to": 44.32,
+      "sid": 24,
+      "location": 2,
+      "content": "它还是差很多的",
+      "music": 0
+    },
+    {
+      "from": 44.32,
+      "to": 47.359,
+      "sid": 25,
+      "location": 2,
+      "content": "所以说大多数的这种比如说啊做封面啊",
+      "music": 0
+    },
+    {
+      "from": 47.359,
+      "to": 48.559,
+      "sid": 26,
+      "location": 2,
+      "content": "或者说加字幕这一类的任务",
+      "music": 0
+    },
+    {
+      "from": 48.559,
+      "to": 50.139,
+      "sid": 27,
+      "location": 2,
+      "content": "我还是交给codex去处理",
+      "music": 0
+    },
+    {
+      "from": 50.139,
+      "to": 52.239,
+      "sid": 28,
+      "location": 2,
+      "content": "我原本把这些流程都封装成工作流了",
+      "music": 0
+    },
+    {
+      "from": 52.239,
+      "to": 54.2,
+      "sid": 29,
+      "location": 2,
+      "content": "所以说模型能力比较弱的模型",
+      "music": 0
+    },
+    {
+      "from": 54.2,
+      "to": 55.38,
+      "sid": 30,
+      "location": 2,
+      "content": "它也是可以处理好的",
+      "music": 0
+    },
+    {
+      "from": 55.38,
+      "to": 56.66,
+      "sid": 31,
+      "location": 2,
+      "content": "但是我们在呃",
+      "music": 0
+    },
+    {
+      "from": 56.66,
+      "to": 58.44,
+      "sid": 32,
+      "location": 2,
+      "content": "自动化的执行一些复杂任务的时候",
+      "music": 0
+    },
+    {
+      "from": 58.44,
+      "to": 59.32,
+      "sid": 33,
+      "location": 2,
+      "content": "还是靠codex",
+      "music": 0
+    },
+    {
+      "from": 59.32,
+      "to": 60.78,
+      "sid": 34,
+      "location": 2,
+      "content": "它的效果会更好一点",
+      "music": 0
+    },
+    {
+      "from": 60.78,
+      "to": 63.2,
+      "sid": 35,
+      "location": 2,
+      "content": "假如说我这个字幕里面它哪个地方识别错了",
+      "music": 0
+    },
+    {
+      "from": 63.2,
+      "to": 64.12,
+      "sid": 36,
+      "location": 2,
+      "content": "我需要微调一下",
+      "music": 0
+    },
+    {
+      "from": 64.12,
+      "to": 65.2,
+      "sid": 37,
+      "location": 2,
+      "content": "或者说发布视频的时候",
+      "music": 0
+    },
+    {
+      "from": 65.2,
+      "to": 66.44,
+      "sid": 38,
+      "location": 2,
+      "content": "某个标签需要改一下",
+      "music": 0
+    },
+    {
+      "from": 66.44,
+      "to": 68.54,
+      "sid": 39,
+      "location": 2,
+      "content": "这种需要前后调整的人物",
+      "music": 0
+    },
+    {
+      "from": 68.54,
+      "to": 70.44,
+      "sid": 40,
+      "location": 2,
+      "content": "你放在codex里面去执行",
+      "music": 0
+    },
+    {
+      "from": 70.44,
+      "to": 71.9,
+      "sid": 41,
+      "location": 2,
+      "content": "它的稳定性会强很多",
+      "music": 0
+    },
+    {
+      "from": 71.9,
+      "to": 73.14,
+      "sid": 42,
+      "location": 2,
+      "content": "那我自己用这些工具啊",
+      "music": 0
+    },
+    {
+      "from": 73.14,
+      "to": 74.5,
+      "sid": 43,
+      "location": 2,
+      "content": "我还是实用主义为主",
+      "music": 0
+    },
+    {
+      "from": 74.5,
+      "to": 75.7,
+      "sid": 44,
+      "location": 2,
+      "content": "因为我会有很多的idea",
+      "music": 0
+    },
+    {
+      "from": 75.7,
+      "to": 76.98,
+      "sid": 45,
+      "location": 2,
+      "content": "我会做很多的尝试",
+      "music": 0
+    },
+    {
+      "from": 76.98,
+      "to": 79.5,
+      "sid": 46,
+      "location": 2,
+      "content": "但最终落实到自己本身该用什么工具",
+      "music": 0
+    },
+    {
+      "from": 79.5,
+      "to": 80.5,
+      "sid": 47,
+      "location": 2,
+      "content": "我还是用什么工具",
+      "music": 0
+    },
+    {
+      "from": 80.5,
+      "to": 80.94,
+      "sid": 48,
+      "location": 2,
+      "content": "所以这里",
+      "music": 0
+    },
+    {
+      "from": 80.94,
+      "to": 83.46,
+      "sid": 49,
+      "location": 2,
+      "content": "我不会为了热度去强行推荐某一个工具啊",
+      "music": 0
+    },
+    {
+      "from": 83.46,
+      "to": 84.42,
+      "sid": 50,
+      "location": 2,
+      "content": "Tipsick harness",
+      "music": 0
+    },
+    {
+      "from": 84.42,
+      "to": 86.14,
+      "sid": 51,
+      "location": 2,
+      "content": "现阶段有很多人拿它去做工作台",
+      "music": 0
+    },
+    {
+      "from": 86.14,
+      "to": 87.02,
+      "sid": 52,
+      "location": 2,
+      "content": "可能和我最初一样",
+      "music": 0
+    },
+    {
+      "from": 87.02,
+      "to": 88.9,
+      "sid": 53,
+      "location": 2,
+      "content": "我是想基于自己的实际需求",
+      "music": 0
+    },
+    {
+      "from": 88.9,
+      "to": 90.74,
+      "sid": 54,
+      "location": 2,
+      "content": "去试一下它的插件拓展机制",
+      "music": 0
+    },
+    {
+      "from": 90.74,
+      "to": 92.2,
+      "sid": 55,
+      "location": 2,
+      "content": "但是如果有更好的产品",
+      "music": 0
+    },
+    {
+      "from": 92.2,
+      "to": 93.84,
+      "sid": 56,
+      "location": 2,
+      "content": "我还是选择会用更好的产品",
+      "music": 0
+    },
+    {
+      "from": 93.84,
+      "to": 95.36,
+      "sid": 57,
+      "location": 2,
+      "content": "那我自己其实也反思了一下",
+      "music": 0
+    },
+    {
+      "from": 95.36,
+      "to": 97.05,
+      "sid": 58,
+      "location": 2,
+      "content": "我当初搭这个tipsc harness",
+      "music": 0
+    },
+    {
+      "from": 97.05,
+      "to": 99.25,
+      "sid": 59,
+      "location": 2,
+      "content": "是为了能够更加方便的可视化管理",
+      "music": 0
+    },
+    {
+      "from": 99.25,
+      "to": 100.13,
+      "sid": 60,
+      "location": 2,
+      "content": "我的一些视频内容",
+      "music": 0
+    },
+    {
+      "from": 100.13,
+      "to": 101.69,
+      "sid": 61,
+      "location": 2,
+      "content": "比如说我想到一个新的主题啊",
+      "music": 0
+    },
+    {
+      "from": 101.69,
+      "to": 104.72,
+      "sid": 62,
+      "location": 2,
+      "content": "我可以像这样子先把这个啊标题给他建好",
+      "music": 0
+    },
+    {
+      "from": 104.72,
+      "to": 107,
+      "sid": 63,
+      "location": 2,
+      "content": "然后可以随时去补充他的一些脚本",
+      "music": 0
+    },
+    {
+      "from": 107,
+      "to": 108.26,
+      "sid": 64,
+      "location": 2,
+      "content": "或者说一些参考的文件",
+      "music": 0
+    },
+    {
+      "from": 108.26,
+      "to": 110.24,
+      "sid": 65,
+      "location": 2,
+      "content": "一些文档我可以直接给它丢上去啊",
+      "music": 0
+    },
+    {
+      "from": 110.24,
+      "to": 112.46,
+      "sid": 66,
+      "location": 2,
+      "content": "并且这个视频我也可以把他的这些发布时间",
+      "music": 0
+    },
+    {
+      "from": 112.46,
+      "to": 113.26,
+      "sid": 67,
+      "location": 2,
+      "content": "记录在这里",
+      "music": 0
+    },
+    {
+      "from": 113.26,
+      "to": 115.56,
+      "sid": 68,
+      "location": 2,
+      "content": "那这个其实是我最初的一个初衷",
+      "music": 0
+    },
+    {
+      "from": 115.56,
+      "to": 117.26,
+      "sid": 69,
+      "location": 2,
+      "content": "那我目前选择的这个方案呢",
+      "music": 0
+    },
+    {
+      "from": 117.26,
+      "to": 119.62,
+      "sid": 70,
+      "location": 2,
+      "content": "其实就是用这个呃飞鼠CLI",
+      "music": 0
+    },
+    {
+      "from": 119.62,
+      "to": 122.4,
+      "sid": 71,
+      "location": 2,
+      "content": "我觉得飞速CI真的是现阶段的最优解了",
+      "music": 0
+    },
+    {
+      "from": 122.4,
+      "to": 123.08,
+      "sid": 72,
+      "location": 2,
+      "content": "先给大家看一下",
+      "music": 0
+    },
+    {
+      "from": 123.08,
+      "to": 124.84,
+      "sid": 73,
+      "location": 2,
+      "content": "我是怎么样去使用这个飞鼠CLI的",
+      "music": 0
+    },
+    {
+      "from": 124.84,
+      "to": 127.32,
+      "sid": 74,
+      "location": 2,
+      "content": "首先我们安装飞鼠CI是很简单的",
+      "music": 0
+    },
+    {
+      "from": 127.32,
+      "to": 129.14,
+      "sid": 75,
+      "location": 2,
+      "content": "我们直接在飞出CI的官网",
+      "music": 0
+    },
+    {
+      "from": 129.14,
+      "to": 131,
+      "sid": 76,
+      "location": 2,
+      "content": "然后点这个通过AIA卷安装",
+      "music": 0
+    },
+    {
+      "from": 131,
+      "to": 131.84,
+      "sid": 77,
+      "location": 2,
+      "content": "复制提示词",
+      "music": 0
+    },
+    {
+      "from": 131.84,
+      "to": 133.36,
+      "sid": 78,
+      "location": 2,
+      "content": "直接粘贴给任何一个AA卷",
+      "music": 0
+    },
+    {
+      "from": 133.36,
+      "to": 134.68,
+      "sid": 79,
+      "location": 2,
+      "content": "它就能够安装成功了",
+      "music": 0
+    },
+    {
+      "from": 134.68,
+      "to": 135.64,
+      "sid": 80,
+      "location": 2,
+      "content": "安装成功之后啊",
+      "music": 0
+    },
+    {
+      "from": 135.64,
+      "to": 137.04,
+      "sid": 81,
+      "location": 2,
+      "content": "我们在这个A卷里面",
+      "music": 0
+    },
+    {
+      "from": 137.04,
+      "to": 139.52,
+      "sid": 82,
+      "location": 2,
+      "content": "我们斜杠RELOCK就会发现多了很多",
+      "music": 0
+    },
+    {
+      "from": 139.52,
+      "to": 141.37,
+      "sid": 83,
+      "location": 2,
+      "content": "这个啊飞书相关的skill",
+      "music": 0
+    },
+    {
+      "from": 141.37,
+      "to": 142.41,
+      "sid": 84,
+      "location": 2,
+      "content": "通过这些SKU的组合",
+      "music": 0
+    },
+    {
+      "from": 142.41,
+      "to": 145.09,
+      "sid": 85,
+      "location": 2,
+      "content": "他就可以完全控制飞书里面的所有资源",
+      "music": 0
+    },
+    {
+      "from": 145.09,
+      "to": 145.89,
+      "sid": 86,
+      "location": 2,
+      "content": "比如说日历啊",
+      "music": 0
+    },
+    {
+      "from": 145.89,
+      "to": 146.53,
+      "sid": 87,
+      "location": 2,
+      "content": "文档啊",
+      "music": 0
+    },
+    {
+      "from": 146.53,
+      "to": 147.84,
+      "sid": 88,
+      "location": 2,
+      "content": "多维表格这一类的",
+      "music": 0
+    },
+    {
+      "from": 147.84,
+      "to": 150.52,
+      "sid": 89,
+      "location": 2,
+      "content": "那我主要使用的其实就是飞书文档和多维表格",
+      "music": 0
+    },
+    {
+      "from": 150.52,
+      "to": 151.32,
+      "sid": 90,
+      "location": 2,
+      "content": "这里可以看到",
+      "music": 0
+    },
+    {
+      "from": 151.32,
+      "to": 154.63,
+      "sid": 91,
+      "location": 2,
+      "content": "在我本地有一个叫做oil social media的一个目录",
+      "music": 0
+    },
+    {
+      "from": 154.63,
+      "to": 155.89,
+      "sid": 92,
+      "location": 2,
+      "content": "然后在这个目录里面啊",
+      "music": 0
+    },
+    {
+      "from": 155.89,
+      "to": 157.59,
+      "sid": 93,
+      "location": 2,
+      "content": "有一个这个项目级别的一个skill",
+      "music": 0
+    },
+    {
+      "from": 157.59,
+      "to": 159.1,
+      "sid": 94,
+      "location": 2,
+      "content": "叫做luck or your media",
+      "music": 0
+    },
+    {
+      "from": 159.1,
+      "to": 160.78,
+      "sid": 95,
+      "location": 2,
+      "content": "这个是我自己实现的一个skill啊",
+      "music": 0
+    },
+    {
+      "from": 160.78,
+      "to": 163.42,
+      "sid": 96,
+      "location": 2,
+      "content": "这个SKU是用来告诉我的AI agent",
+      "music": 0
+    },
+    {
+      "from": 163.42,
+      "to": 164.469,
+      "sid": 97,
+      "location": 2,
+      "content": "我的这些啊",
+      "music": 0
+    },
+    {
+      "from": 164.469,
+      "to": 166.629,
+      "sid": 98,
+      "location": 2,
+      "content": "非数里面的这些多余表格是怎么维护的",
+      "music": 0
+    },
+    {
+      "from": 166.629,
+      "to": 168.389,
+      "sid": 99,
+      "location": 2,
+      "content": "我们可以看这里有一个什么意图",
+      "music": 0
+    },
+    {
+      "from": 168.389,
+      "to": 168.749,
+      "sid": 100,
+      "location": 2,
+      "content": "路由",
+      "music": 0
+    },
+    {
+      "from": 168.749,
+      "to": 169.869,
+      "sid": 101,
+      "location": 2,
+      "content": "比如说我让他加一个选题",
+      "music": 0
+    },
+    {
+      "from": 169.869,
+      "to": 171.949,
+      "sid": 102,
+      "location": 2,
+      "content": "他就知道诶我要打开哪个多余表格",
+      "music": 0
+    },
+    {
+      "from": 171.949,
+      "to": 173.52,
+      "sid": 103,
+      "location": 2,
+      "content": "我在里面怎么样去加啊",
+      "music": 0
+    },
+    {
+      "from": 173.52,
+      "to": 174.42,
+      "sid": 104,
+      "location": 2,
+      "content": "一个新的选题",
+      "music": 0
+    },
+    {
+      "from": 174.42,
+      "to": 176.24,
+      "sid": 105,
+      "location": 2,
+      "content": "它里面的这个表格格式是什么样的",
+      "music": 0
+    },
+    {
+      "from": 176.24,
+      "to": 178.36,
+      "sid": 106,
+      "location": 2,
+      "content": "它不需要去重新探索一次了",
+      "music": 0
+    },
+    {
+      "from": 178.36,
+      "to": 179.8,
+      "sid": 107,
+      "location": 2,
+      "content": "而且这个飞书啊有一个好处",
+      "music": 0
+    },
+    {
+      "from": 179.8,
+      "to": 181.2,
+      "sid": 108,
+      "location": 2,
+      "content": "就是它不仅仅有桌面端",
+      "music": 0
+    },
+    {
+      "from": 181.2,
+      "to": 182.12,
+      "sid": 109,
+      "location": 2,
+      "content": "它还有这个网页端",
+      "music": 0
+    },
+    {
+      "from": 182.12,
+      "to": 183.54,
+      "sid": 110,
+      "location": 2,
+      "content": "那我们可以做到什么效果呢",
+      "music": 0
+    },
+    {
+      "from": 183.54,
+      "to": 185.92,
+      "sid": 111,
+      "location": 2,
+      "content": "我们可以在这个cox的侧边栏",
+      "music": 0
+    },
+    {
+      "from": 185.92,
+      "to": 187.94,
+      "sid": 112,
+      "location": 2,
+      "content": "直接打开对应的这个页面",
+      "music": 0
+    },
+    {
+      "from": 187.94,
+      "to": 189.62,
+      "sid": 113,
+      "location": 2,
+      "content": "比如说我让他去编辑这个表格",
+      "music": 0
+    },
+    {
+      "from": 189.62,
+      "to": 190.84,
+      "sid": 114,
+      "location": 2,
+      "content": "它就会打开这个表格",
+      "music": 0
+    },
+    {
+      "from": 190.84,
+      "to": 193.06,
+      "sid": 115,
+      "location": 2,
+      "content": "我让他在这个啊编辑文档",
+      "music": 0
+    },
+    {
+      "from": 193.06,
+      "to": 194.9,
+      "sid": 116,
+      "location": 2,
+      "content": "那么它就可以在这里编辑文档",
+      "music": 0
+    },
+    {
+      "from": 194.9,
+      "to": 195.84,
+      "sid": 117,
+      "location": 2,
+      "content": "编辑文档之后",
+      "music": 0
+    },
+    {
+      "from": 195.84,
+      "to": 198.19,
+      "sid": 118,
+      "location": 2,
+      "content": "我自己手动也可以在这里编辑这些",
+      "music": 0
+    },
+    {
+      "from": 198.19,
+      "to": 200.13,
+      "sid": 119,
+      "location": 2,
+      "content": "这些也是维护在我的skill里面的",
+      "music": 0
+    },
+    {
+      "from": 200.13,
+      "to": 201.72,
+      "sid": 120,
+      "location": 2,
+      "content": "编辑完了就在侧面栏里面打开",
+      "music": 0
+    },
+    {
+      "from": 201.72,
+      "to": 204.16,
+      "sid": 121,
+      "location": 2,
+      "content": "然后我给大家看一下我非书里面的这个表格啊",
+      "music": 0
+    },
+    {
+      "from": 204.16,
+      "to": 205.66,
+      "sid": 122,
+      "location": 2,
+      "content": "其实它就是一个多维表格",
+      "music": 0
+    },
+    {
+      "from": 205.66,
+      "to": 207.28,
+      "sid": 123,
+      "location": 2,
+      "content": "然后它分成了三个视图",
+      "music": 0
+    },
+    {
+      "from": 207.28,
+      "to": 209.82,
+      "sid": 124,
+      "location": 2,
+      "content": "一个是这种表格的视图啊",
+      "music": 0
+    },
+    {
+      "from": 209.82,
+      "to": 211.5,
+      "sid": 125,
+      "location": 2,
+      "content": "还有一个是这个日历的视图",
+      "music": 0
+    },
+    {
+      "from": 211.5,
+      "to": 213.84,
+      "sid": 126,
+      "location": 2,
+      "content": "还有一个就是这个看板的视图",
+      "music": 0
+    },
+    {
+      "from": 213.84,
+      "to": 214.82,
+      "sid": 127,
+      "location": 2,
+      "content": "这个多维表格啊",
+      "music": 0
+    },
+    {
+      "from": 214.82,
+      "to": 216.14,
+      "sid": 128,
+      "location": 2,
+      "content": "它包含的这视图啊",
+      "music": 0
+    },
+    {
+      "from": 216.14,
+      "to": 218.52,
+      "sid": 129,
+      "location": 2,
+      "content": "估计99%的这种工作台",
+      "music": 0
+    },
+    {
+      "from": 218.52,
+      "to": 220.76,
+      "sid": 130,
+      "location": 2,
+      "content": "自己开发的工作都可以覆盖掉了啊",
+      "music": 0
+    },
+    {
+      "from": 220.76,
+      "to": 224.08,
+      "sid": 131,
+      "location": 2,
+      "content": "而且这个飞书它还可以去组合这种数据的看板",
+      "music": 0
+    },
+    {
+      "from": 224.08,
+      "to": 226.86,
+      "sid": 132,
+      "location": 2,
+      "content": "比如说我想要去收集我之前的一些视频数据",
+      "music": 0
+    },
+    {
+      "from": 226.86,
+      "to": 228.74,
+      "sid": 133,
+      "location": 2,
+      "content": "把它展示这种一个一个的指标",
+      "music": 0
+    },
+    {
+      "from": 228.74,
+      "to": 230.38,
+      "sid": 134,
+      "location": 2,
+      "content": "或者用种曲线图折线图的",
+      "music": 0
+    },
+    {
+      "from": 230.38,
+      "to": 232.8,
+      "sid": 135,
+      "location": 2,
+      "content": "我想要去飞速实现是非常简单的",
+      "music": 0
+    },
+    {
+      "from": 232.8,
+      "to": 234.64,
+      "sid": 136,
+      "location": 2,
+      "content": "现在这个表格可以看到它的字段很少",
+      "music": 0
+    },
+    {
+      "from": 234.64,
+      "to": 235.96,
+      "sid": 137,
+      "location": 2,
+      "content": "这个是我已经脱敏过的",
+      "music": 0
+    },
+    {
+      "from": 235.96,
+      "to": 239.04,
+      "sid": 138,
+      "location": 2,
+      "content": "除了用它来啊管理我的一些视频发布的日程",
+      "music": 0
+    },
+    {
+      "from": 239.04,
+      "to": 241.3,
+      "sid": 139,
+      "location": 2,
+      "content": "我还可以用它来拍我一些其他工作的一些代办",
+      "music": 0
+    },
+    {
+      "from": 241.3,
+      "to": 243.68,
+      "sid": 140,
+      "location": 2,
+      "content": "那我再说说用这个多维表格有什么好处啊",
+      "music": 0
+    },
+    {
+      "from": 243.68,
+      "to": 245.24,
+      "sid": 141,
+      "location": 2,
+      "content": "就相比于我们自己去搭一个工作台",
+      "music": 0
+    },
+    {
+      "from": 245.24,
+      "to": 246.92,
+      "sid": 142,
+      "location": 2,
+      "content": "它的开发成本是很低的",
+      "music": 0
+    },
+    {
+      "from": 246.92,
+      "to": 248.6,
+      "sid": 143,
+      "location": 2,
+      "content": "我们基本上不需要任何开发",
+      "music": 0
+    },
+    {
+      "from": 248.6,
+      "to": 250.04,
+      "sid": 144,
+      "location": 2,
+      "content": "飞书里面这些功能啊",
+      "music": 0
+    },
+    {
+      "from": 250.04,
+      "to": 251.68,
+      "sid": 145,
+      "location": 2,
+      "content": "已经齐的不能再齐了啊",
+      "music": 0
+    },
+    {
+      "from": 251.68,
+      "to": 254.24,
+      "sid": 146,
+      "location": 2,
+      "content": "像我这个我基于一个表格去创建这个看板",
+      "music": 0
+    },
+    {
+      "from": 254.24,
+      "to": 255.2,
+      "sid": 147,
+      "location": 2,
+      "content": "就是一下子的事",
+      "music": 0
+    },
+    {
+      "from": 255.2,
+      "to": 257.08,
+      "sid": 148,
+      "location": 2,
+      "content": "那如果我们自己要搭建一个工作台",
+      "music": 0
+    },
+    {
+      "from": 257.08,
+      "to": 259.64,
+      "sid": 149,
+      "location": 2,
+      "content": "我们想要实现一个这种文本编辑的功能",
+      "music": 0
+    },
+    {
+      "from": 259.64,
+      "to": 261,
+      "sid": 150,
+      "location": 2,
+      "content": "我们要实现一个看板",
+      "music": 0
+    },
+    {
+      "from": 261,
+      "to": 261.96,
+      "sid": 151,
+      "location": 2,
+      "content": "或者实现一个日历",
+      "music": 0
+    },
+    {
+      "from": 261.96,
+      "to": 263.48,
+      "sid": 152,
+      "location": 2,
+      "content": "你的开发成本是很高的",
+      "music": 0
+    },
+    {
+      "from": 263.48,
+      "to": 264.32,
+      "sid": 153,
+      "location": 2,
+      "content": "那在飞书里面",
+      "music": 0
+    },
+    {
+      "from": 264.32,
+      "to": 266.12,
+      "sid": 154,
+      "location": 2,
+      "content": "它都已经是非常非常成熟的",
+      "music": 0
+    },
+    {
+      "from": 266.12,
+      "to": 268.1,
+      "sid": 155,
+      "location": 2,
+      "content": "已经是很顶级的交互体验了",
+      "music": 0
+    },
+    {
+      "from": 268.1,
+      "to": 269.22,
+      "sid": 156,
+      "location": 2,
+      "content": "不需要做任何开发",
+      "music": 0
+    },
+    {
+      "from": 269.22,
+      "to": 270.24,
+      "sid": 157,
+      "location": 2,
+      "content": "而且兼容性很强",
+      "music": 0
+    },
+    {
+      "from": 270.24,
+      "to": 271.94,
+      "sid": 158,
+      "location": 2,
+      "content": "那我们自己实现一个工作台的话",
+      "music": 0
+    },
+    {
+      "from": 271.94,
+      "to": 272.9,
+      "sid": 159,
+      "location": 2,
+      "content": "比较大的问题是什么",
+      "music": 0
+    },
+    {
+      "from": 272.9,
+      "to": 274.26,
+      "sid": 160,
+      "location": 2,
+      "content": "就是我想要加一个字段啊",
+      "music": 0
+    },
+    {
+      "from": 274.26,
+      "to": 276.17,
+      "sid": 161,
+      "location": 2,
+      "content": "我还需要自己去单独开发",
+      "music": 0
+    },
+    {
+      "from": 276.17,
+      "to": 278.18,
+      "sid": 162,
+      "location": 2,
+      "content": "比如说我现在这个表格里面",
+      "music": 0
+    },
+    {
+      "from": 278.18,
+      "to": 279.86,
+      "sid": 163,
+      "location": 2,
+      "content": "它有一个是显示这个状态的",
+      "music": 0
+    },
+    {
+      "from": 279.86,
+      "to": 281.94,
+      "sid": 164,
+      "location": 2,
+      "content": "那假设我自己去实现一个工作台",
+      "music": 0
+    },
+    {
+      "from": 281.94,
+      "to": 283.7,
+      "sid": 165,
+      "location": 2,
+      "content": "这个状态我是不是需要自己去实现",
+      "music": 0
+    },
+    {
+      "from": 283.7,
+      "to": 284.66,
+      "sid": 166,
+      "location": 2,
+      "content": "我要去啊",
+      "music": 0
+    },
+    {
+      "from": 284.66,
+      "to": 286.22,
+      "sid": 167,
+      "location": 2,
+      "content": "比如假设我想要增加新的状态",
+      "music": 0
+    },
+    {
+      "from": 286.22,
+      "to": 288.26,
+      "sid": 168,
+      "location": 2,
+      "content": "或者说我这里是可以支持选择的",
+      "music": 0
+    },
+    {
+      "from": 288.26,
+      "to": 290.08,
+      "sid": 169,
+      "location": 2,
+      "content": "我有些地方需要支持填空的",
+      "music": 0
+    },
+    {
+      "from": 290.08,
+      "to": 293.12,
+      "sid": 170,
+      "location": 2,
+      "content": "那你在维护你的工作台里面的一些数据的时候",
+      "music": 0
+    },
+    {
+      "from": 293.12,
+      "to": 294.76,
+      "sid": 171,
+      "location": 2,
+      "content": "你同时还要维护工作台本身",
+      "music": 0
+    },
+    {
+      "from": 294.76,
+      "to": 296,
+      "sid": 172,
+      "location": 2,
+      "content": "你的开发成本很高",
+      "music": 0
+    },
+    {
+      "from": 296,
+      "to": 297.92,
+      "sid": 173,
+      "location": 2,
+      "content": "那其实工作台最好的形态就是",
+      "music": 0
+    },
+    {
+      "from": 297.92,
+      "to": 300.28,
+      "sid": 174,
+      "location": 2,
+      "content": "它既可以方便地被这个n agent所编辑",
+      "music": 0
+    },
+    {
+      "from": 300.28,
+      "to": 302.58,
+      "sid": 175,
+      "location": 2,
+      "content": "也也可以非常方便的被人使用",
+      "music": 0
+    },
+    {
+      "from": 302.58,
+      "to": 304.02,
+      "sid": 176,
+      "location": 2,
+      "content": "那我们想开发一个被AI agent",
+      "music": 0
+    },
+    {
+      "from": 304.02,
+      "to": 305.1,
+      "sid": 177,
+      "location": 2,
+      "content": "很方便操作的一个系统",
+      "music": 0
+    },
+    {
+      "from": 305.1,
+      "to": 305.66,
+      "sid": 178,
+      "location": 2,
+      "content": "是很简单的",
+      "music": 0
+    },
+    {
+      "from": 305.66,
+      "to": 306.7,
+      "sid": 179,
+      "location": 2,
+      "content": "你给他一个CLI就好了",
+      "music": 0
+    },
+    {
+      "from": 306.7,
+      "to": 309.14,
+      "sid": 180,
+      "location": 2,
+      "content": "但是你想要写一个给人很好用的一个系统",
+      "music": 0
+    },
+    {
+      "from": 309.14,
+      "to": 309.98,
+      "sid": 181,
+      "location": 2,
+      "content": "其实是很难的",
+      "music": 0
+    },
+    {
+      "from": 309.98,
+      "to": 310.7,
+      "sid": 182,
+      "location": 2,
+      "content": "那像飞书",
+      "music": 0
+    },
+    {
+      "from": 310.7,
+      "to": 313.76,
+      "sid": 183,
+      "location": 2,
+      "content": "它本来就是诞生于AI出现之前的一个产物",
+      "music": 0
+    },
+    {
+      "from": 313.76,
+      "to": 316.04,
+      "sid": 184,
+      "location": 2,
+      "content": "它本身就是给人之间去协作的",
+      "music": 0
+    },
+    {
+      "from": 316.04,
+      "to": 317.28,
+      "sid": 185,
+      "location": 2,
+      "content": "所以说他在一些交互方面",
+      "music": 0
+    },
+    {
+      "from": 317.28,
+      "to": 319.36,
+      "sid": 186,
+      "location": 2,
+      "content": "肯定做的比我们自己去开发的会更好",
+      "music": 0
+    },
+    {
+      "from": 319.36,
+      "to": 320.52,
+      "sid": 187,
+      "location": 2,
+      "content": "像是多维表格啊",
+      "music": 0
+    },
+    {
+      "from": 320.52,
+      "to": 323.12,
+      "sid": 188,
+      "location": 2,
+      "content": "飞书文档这一类都是非常非常重前端的",
+      "music": 0
+    },
+    {
+      "from": 323.12,
+      "to": 324.76,
+      "sid": 189,
+      "location": 2,
+      "content": "他们的开发成本都是很高的",
+      "music": 0
+    },
+    {
+      "from": 324.76,
+      "to": 326.44,
+      "sid": 190,
+      "location": 2,
+      "content": "好再说说这个飞书CLI啊",
+      "music": 0
+    },
+    {
+      "from": 326.44,
+      "to": 327.54,
+      "sid": 191,
+      "location": 2,
+      "content": "就是非数CLI",
+      "music": 0
+    },
+    {
+      "from": 327.54,
+      "to": 328.54,
+      "sid": 192,
+      "location": 2,
+      "content": "它只是一个CLI",
+      "music": 0
+    },
+    {
+      "from": 328.54,
+      "to": 330.34,
+      "sid": 193,
+      "location": 2,
+      "content": "你任何能够安装skill",
+      "music": 0
+    },
+    {
+      "from": 330.34,
+      "to": 331.62,
+      "sid": 194,
+      "location": 2,
+      "content": "能够执行命令的AAH",
+      "music": 0
+    },
+    {
+      "from": 331.62,
+      "to": 333.12,
+      "sid": 195,
+      "location": 2,
+      "content": "你都可以去使用这个CLI",
+      "music": 0
+    },
+    {
+      "from": 333.12,
+      "to": 334.92,
+      "sid": 196,
+      "location": 2,
+      "content": "它是不和任何NNAH绑定的",
+      "music": 0
+    },
+    {
+      "from": 334.92,
+      "to": 337.12,
+      "sid": 197,
+      "location": 2,
+      "content": "我们这里也可以看到他演示了很多agent啊",
+      "music": 0
+    },
+    {
+      "from": 337.12,
+      "to": 338.8,
+      "sid": 198,
+      "location": 2,
+      "content": "比如说我在这个deep sic harness里面",
+      "music": 0
+    },
+    {
+      "from": 338.8,
+      "to": 339.28,
+      "sid": 199,
+      "location": 2,
+      "content": "我可以用",
+      "music": 0
+    },
+    {
+      "from": 339.28,
+      "to": 340.36,
+      "sid": 200,
+      "location": 2,
+      "content": "我在codex里面可以用",
+      "music": 0
+    },
+    {
+      "from": 340.36,
+      "to": 342.72,
+      "sid": 201,
+      "location": 2,
+      "content": "我在work里面任何一个agent都可以用",
+      "music": 0
+    },
+    {
+      "from": 342.72,
+      "to": 343.92,
+      "sid": 202,
+      "location": 2,
+      "content": "它通用性就很强",
+      "music": 0
+    },
+    {
+      "from": 343.92,
+      "to": 345.98,
+      "sid": 203,
+      "location": 2,
+      "content": "而且我在换一个agent使用的时候",
+      "music": 0
+    },
+    {
+      "from": 345.98,
+      "to": 347,
+      "sid": 204,
+      "location": 2,
+      "content": "迁移成本也很低",
+      "music": 0
+    },
+    {
+      "from": 347,
+      "to": 349.6,
+      "sid": 205,
+      "location": 2,
+      "content": "那平时我想要去做一些演示的PPT啊",
+      "music": 0
+    },
+    {
+      "from": 349.6,
+      "to": 351.7,
+      "sid": 206,
+      "location": 2,
+      "content": "我可以直接让他去读现在这个表格",
+      "music": 0
+    },
+    {
+      "from": 351.7,
+      "to": 353.74,
+      "sid": 207,
+      "location": 2,
+      "content": "比如说某个brief或者某一个脚本",
+      "music": 0
+    },
+    {
+      "from": 353.74,
+      "to": 355.38,
+      "sid": 208,
+      "location": 2,
+      "content": "然后他去这个codex",
+      "music": 0
+    },
+    {
+      "from": 355.38,
+      "to": 356.06,
+      "sid": 209,
+      "location": 2,
+      "content": "他去做PPT",
+      "music": 0
+    },
+    {
+      "from": 356.06,
+      "to": 356.86,
+      "sid": 210,
+      "location": 2,
+      "content": "做完PPT之后",
+      "music": 0
+    },
+    {
+      "from": 356.86,
+      "to": 359.24,
+      "sid": 211,
+      "location": 2,
+      "content": "他还可以直接把这个TML格式的PPT",
+      "music": 0
+    },
+    {
+      "from": 359.24,
+      "to": 360.28,
+      "sid": 212,
+      "location": 2,
+      "content": "丢回大纲里面去",
+      "music": 0
+    },
+    {
+      "from": 360.28,
+      "to": 361.6,
+      "sid": 213,
+      "location": 2,
+      "content": "甚至我录制好的视频",
+      "music": 0
+    },
+    {
+      "from": 361.6,
+      "to": 363.4,
+      "sid": 214,
+      "location": 2,
+      "content": "它也可以直接上传到这个大纲里面",
+      "music": 0
+    },
+    {
+      "from": 363.4,
+      "to": 365.04,
+      "sid": 215,
+      "location": 2,
+      "content": "还有就是飞书里面他这个数据啊",
+      "music": 0
+    },
+    {
+      "from": 365.04,
+      "to": 366.22,
+      "sid": 216,
+      "location": 2,
+      "content": "它是存在云端的",
+      "music": 0
+    },
+    {
+      "from": 366.22,
+      "to": 368.02,
+      "sid": 217,
+      "location": 2,
+      "content": "比如说飞书文档里面的这些信息",
+      "music": 0
+    },
+    {
+      "from": 368.02,
+      "to": 370.18,
+      "sid": 218,
+      "location": 2,
+      "content": "我平时除了在这个电脑上面去编辑",
+      "music": 0
+    },
+    {
+      "from": 370.18,
+      "to": 371.22,
+      "sid": 219,
+      "location": 2,
+      "content": "比如说我平时出门",
+      "music": 0
+    },
+    {
+      "from": 371.22,
+      "to": 373.11,
+      "sid": 220,
+      "location": 2,
+      "content": "我可以随时在手机上面去编辑",
+      "music": 0
+    },
+    {
+      "from": 373.11,
+      "to": 374.99,
+      "sid": 221,
+      "location": 2,
+      "content": "那假设我想到一个新的视频主题",
+      "music": 0
+    },
+    {
+      "from": 374.99,
+      "to": 376.5,
+      "sid": 222,
+      "location": 2,
+      "content": "我可以非常方便的啊",
+      "music": 0
+    },
+    {
+      "from": 376.5,
+      "to": 377.42,
+      "sid": 223,
+      "location": 2,
+      "content": "就在这个表格里面",
+      "music": 0
+    },
+    {
+      "from": 377.42,
+      "to": 378.02,
+      "sid": 224,
+      "location": 2,
+      "content": "我点个加号",
+      "music": 0
+    },
+    {
+      "from": 378.02,
+      "to": 379.02,
+      "sid": 225,
+      "location": 2,
+      "content": "然后自己手填一下",
+      "music": 0
+    },
+    {
+      "from": 379.02,
+      "to": 380.58,
+      "sid": 226,
+      "location": 2,
+      "content": "而且现在这个飞速的移动端",
+      "music": 0
+    },
+    {
+      "from": 380.58,
+      "to": 382.88,
+      "sid": 227,
+      "location": 2,
+      "content": "它还有一个这个新的豆包工作的入口",
+      "music": 0
+    },
+    {
+      "from": 382.88,
+      "to": 384.42,
+      "sid": 228,
+      "location": 2,
+      "content": "这豆包工作它也是免费的",
+      "music": 0
+    },
+    {
+      "from": 384.42,
+      "to": 387.56,
+      "sid": 229,
+      "location": 2,
+      "content": "它就相当于你在非数里面多了一个这个AA卷",
+      "music": 0
+    },
+    {
+      "from": 387.56,
+      "to": 389.72,
+      "sid": 230,
+      "location": 2,
+      "content": "而且这个AA卷它是提前装好了",
+      "music": 0
+    },
+    {
+      "from": 389.72,
+      "to": 390.72,
+      "sid": 231,
+      "location": 2,
+      "content": "类似于废除CLI的",
+      "music": 0
+    },
+    {
+      "from": 390.72,
+      "to": 393.51,
+      "sid": 232,
+      "location": 2,
+      "content": "它可以读到你的这些啊飞书里面的一些表格啊",
+      "music": 0
+    },
+    {
+      "from": 393.51,
+      "to": 395.03,
+      "sid": 233,
+      "location": 2,
+      "content": "这些信息豆包工作里面",
+      "music": 0
+    },
+    {
+      "from": 395.03,
+      "to": 396.43,
+      "sid": 234,
+      "location": 2,
+      "content": "让他去加一个主题也没问题",
+      "music": 0
+    },
+    {
+      "from": 396.43,
+      "to": 397.91,
+      "sid": 235,
+      "location": 2,
+      "content": "或者说不让他帮你整理一下",
+      "music": 0
+    },
+    {
+      "from": 397.91,
+      "to": 399.1,
+      "sid": 236,
+      "location": 2,
+      "content": "那我们出门的时候",
+      "music": 0
+    },
+    {
+      "from": 399.1,
+      "to": 401.34,
+      "sid": 237,
+      "location": 2,
+      "content": "假设有灵感在手机上快速写写稿子",
+      "music": 0
+    },
+    {
+      "from": 401.34,
+      "to": 402.66,
+      "sid": 238,
+      "location": 2,
+      "content": "或者记录一下新的灵感",
+      "music": 0
+    },
+    {
+      "from": 402.66,
+      "to": 404.94,
+      "sid": 239,
+      "location": 2,
+      "content": "这种跨端的应用还是会更加方便的",
+      "music": 0
+    },
+    {
+      "from": 404.94,
+      "to": 406.96,
+      "sid": 240,
+      "location": 2,
+      "content": "那最后一个就是这个呃飞书啊",
+      "music": 0
+    },
+    {
+      "from": 406.96,
+      "to": 408.56,
+      "sid": 241,
+      "location": 2,
+      "content": "他个人使用是完全免费的",
+      "music": 0
+    },
+    {
+      "from": 408.56,
+      "to": 410.98,
+      "sid": 242,
+      "location": 2,
+      "content": "我们把它当成一个这个工作台",
+      "music": 0
+    },
+    {
+      "from": 410.98,
+      "to": 412.16,
+      "sid": 243,
+      "location": 2,
+      "content": "其实是屈才了",
+      "music": 0
+    },
+    {
+      "from": 412.16,
+      "to": 414.7,
+      "sid": 244,
+      "location": 2,
+      "content": "因为我只是用来做一些很简单的这种啊",
+      "music": 0
+    },
+    {
+      "from": 414.7,
+      "to": 415.76,
+      "sid": 245,
+      "location": 2,
+      "content": "视频发布的管理",
+      "music": 0
+    },
+    {
+      "from": 415.76,
+      "to": 416.76,
+      "sid": 246,
+      "location": 2,
+      "content": "那如果我们有需要的话",
+      "music": 0
+    },
+    {
+      "from": 416.76,
+      "to": 419.71,
+      "sid": 247,
+      "location": 2,
+      "content": "其实你把它当成这种AA卷云端那个知识库啊",
+      "music": 0
+    },
+    {
+      "from": 419.71,
+      "to": 422.55,
+      "sid": 248,
+      "location": 2,
+      "content": "你可以让这些不同的A卷跨端的啊",
+      "music": 0
+    },
+    {
+      "from": 422.55,
+      "to": 424.71,
+      "sid": 249,
+      "location": 2,
+      "content": "跨A卷的实时的拿到一些通用的知识",
+      "music": 0
+    },
+    {
+      "from": 424.71,
+      "to": 425.27,
+      "sid": 250,
+      "location": 2,
+      "content": "一定程度上",
+      "music": 0
+    },
+    {
+      "from": 425.27,
+      "to": 428.7,
+      "sid": 251,
+      "location": 2,
+      "content": "你可以把这种啊不同设备上的本地agent",
+      "music": 0
+    },
+    {
+      "from": 428.7,
+      "to": 430.16,
+      "sid": 252,
+      "location": 2,
+      "content": "你都加上一个非数CY",
+      "music": 0
+    },
+    {
+      "from": 430.16,
+      "to": 432.12,
+      "sid": 253,
+      "location": 2,
+      "content": "它就相当于一个云端agent了",
+      "music": 0
+    },
+    {
+      "from": 432.12,
+      "to": 433.9,
+      "sid": 254,
+      "location": 2,
+      "content": "因为云端agent本身它的好处就是",
+      "music": 0
+    },
+    {
+      "from": 433.9,
+      "to": 435.96,
+      "sid": 255,
+      "location": 2,
+      "content": "它在云端有一个自己的文件系统",
+      "music": 0
+    },
+    {
+      "from": 435.96,
+      "to": 437.88,
+      "sid": 256,
+      "location": 2,
+      "content": "你在任何设备上都可以去访问它嘛",
+      "music": 0
+    },
+    {
+      "from": 437.88,
+      "to": 438.96,
+      "sid": 257,
+      "location": 2,
+      "content": "那你用这个飞书CI",
+      "music": 0
+    },
+    {
+      "from": 438.96,
+      "to": 441.24,
+      "sid": 258,
+      "location": 2,
+      "content": "你的上下文信息就可以存储在飞书里面啊",
+      "music": 0
+    },
+    {
+      "from": 441.24,
+      "to": 443.72,
+      "sid": 259,
+      "location": 2,
+      "content": "其实我我一直觉得就是飞鼠塞I出来之后",
+      "music": 0
+    },
+    {
+      "from": 443.72,
+      "to": 444.76,
+      "sid": 260,
+      "location": 2,
+      "content": "他是在不同的人",
+      "music": 0
+    },
+    {
+      "from": 444.76,
+      "to": 447.62,
+      "sid": 261,
+      "location": 2,
+      "content": "不同的agent之间一种非常好的一种协作方式",
+      "music": 0
+    },
+    {
+      "from": 447.62,
+      "to": 448.84,
+      "sid": 262,
+      "location": 2,
+      "content": "好我今天分享到这里",
+      "music": 0
+    },
+    {
+      "from": 448.84,
+      "to": 449.98,
+      "sid": 263,
+      "location": 2,
+      "content": "谢谢大家拜拜",
+      "music": 0
+    }
+  ]
+}

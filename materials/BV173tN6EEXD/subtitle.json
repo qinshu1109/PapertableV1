@@ -1,0 +1,1140 @@
+{
+  "font_size": 0.4,
+  "font_color": "#FFFFFF",
+  "background_alpha": 0.5,
+  "background_color": "#9C27B0",
+  "Stroke": "none",
+  "type": "AIsubtitle",
+  "lang": "zh",
+  "version": "v1.7.0.4",
+  "body": [
+    {
+      "from": 0,
+      "to": 0.24,
+      "sid": 1,
+      "location": 2,
+      "content": "Hello",
+      "music": 0
+    },
+    {
+      "from": 0.24,
+      "to": 0.66,
+      "sid": 2,
+      "location": 2,
+      "content": "大家好",
+      "music": 0
+    },
+    {
+      "from": 0.66,
+      "to": 3.38,
+      "sid": 3,
+      "location": 2,
+      "content": "前两天有一个我的视频观众找到我做这个咨询",
+      "music": 0
+    },
+    {
+      "from": 3.38,
+      "to": 4.32,
+      "sid": 4,
+      "location": 2,
+      "content": "就想让我帮他看看",
+      "music": 0
+    },
+    {
+      "from": 4.32,
+      "to": 7.02,
+      "sid": 5,
+      "location": 2,
+      "content": "他自己开发的一个发票管理的一个产品",
+      "music": 0
+    },
+    {
+      "from": 7.02,
+      "to": 8.26,
+      "sid": 6,
+      "location": 2,
+      "content": "是一个IOS的app",
+      "music": 0
+    },
+    {
+      "from": 8.26,
+      "to": 9.78,
+      "sid": 7,
+      "location": 2,
+      "content": "他自己完全VIP cording出来的",
+      "music": 0
+    },
+    {
+      "from": 9.78,
+      "to": 11.14,
+      "sid": 8,
+      "location": 2,
+      "content": "而且他还不太一样",
+      "music": 0
+    },
+    {
+      "from": 11.14,
+      "to": 13.06,
+      "sid": 9,
+      "location": 2,
+      "content": "他是这种传统行业的销售",
+      "music": 0
+    },
+    {
+      "from": 13.06,
+      "to": 15.88,
+      "sid": 10,
+      "location": 2,
+      "content": "他是真正的完全没有任何互联网公司",
+      "music": 0
+    },
+    {
+      "from": 15.88,
+      "to": 17.18,
+      "sid": 11,
+      "location": 2,
+      "content": "这种背景的一个小白",
+      "music": 0
+    },
+    {
+      "from": 17.18,
+      "to": 18.48,
+      "sid": 12,
+      "location": 2,
+      "content": "然后他想让我帮他看看",
+      "music": 0
+    },
+    {
+      "from": 18.48,
+      "to": 20.08,
+      "sid": 13,
+      "location": 2,
+      "content": "他的这个UIUX做的怎么样",
+      "music": 0
+    },
+    {
+      "from": 20.08,
+      "to": 21.4,
+      "sid": 14,
+      "location": 2,
+      "content": "功能有什么可以加的",
+      "music": 0
+    },
+    {
+      "from": 21.4,
+      "to": 24.03,
+      "sid": 15,
+      "location": 2,
+      "content": "还有怎么样去射媒进行一些曝光",
+      "music": 0
+    },
+    {
+      "from": 24.03,
+      "to": 26.45,
+      "sid": 16,
+      "location": 2,
+      "content": "然后在这个呃我们语音的过程中啊",
+      "music": 0
+    },
+    {
+      "from": 26.45,
+      "to": 28.43,
+      "sid": 17,
+      "location": 2,
+      "content": "他投屏给我演示了一下他做的这个应用",
+      "music": 0
+    },
+    {
+      "from": 28.43,
+      "to": 31.15,
+      "sid": 18,
+      "location": 2,
+      "content": "然后我发现他这个应用做的比我想象中的好啊",
+      "music": 0
+    },
+    {
+      "from": 31.15,
+      "to": 33.31,
+      "sid": 19,
+      "location": 2,
+      "content": "这个应用就是这个叫做报销助手",
+      "music": 0
+    },
+    {
+      "from": 33.31,
+      "to": 35.11,
+      "sid": 20,
+      "location": 2,
+      "content": "虽然说他图标看着像一个官方应用",
+      "music": 0
+    },
+    {
+      "from": 35.11,
+      "to": 37.43,
+      "sid": 21,
+      "location": 2,
+      "content": "然后底下这个宣传图做的不是很好看啊",
+      "music": 0
+    },
+    {
+      "from": 37.43,
+      "to": 40.19,
+      "sid": 22,
+      "location": 2,
+      "content": "但其实它的应用做的UI很清爽",
+      "music": 0
+    },
+    {
+      "from": 40.19,
+      "to": 41.83,
+      "sid": 23,
+      "location": 2,
+      "content": "而且UX也很符合直觉",
+      "music": 0
+    },
+    {
+      "from": 41.83,
+      "to": 43.39,
+      "sid": 24,
+      "location": 2,
+      "content": "功能也做的很用心",
+      "music": 0
+    },
+    {
+      "from": 43.39,
+      "to": 45.77,
+      "sid": 25,
+      "location": 2,
+      "content": "他可以直接去和这个邮箱绑定",
+      "music": 0
+    },
+    {
+      "from": 45.77,
+      "to": 49.37,
+      "sid": 26,
+      "location": 2,
+      "content": "然后你平时拍照的这些吃饭的这些小票",
+      "music": 0
+    },
+    {
+      "from": 49.37,
+      "to": 49.73,
+      "sid": 27,
+      "location": 2,
+      "content": "这些的",
+      "music": 0
+    },
+    {
+      "from": 49.73,
+      "to": 52.09,
+      "sid": 28,
+      "location": 2,
+      "content": "它可以识别上面的一些商家信息",
+      "music": 0
+    },
+    {
+      "from": 52.09,
+      "to": 53.89,
+      "sid": 29,
+      "location": 2,
+      "content": "然后去邮箱找到对应的发票",
+      "music": 0
+    },
+    {
+      "from": 53.89,
+      "to": 56.23,
+      "sid": 30,
+      "location": 2,
+      "content": "并且记录他的这个呃金额",
+      "music": 0
+    },
+    {
+      "from": 56.23,
+      "to": 58.07,
+      "sid": 31,
+      "location": 2,
+      "content": "而且我看他里面有很多的记录",
+      "music": 0
+    },
+    {
+      "from": 58.07,
+      "to": 59.83,
+      "sid": 32,
+      "location": 2,
+      "content": "就明显就是他自己用了很长时间",
+      "music": 0
+    },
+    {
+      "from": 59.83,
+      "to": 62.75,
+      "sid": 33,
+      "location": 2,
+      "content": "而且基于自己的实际需求不断去迭代的",
+      "music": 0
+    },
+    {
+      "from": 62.75,
+      "to": 63.87,
+      "sid": 34,
+      "location": 2,
+      "content": "然后他给我看了一个",
+      "music": 0
+    },
+    {
+      "from": 63.87,
+      "to": 66.24,
+      "sid": 35,
+      "location": 2,
+      "content": "他自己发的一个社媒的一条视频",
+      "music": 0
+    },
+    {
+      "from": 66.24,
+      "to": 68.68,
+      "sid": 36,
+      "location": 2,
+      "content": "内容里面就是他自己类似于我现在这种内容",
+      "music": 0
+    },
+    {
+      "from": 68.68,
+      "to": 71.64,
+      "sid": 37,
+      "location": 2,
+      "content": "内容形式就是在露脸介绍他的产品",
+      "music": 0
+    },
+    {
+      "from": 71.64,
+      "to": 73.86,
+      "sid": 38,
+      "location": 2,
+      "content": "但是那条内容的数据非常惨",
+      "music": 0
+    },
+    {
+      "from": 73.86,
+      "to": 75.54,
+      "sid": 39,
+      "location": 2,
+      "content": "但是只有七个播放",
+      "music": 0
+    },
+    {
+      "from": 75.54,
+      "to": 77.52,
+      "sid": 40,
+      "location": 2,
+      "content": "我觉得估计是被限流了",
+      "music": 0
+    },
+    {
+      "from": 77.52,
+      "to": 78.9,
+      "sid": 41,
+      "location": 2,
+      "content": "但是即便是不限流",
+      "music": 0
+    },
+    {
+      "from": 78.9,
+      "to": 80.66,
+      "sid": 42,
+      "location": 2,
+      "content": "我也觉得其实没有太大的吸引力",
+      "music": 0
+    },
+    {
+      "from": 80.66,
+      "to": 82.84,
+      "sid": 43,
+      "location": 2,
+      "content": "就是那条视频现在这个时代啊",
+      "music": 0
+    },
+    {
+      "from": 82.84,
+      "to": 84.08,
+      "sid": 44,
+      "location": 2,
+      "content": "因为我们作为一个产品",
+      "music": 0
+    },
+    {
+      "from": 84.08,
+      "to": 86.56,
+      "sid": 45,
+      "location": 2,
+      "content": "它的成本极大的降低了",
+      "music": 0
+    },
+    {
+      "from": 86.56,
+      "to": 89.16,
+      "sid": 46,
+      "location": 2,
+      "content": "尤其是一些呃独立开发比较简单",
+      "music": 0
+    },
+    {
+      "from": 89.16,
+      "to": 90.96,
+      "sid": 47,
+      "location": 2,
+      "content": "可以web coding的这种产品",
+      "music": 0
+    },
+    {
+      "from": 90.96,
+      "to": 92.16,
+      "sid": 48,
+      "location": 2,
+      "content": "其实有非常非常多",
+      "music": 0
+    },
+    {
+      "from": 92.16,
+      "to": 93.91,
+      "sid": 49,
+      "location": 2,
+      "content": "但是产品多了之后",
+      "music": 0
+    },
+    {
+      "from": 93.91,
+      "to": 97.92,
+      "sid": 50,
+      "location": 2,
+      "content": "大家对于这个好产品这个要求的阈值也更高了",
+      "music": 0
+    },
+    {
+      "from": 97.92,
+      "to": 100.48,
+      "sid": 51,
+      "location": 2,
+      "content": "我们的产品想要从这么多产品里面去脱颖而出",
+      "music": 0
+    },
+    {
+      "from": 100.48,
+      "to": 101.54,
+      "sid": 52,
+      "location": 2,
+      "content": "其实就变得更难了",
+      "music": 0
+    },
+    {
+      "from": 101.54,
+      "to": 104.84,
+      "sid": 53,
+      "location": 2,
+      "content": "大家的这个注意力不断的被不同的产品所吸引",
+      "music": 0
+    },
+    {
+      "from": 104.84,
+      "to": 107.91,
+      "sid": 54,
+      "location": 2,
+      "content": "那我们要去怎么样吸引大家这个注意力呢",
+      "music": 0
+    },
+    {
+      "from": 107.91,
+      "to": 110.67,
+      "sid": 55,
+      "location": 2,
+      "content": "其实我自己也没有一个非常好的方法论",
+      "music": 0
+    },
+    {
+      "from": 110.67,
+      "to": 113.18,
+      "sid": 56,
+      "location": 2,
+      "content": "我的这个宣传方式可能更适合我自己",
+      "music": 0
+    },
+    {
+      "from": 113.18,
+      "to": 114.82,
+      "sid": 57,
+      "location": 2,
+      "content": "但是我们做一个产品",
+      "music": 0
+    },
+    {
+      "from": 114.82,
+      "to": 116.3,
+      "sid": 58,
+      "location": 2,
+      "content": "从我们做这个产品的第一天",
+      "music": 0
+    },
+    {
+      "from": 116.3,
+      "to": 117.22,
+      "sid": 59,
+      "location": 2,
+      "content": "我们就要想哎",
+      "music": 0
+    },
+    {
+      "from": 117.22,
+      "to": 120.73,
+      "sid": 60,
+      "location": 2,
+      "content": "我这个产品他凭什么能够吸引到其他人来用",
+      "music": 0
+    },
+    {
+      "from": 120.73,
+      "to": 122.51,
+      "sid": 61,
+      "location": 2,
+      "content": "我这个产品如果发到社媒上面去",
+      "music": 0
+    },
+    {
+      "from": 122.51,
+      "to": 124.17,
+      "sid": 62,
+      "location": 2,
+      "content": "大家会是怎么样的一个反馈",
+      "music": 0
+    },
+    {
+      "from": 124.17,
+      "to": 126.81,
+      "sid": 63,
+      "location": 2,
+      "content": "如果只是单纯的解决大家的一个问题",
+      "music": 0
+    },
+    {
+      "from": 126.81,
+      "to": 128.91,
+      "sid": 64,
+      "location": 2,
+      "content": "那么它是很难被大家知道的",
+      "music": 0
+    },
+    {
+      "from": 128.91,
+      "to": 131.09,
+      "sid": 65,
+      "location": 2,
+      "content": "和你类似的产品都在不断的去做推广",
+      "music": 0
+    },
+    {
+      "from": 131.09,
+      "to": 131.89,
+      "sid": 66,
+      "location": 2,
+      "content": "去做色媒",
+      "music": 0
+    },
+    {
+      "from": 131.89,
+      "to": 134.54,
+      "sid": 67,
+      "location": 2,
+      "content": "那么用户怎么会选选择你这个产品",
+      "music": 0
+    },
+    {
+      "from": 134.54,
+      "to": 136.4,
+      "sid": 68,
+      "location": 2,
+      "content": "怎么会无缘无故就知道你这个产品",
+      "music": 0
+    },
+    {
+      "from": 136.4,
+      "to": 138.5,
+      "sid": 69,
+      "location": 2,
+      "content": "其实我们现在做这个产品的运营",
+      "music": 0
+    },
+    {
+      "from": 138.5,
+      "to": 140.5,
+      "sid": 70,
+      "location": 2,
+      "content": "推广本身也就是做产品的一部分",
+      "music": 0
+    },
+    {
+      "from": 140.5,
+      "to": 141.92,
+      "sid": 71,
+      "location": 2,
+      "content": "而且是更大的一部分",
+      "music": 0
+    },
+    {
+      "from": 141.92,
+      "to": 143.32,
+      "sid": 72,
+      "location": 2,
+      "content": "可能我们在做这个产品",
+      "music": 0
+    },
+    {
+      "from": 143.32,
+      "to": 146.77,
+      "sid": 73,
+      "location": 2,
+      "content": "它的制作周期里面开发只占我们20%",
+      "music": 0
+    },
+    {
+      "from": 146.77,
+      "to": 147.85,
+      "sid": 74,
+      "location": 2,
+      "content": "剩下的80%",
+      "music": 0
+    },
+    {
+      "from": 147.85,
+      "to": 150.11,
+      "sid": 75,
+      "location": 2,
+      "content": "你都是要想你怎么样去推广这个产品",
+      "music": 0
+    },
+    {
+      "from": 150.11,
+      "to": 151.93,
+      "sid": 76,
+      "location": 2,
+      "content": "你从第一天开发这个产品的时候",
+      "music": 0
+    },
+    {
+      "from": 151.93,
+      "to": 154.3,
+      "sid": 77,
+      "location": 2,
+      "content": "你就要想到这个产品后续要怎么宣传",
+      "music": 0
+    },
+    {
+      "from": 154.3,
+      "to": 155.86,
+      "sid": 78,
+      "location": 2,
+      "content": "比如说我们在做这个产品的时候",
+      "music": 0
+    },
+    {
+      "from": 155.86,
+      "to": 156.42,
+      "sid": 79,
+      "location": 2,
+      "content": "在开发的时候",
+      "music": 0
+    },
+    {
+      "from": 156.42,
+      "to": 156.94,
+      "sid": 80,
+      "location": 2,
+      "content": "我们要想诶",
+      "music": 0
+    },
+    {
+      "from": 156.94,
+      "to": 159.38,
+      "sid": 81,
+      "location": 2,
+      "content": "这个产品它能够帮我去做什么样的内容",
+      "music": 0
+    },
+    {
+      "from": 159.38,
+      "to": 160.58,
+      "sid": 82,
+      "location": 2,
+      "content": "比如说我的UI很好看",
+      "music": 0
+    },
+    {
+      "from": 160.58,
+      "to": 162.52,
+      "sid": 83,
+      "location": 2,
+      "content": "那我可以通过这种实际的演示啊",
+      "music": 0
+    },
+    {
+      "from": 162.52,
+      "to": 164.08,
+      "sid": 84,
+      "location": 2,
+      "content": "通过很好看的UI去吸引大家",
+      "music": 0
+    },
+    {
+      "from": 164.08,
+      "to": 166.32,
+      "sid": 85,
+      "location": 2,
+      "content": "或者说我的功能设计很有巧思",
+      "music": 0
+    },
+    {
+      "from": 166.32,
+      "to": 167.44,
+      "sid": 86,
+      "location": 2,
+      "content": "体现一下我的思考",
+      "music": 0
+    },
+    {
+      "from": 167.44,
+      "to": 169.5,
+      "sid": 87,
+      "location": 2,
+      "content": "以及我讲讲我为什么会有这样子的巧思",
+      "music": 0
+    },
+    {
+      "from": 169.5,
+      "to": 170.84,
+      "sid": 88,
+      "location": 2,
+      "content": "那如果说我这个产品",
+      "music": 0
+    },
+    {
+      "from": 170.84,
+      "to": 173.16,
+      "sid": 89,
+      "location": 2,
+      "content": "它本身就是相对来说比较平庸的",
+      "music": 0
+    },
+    {
+      "from": 173.16,
+      "to": 174.32,
+      "sid": 90,
+      "location": 2,
+      "content": "像这种报销助手啊",
+      "music": 0
+    },
+    {
+      "from": 174.32,
+      "to": 176.96,
+      "sid": 91,
+      "location": 2,
+      "content": "他其实就呃没有说很大很大的亮点",
+      "music": 0
+    },
+    {
+      "from": 176.96,
+      "to": 178.54,
+      "sid": 92,
+      "location": 2,
+      "content": "但它确实能够解决问题",
+      "music": 0
+    },
+    {
+      "from": 178.54,
+      "to": 179.52,
+      "sid": 93,
+      "location": 2,
+      "content": "那像这样子的产品",
+      "music": 0
+    },
+    {
+      "from": 179.52,
+      "to": 180.64,
+      "sid": 94,
+      "location": 2,
+      "content": "我们怎么样去推广呢",
+      "music": 0
+    },
+    {
+      "from": 180.64,
+      "to": 182.72,
+      "sid": 95,
+      "location": 2,
+      "content": "然后当时其实我就在咨询的过程中",
+      "music": 0
+    },
+    {
+      "from": 182.72,
+      "to": 184.05,
+      "sid": 96,
+      "location": 2,
+      "content": "我就开始去挖掘它",
+      "music": 0
+    },
+    {
+      "from": 184.05,
+      "to": 186.19,
+      "sid": 97,
+      "location": 2,
+      "content": "就是问他你在做这个应用的时候",
+      "music": 0
+    },
+    {
+      "from": 186.19,
+      "to": 187.33,
+      "sid": 98,
+      "location": 2,
+      "content": "你用了什么模型呢",
+      "music": 0
+    },
+    {
+      "from": 187.33,
+      "to": 188.41,
+      "sid": 99,
+      "location": 2,
+      "content": "用了什么agent",
+      "music": 0
+    },
+    {
+      "from": 188.41,
+      "to": 190.19,
+      "sid": 100,
+      "location": 2,
+      "content": "然后你做UI的时候有什么巧思",
+      "music": 0
+    },
+    {
+      "from": 190.19,
+      "to": 193.53,
+      "sid": 101,
+      "location": 2,
+      "content": "然后你为什么可以做的这个整体没有什么AI味",
+      "music": 0
+    },
+    {
+      "from": 193.53,
+      "to": 194.32,
+      "sid": 102,
+      "location": 2,
+      "content": "很清爽",
+      "music": 0
+    },
+    {
+      "from": 194.32,
+      "to": 196.6,
+      "sid": 103,
+      "location": 2,
+      "content": "然后你的IOS的开发者是怎么认证的",
+      "music": 0
+    },
+    {
+      "from": 196.6,
+      "to": 198.6,
+      "sid": 104,
+      "location": 2,
+      "content": "你是怎么上架这个应用的",
+      "music": 0
+    },
+    {
+      "from": 198.6,
+      "to": 200.28,
+      "sid": 105,
+      "location": 2,
+      "content": "上架过程中有没有遇到一些问题",
+      "music": 0
+    },
+    {
+      "from": 200.28,
+      "to": 201.28,
+      "sid": 106,
+      "location": 2,
+      "content": "为什么我会这么问",
+      "music": 0
+    },
+    {
+      "from": 201.28,
+      "to": 203.64,
+      "sid": 107,
+      "location": 2,
+      "content": "因为我知道一个能够上架IOS的",
+      "music": 0
+    },
+    {
+      "from": 203.64,
+      "to": 205.209,
+      "sid": 108,
+      "location": 2,
+      "content": "一个功能完善的app",
+      "music": 0
+    },
+    {
+      "from": 205.209,
+      "to": 207.849,
+      "sid": 109,
+      "location": 2,
+      "content": "并且是一个不懂开发的小白做的",
+      "music": 0
+    },
+    {
+      "from": 207.849,
+      "to": 210.189,
+      "sid": 110,
+      "location": 2,
+      "content": "那么他在这整个过程中解决的问题",
+      "music": 0
+    },
+    {
+      "from": 210.189,
+      "to": 211.82,
+      "sid": 111,
+      "location": 2,
+      "content": "或者说是值得分享的点",
+      "music": 0
+    },
+    {
+      "from": 211.82,
+      "to": 212.98,
+      "sid": 112,
+      "location": 2,
+      "content": "其实有很多很多",
+      "music": 0
+    },
+    {
+      "from": 212.98,
+      "to": 215.04,
+      "sid": 113,
+      "location": 2,
+      "content": "那你每一期视频你就讲讲诶",
+      "music": 0
+    },
+    {
+      "from": 215.04,
+      "to": 216.75,
+      "sid": 114,
+      "location": 2,
+      "content": "我是一个这个小白",
+      "music": 0
+    },
+    {
+      "from": 216.75,
+      "to": 217.49,
+      "sid": 115,
+      "location": 2,
+      "content": "真正的小白",
+      "music": 0
+    },
+    {
+      "from": 217.49,
+      "to": 218.33,
+      "sid": 116,
+      "location": 2,
+      "content": "讲讲自己的背景",
+      "music": 0
+    },
+    {
+      "from": 218.33,
+      "to": 220.28,
+      "sid": 117,
+      "location": 2,
+      "content": "然后我从0~1web coding了一个应用",
+      "music": 0
+    },
+    {
+      "from": 220.28,
+      "to": 222.32,
+      "sid": 118,
+      "location": 2,
+      "content": "那么你可以先介绍一下你的应用",
+      "music": 0
+    },
+    {
+      "from": 222.32,
+      "to": 225,
+      "sid": 119,
+      "location": 2,
+      "content": "但是你介绍你的应用只是视频内容的一部分",
+      "music": 0
+    },
+    {
+      "from": 225,
+      "to": 228.379,
+      "sid": 120,
+      "location": 2,
+      "content": "你最主要讲的其实是你是在开发的过程中",
+      "music": 0
+    },
+    {
+      "from": 228.379,
+      "to": 229.059,
+      "sid": 121,
+      "location": 2,
+      "content": "遇到什么问题",
+      "music": 0
+    },
+    {
+      "from": 229.059,
+      "to": 230.399,
+      "sid": 122,
+      "location": 2,
+      "content": "你是怎么样去解决的",
+      "music": 0
+    },
+    {
+      "from": 230.399,
+      "to": 231.899,
+      "sid": 123,
+      "location": 2,
+      "content": "那像这样子的视频内容呢",
+      "music": 0
+    },
+    {
+      "from": 231.899,
+      "to": 235.29,
+      "sid": 124,
+      "location": 2,
+      "content": "更容易吸引到和你一样想要去做这种内容的人",
+      "music": 0
+    },
+    {
+      "from": 235.29,
+      "to": 237.09,
+      "sid": 125,
+      "location": 2,
+      "content": "那你这个播放量起来之后",
+      "music": 0
+    },
+    {
+      "from": 237.09,
+      "to": 239,
+      "sid": 126,
+      "location": 2,
+      "content": "你的这个曝光的口径",
+      "music": 0
+    },
+    {
+      "from": 239,
+      "to": 240.2,
+      "sid": 127,
+      "location": 2,
+      "content": "这个渠道就更大了",
+      "music": 0
+    },
+    {
+      "from": 240.2,
+      "to": 242.32,
+      "sid": 128,
+      "location": 2,
+      "content": "那能看到你这个应用的人就越来越多了",
+      "music": 0
+    },
+    {
+      "from": 242.32,
+      "to": 244.52,
+      "sid": 129,
+      "location": 2,
+      "content": "你可以分享你在开发这个应用的时候",
+      "music": 0
+    },
+    {
+      "from": 244.52,
+      "to": 246.18,
+      "sid": 130,
+      "location": 2,
+      "content": "遇到的一些现实的难题啊",
+      "music": 0
+    },
+    {
+      "from": 246.18,
+      "to": 247.6,
+      "sid": 131,
+      "location": 2,
+      "content": "你是怎么去解决它的",
+      "music": 0
+    },
+    {
+      "from": 247.6,
+      "to": 250.62,
+      "sid": 132,
+      "location": 2,
+      "content": "或者说呃你在开发做这个产品的过程中",
+      "music": 0
+    },
+    {
+      "from": 250.62,
+      "to": 252.5,
+      "sid": 133,
+      "location": 2,
+      "content": "有没有学习到什么东西",
+      "music": 0
+    },
+    {
+      "from": 252.5,
+      "to": 254.02,
+      "sid": 134,
+      "location": 2,
+      "content": "如果说你什么问题都没解决",
+      "music": 0
+    },
+    {
+      "from": 254.02,
+      "to": 256.06,
+      "sid": 135,
+      "location": 2,
+      "content": "你轻轻松松就能把一个产品做出来",
+      "music": 0
+    },
+    {
+      "from": 256.06,
+      "to": 258.94,
+      "sid": 136,
+      "location": 2,
+      "content": "并且他这个产品本身也体现不了什么巧思",
+      "music": 0
+    },
+    {
+      "from": 258.94,
+      "to": 260.24,
+      "sid": 137,
+      "location": 2,
+      "content": "UI也做的一般般",
+      "music": 0
+    },
+    {
+      "from": 260.24,
+      "to": 261.72,
+      "sid": 138,
+      "location": 2,
+      "content": "那你这个产品注定就是",
+      "music": 0
+    },
+    {
+      "from": 261.72,
+      "to": 264.02,
+      "sid": 139,
+      "location": 2,
+      "content": "没有办法被很多人看到的好",
+      "music": 0
+    },
+    {
+      "from": 264.02,
+      "to": 265.12,
+      "sid": 140,
+      "location": 2,
+      "content": "我今天的分享就到这里",
+      "music": 0
+    },
+    {
+      "from": 265.12,
+      "to": 266.36,
+      "sid": 141,
+      "location": 2,
+      "content": "谢谢大家拜拜",
+      "music": 0
+    }
+  ]
+}
