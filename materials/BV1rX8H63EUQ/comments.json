@@ -1,0 +1,279 @@
+[
+  {
+    "rpid": 314705763536,
+    "mid": 353742151,
+    "uname": "程序员凌凌七",
+    "avatar": "https://i1.hdslb.com/bfs/face/ece941fb507a7bd16a06d83bb32dc41b3ce86a85.jpg",
+    "message": "开源真是伟大，希望up能挣到钱持续更新优质内容[doge]",
+    "ctime": "2026-08-22T09:16:30.000Z",
+    "like": 3,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 310963179233,
+    "mid": 346999576,
+    "uname": "BITEARS",
+    "avatar": "https://i1.hdslb.com/bfs/face/b1baaca8b3260da226fc1ff19a03987055a4d849.jpg",
+    "message": "石油创作者没绷住",
+    "ctime": "2026-08-19T18:54:31.000Z",
+    "like": 10,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 314644826128,
+    "mid": 3537108350274139,
+    "uname": "UnifiedSelf",
+    "avatar": "https://i1.hdslb.com/bfs/face/cc8bc7ee85470268fb7df15b1b7974cbbd2c7c34.jpg",
+    "message": "全部是这种边角料插件唉",
+    "ctime": "2026-08-21T23:21:38.000Z",
+    "like": 1,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 312548163777,
+    "mid": 243788585,
+    "uname": "callYiPing",
+    "avatar": "https://i2.hdslb.com/bfs/face/00884aaf4997de91794ef3c902913e01f7cbe8c7.jpg",
+    "message": "上不去 githob",
+    "ctime": "2026-08-31T17:16:48.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 315972389744,
+    "mid": 3707041864485647,
+    "uname": "GPT等AI订阅-可开票宝",
+    "avatar": "https://i2.hdslb.com/bfs/face/4db6259c0f8573858f7b389ebd0295bdab281288.jpg",
+    "message": "现在用AI做整理，效率真的提升明显☁",
+    "ctime": "2026-08-31T14:37:43.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 314337564016,
+    "mid": 753618,
+    "uname": "小陈无所事事的一天",
+    "avatar": "https://i0.hdslb.com/bfs/face/1b2f8eaf31b4e55f1450f56bb9450f2423339ac8.jpg",
+    "message": "哈哈哈哈，上次看完就在等，第一时间的偷[doge][doge]",
+    "ctime": "2026-08-19T16:44:36.000Z",
+    "like": 5,
+    "rcount": 1,
+    "subReplies": [
+      {
+        "rpid": 314365211632,
+        "root": 314337564016,
+        "parent": 314337564016,
+        "mid": 341874432,
+        "uname": "Felixmvp",
+        "avatar": "https://i0.hdslb.com/bfs/face/cd0348d5281dcd1b7335edd372ff689ec6681882.jpg",
+        "message": "这是在github上搜索吗",
+        "ctime": "2026-08-20T01:25:31.000Z",
+        "like": 1
+      }
+    ]
+  },
+  {
+    "rpid": 315937673360,
+    "mid": 30671205,
+    "uname": "Nx破",
+    "avatar": "https://i0.hdslb.com/bfs/face/member/noface.jpg",
+    "message": "你这个还搞得挺好 还吧原本零散的插件列表归类了",
+    "ctime": "2026-08-31T09:34:42.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 314689259840,
+    "mid": 1442691636,
+    "uname": "-林志豪-",
+    "avatar": "https://i0.hdslb.com/bfs/face/002b131c2892e5a7759bae0c31b4502da4119e96.jpg",
+    "message": "我比较想知道要花钱吗",
+    "ctime": "2026-08-22T06:43:01.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 314893631344,
+    "mid": 349924646,
+    "uname": "国产小火箭",
+    "avatar": "http://i0.hdslb.com/bfs/face/member/noface.jpg",
+    "message": "感觉是宝藏up主，开辟了一个新的思路，也让我茅厕顿开，之前一直是琢磨怎么用这些Agent vibe coding 一些应用或者工具出来，现在是在想怎么把DeepSeek harness改造成我要用的东西，今晚花了十几块的token让dsh自己跑了一个markdown记事本的插件，启动后dsh直接变身三栏记事本，左侧文件树，中间记录区，右侧保留dsh对话框，虽然还有各种问题，但是我觉得这条路子可行，也问了一下DeepSeek，解答说可以通过不同的home路径和自动检查空闲端口号等方式同时启动多个dsh，这样也就可以启动多个魔改dsh了，期待up主出一期自己是怎么改造的视频，最好是手把手教学那种",
+    "ctime": "2026-08-23T16:23:59.000Z",
+    "like": 0,
+    "rcount": 2,
+    "subReplies": [
+      {
+        "rpid": 315283986704,
+        "root": 314893631344,
+        "parent": 311759525473,
+        "mid": 349924646,
+        "uname": "国产小火箭",
+        "avatar": "http://i0.hdslb.com/bfs/face/member/noface.jpg",
+        "message": "回复 @一碗粥大叔 :是的是的[doge]打开了新世界的大门，思路也宽阔了",
+        "ctime": "2026-08-26T13:36:39.000Z",
+        "like": 0
+      },
+      {
+        "rpid": 311759525473,
+        "root": 314893631344,
+        "parent": 314893631344,
+        "mid": 50033379,
+        "uname": "一碗粥大叔",
+        "avatar": "https://i0.hdslb.com/bfs/face/fe95a97dd5be8515dfb5db8aad1befebe831f6b5.jpg",
+        "message": "本来就可以啊，启动的时候不是用dsh --profile web么，这个web就是个配置空间，可以用任意名称的",
+        "ctime": "2026-08-25T17:07:38.000Z",
+        "like": 0
+      }
+    ]
+  },
+  {
+    "rpid": 314610903408,
+    "mid": 267286712,
+    "uname": "老丹不喝酒",
+    "avatar": "https://i2.hdslb.com/bfs/face/9a856da8d4db5d3fff79b775deb2cbab4a34c923.jpg",
+    "message": "同上一楼一样的问题，安装之后对话运行失败。应该是安装的过程中有一个skill崩溃了。",
+    "ctime": "2026-08-21T14:24:05.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 314476921024,
+    "mid": 397045438,
+    "uname": "Yimino-official",
+    "avatar": "https://i1.hdslb.com/bfs/face/032c8ff7edbf955195a97f06158b051975ab98e5.jpg",
+    "message": "开偷",
+    "ctime": "2026-08-20T15:35:10.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 314504666832,
+    "mid": 867509,
+    "uname": "顽皮老板爱洗澡",
+    "avatar": "https://i2.hdslb.com/bfs/face/7b3c4a67a4ec23583303f5ee2389dc6f8fde4d7e.gif",
+    "message": "git地址有吗",
+    "ctime": "2026-08-21T00:02:04.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 311028976961,
+    "mid": 31541750,
+    "uname": "地瓜番茄汤",
+    "avatar": "https://i2.hdslb.com/bfs/face/24eefe68e43f0ddff332b73ba51aedce1dd6115c.jpg",
+    "message": "谢谢UP，帮你宣传了",
+    "ctime": "2026-08-20T08:02:44.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 310985432993,
+    "mid": 299635485,
+    "uname": "好东西事务所-分享版",
+    "avatar": "https://i0.hdslb.com/bfs/face/59edebbb5b1294f17c186caced9a76e31367b844.jpg",
+    "message": "up也太高效了吧",
+    "ctime": "2026-08-20T02:15:27.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 314364216720,
+    "mid": 17512413,
+    "uname": "nforce4",
+    "avatar": "https://i0.hdslb.com/bfs/face/fd47d1dd8a83cfd545475ea3bbcebd56b72c5fa2.jpg",
+    "message": "可以",
+    "ctime": "2026-08-20T01:15:52.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 310962795921,
+    "mid": 1304008552,
+    "uname": "AIX爱客",
+    "avatar": "https://i1.hdslb.com/bfs/face/f9b92abb4fd3300aec88e0f323b8e52e1a3fee78.jpg",
+    "message": "第四个STAR[打call]",
+    "ctime": "2026-08-19T18:47:24.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 310958280513,
+    "mid": 435256197,
+    "uname": "章鱼谷雨",
+    "avatar": "https://i0.hdslb.com/bfs/face/a54bb4604144b08fe05a5930a5f9883795d453bc.jpg",
+    "message": "开偷",
+    "ctime": "2026-08-19T17:33:11.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 310972337137,
+    "mid": 55375386,
+    "uname": "李烧窑",
+    "avatar": "https://i0.hdslb.com/bfs/face/7aa6cecac063ea3ff1525106942004ee38e1be46.jpg",
+    "message": "实在是太赞了[打call]",
+    "ctime": "2026-08-19T23:47:14.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 310962812561,
+    "mid": 1304008552,
+    "uname": "AIX爱客",
+    "avatar": "https://i1.hdslb.com/bfs/face/f9b92abb4fd3300aec88e0f323b8e52e1a3fee78.jpg",
+    "message": "哈哈 不错有用",
+    "ctime": "2026-08-19T18:45:42.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 316529180064,
+    "mid": 23031101,
+    "uname": "雷封塔雅座钉子户",
+    "avatar": "https://i2.hdslb.com/bfs/face/0ad97947c0b60e51ffd2f299b74045c0a70b4f05.jpg",
+    "message": "按理说，也是可以把这个插件当做参考丢给AI，让AI生成一个更适配个人需求的插件吧",
+    "ctime": "2026-09-05T20:41:42.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 314526491296,
+    "mid": 471170800,
+    "uname": "晚风有点迟",
+    "avatar": "https://i1.hdslb.com/bfs/face/8c4b81a7e3611c70777acdd774eff294a7d42c59.jpg",
+    "message": "安装完插件对话一直提示失败：本轮运行失败Cannot read properties of undefined (reading &#39;prepare&#39;)还有：本轮运行失败An assistant message with &#39;tool_calls&#39; must be followed by tool messages responding to each &#39;tool_call_id&#39;. (insufficient tool messages following tool_calls message)",
+    "ctime": "2026-08-21T03:34:16.000Z",
+    "like": 1,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 311305793681,
+    "mid": 443083382,
+    "uname": "阿杰skm",
+    "avatar": "https://i2.hdslb.com/bfs/face/94d91663c9dd002d3e200b272d4d50ef0f06894f.jpg",
+    "message": "感谢大佬分享，正好想试试这个开源工具，安装教程很详细，这就去下载试试",
+    "ctime": "2026-08-22T08:46:04.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  }
+]

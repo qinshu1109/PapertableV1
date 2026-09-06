@@ -1,0 +1,238 @@
+[
+  {
+    "rpid": 316552712320,
+    "mid": 107456846,
+    "uname": "mhw11",
+    "avatar": "https://i2.hdslb.com/bfs/face/859f7f61df863e003349ebad35ca74be8f21ce44.jpg",
+    "message": "这确实是一个好的方案",
+    "ctime": "2026-09-06T03:17:31.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 316506810496,
+    "mid": 8153702,
+    "uname": "Vandicaier",
+    "avatar": "https://i2.hdslb.com/bfs/baselabs/6d9d6d8a9ea0238c7f9e1e99bf2995861a017ea4.png",
+    "message": "workbuddy的AI资料库+人机双写，已经实现[doge_金箍]up主复杂了",
+    "ctime": "2026-09-05T15:01:02.000Z",
+    "like": 0,
+    "rcount": 2,
+    "subReplies": [
+      {
+        "rpid": 313097988209,
+        "root": 316506810496,
+        "parent": 316506810496,
+        "mid": 924292,
+        "uname": "九条米法",
+        "avatar": "https://i1.hdslb.com/bfs/face/1fa4a654df31cb89f9929153e98c9677eae4356a.jpg",
+        "message": "飞书最大的优势就是不会跟某一个agent绑定，想用哪个agent就用哪个agent。哪怕以后不用agent 飞书还在那里",
+        "ctime": "2026-09-06T03:54:36.000Z",
+        "like": 0
+      },
+      {
+        "rpid": 316558208960,
+        "root": 316506810496,
+        "parent": 313097988209,
+        "mid": 8153702,
+        "uname": "Vandicaier",
+        "avatar": "https://i2.hdslb.com/bfs/baselabs/6d9d6d8a9ea0238c7f9e1e99bf2995861a017ea4.png",
+        "message": "回复 @九条米法 :[doge]你这段表达了一个上古认知…飞书、企微、钉钉已经是上一代办公产品咯",
+        "ctime": "2026-09-06T04:06:03.000Z",
+        "like": 0
+      }
+    ]
+  },
+  {
+    "rpid": 316473224288,
+    "mid": 17094218,
+    "uname": "向玫瑰开炮",
+    "avatar": "http://i2.hdslb.com/bfs/face/bee1a41d2bec441c2af29b1728b7050865caa3a4.jpg",
+    "message": "确实。很有启发",
+    "ctime": "2026-09-05T10:10:34.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 316348727440,
+    "mid": 161894310,
+    "uname": "是菜菜SAMA哦",
+    "avatar": "https://i0.hdslb.com/bfs/face/0076d22298544bd5c7f7bd397ca9f7f68fb059e2.jpg",
+    "message": "up，请问一下agent-island还在做吗今天看到想用但是已经下载不了了",
+    "ctime": "2026-09-04T08:47:46.000Z",
+    "like": 1,
+    "rcount": 1,
+    "subReplies": [
+      {
+        "rpid": 316438706016,
+        "root": 316348727440,
+        "parent": 316348727440,
+        "mid": 37896605,
+        "uname": "洛洛库能",
+        "avatar": "https://i2.hdslb.com/bfs/face/d407430f38b9b8d97641d59da035f3da65ced69a.jpg",
+        "message": "openisland这样的开源项目很多",
+        "ctime": "2026-09-05T04:29:40.000Z",
+        "like": 0
+      }
+    ]
+  },
+  {
+    "rpid": 316473899568,
+    "mid": 12440622,
+    "uname": "sissi_shared",
+    "avatar": "https://i0.hdslb.com/bfs/face/56b140560b47fa29ea93a9d62d6ca86b76e98fb7.jpg",
+    "message": "up是桂柳人士？",
+    "ctime": "2026-09-05T10:17:32.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 312846932001,
+    "mid": 16356961,
+    "uname": "憨皮怪兽",
+    "avatar": "http://i1.hdslb.com/bfs/face/b221acead0207f589e4da689e7bb98b53fca368a.jpg",
+    "message": "但是页面相对来说没那么直观，要是能在飞书里面做一个dashboard就好了",
+    "ctime": "2026-09-03T17:35:51.000Z",
+    "like": 1,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 316425531040,
+    "mid": 423128,
+    "uname": "夏天de味道灬",
+    "avatar": "http://i2.hdslb.com/bfs/face/5d2c92beb774a4bb30762538bb102d23670ae9c0.gif",
+    "message": "登录态在内置的浏览器里面能复用吗",
+    "ctime": "2026-09-05T02:19:43.000Z",
+    "like": 0,
+    "rcount": 1,
+    "subReplies": [
+      {
+        "rpid": 312992198673,
+        "root": 316425531040,
+        "parent": 316425531040,
+        "mid": 13030183,
+        "uname": "oil欧呦",
+        "avatar": "https://i1.hdslb.com/bfs/face/a69e0c2da44e0b4333739aa01e5f6f772ff420fd.jpg",
+        "message": "可以的",
+        "ctime": "2026-09-05T05:47:53.000Z",
+        "like": 0
+      }
+    ]
+  },
+  {
+    "rpid": 316319244160,
+    "mid": 38246720,
+    "uname": "霄霄nixo",
+    "avatar": "https://i2.hdslb.com/bfs/face/81c3fc3c0262647d0a90ac50cf26733b0c6a853f.jpg",
+    "message": "请教一下up 现在剪辑是有什么工作流吗 比如指针聚焦这种 \n还是纯手动剪辑的呢",
+    "ctime": "2026-09-04T02:52:01.000Z",
+    "like": 0,
+    "rcount": 1,
+    "subReplies": [
+      {
+        "rpid": 316406389968,
+        "root": 316319244160,
+        "parent": 316319244160,
+        "mid": 2004976748,
+        "uname": "小氵AI",
+        "avatar": "https://i2.hdslb.com/bfs/face/fb9c0f3181e5e3bb639a72eccf1becbc26296ebc.jpg",
+        "message": "recordly",
+        "ctime": "2026-09-04T19:04:36.000Z",
+        "like": 0
+      }
+    ]
+  },
+  {
+    "rpid": 312808927297,
+    "mid": 411457,
+    "uname": "SAGiT_",
+    "avatar": "https://i1.hdslb.com/bfs/face/634546932cd03c04fe55e5531a93924c6debff2d.jpg",
+    "message": "用企业微信的哭了[笑哭]",
+    "ctime": "2026-09-03T10:43:35.000Z",
+    "like": 1,
+    "rcount": 2,
+    "subReplies": [
+      {
+        "rpid": 312978459649,
+        "root": 312808927297,
+        "parent": 312808927297,
+        "mid": 14471183,
+        "uname": "双月湾双月桥",
+        "avatar": "https://i2.hdslb.com/bfs/face/4a6363e145ed3cb06d2cc0b05c51f3e77fcab45c.jpg",
+        "message": "都是重复造轮子，这些博主今天这个最牛明天那个最强，得自己判断[doge]",
+        "ctime": "2026-09-05T03:38:49.000Z",
+        "like": 0
+      },
+      {
+        "rpid": 312979126465,
+        "root": 312808927297,
+        "parent": 312978459649,
+        "mid": 411457,
+        "uname": "SAGiT_",
+        "avatar": "https://i1.hdslb.com/bfs/face/634546932cd03c04fe55e5531a93924c6debff2d.jpg",
+        "message": "回复 @双月湾双月桥 :没事，我发现企业微信也有一样的工具[喜极而泣]试了一下挺好用的。把体力活都丢出去了",
+        "ctime": "2026-09-05T03:44:20.000Z",
+        "like": 0
+      }
+    ]
+  },
+  {
+    "rpid": 316268690864,
+    "mid": 218512247,
+    "uname": "圓圈圆圈",
+    "avatar": "https://i2.hdslb.com/bfs/face/405bc35bef45dc41b373531e7eeca6208ecd8dfb.jpg",
+    "message": "Up你的codex 是开的 pro 20x吗",
+    "ctime": "2026-09-03T12:34:04.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 316266705216,
+    "mid": 636603,
+    "uname": "Kuma爱熊光",
+    "avatar": "http://i0.hdslb.com/bfs/face/efe800a0a6b101f2bad3afee60507b18dc3f8138.jpg",
+    "message": "dsh应该能接gpt的模型吧",
+    "ctime": "2026-09-03T12:14:30.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 312822754737,
+    "mid": 510200969,
+    "uname": "方圆32123",
+    "avatar": "https://i2.hdslb.com/bfs/face/598f9bf37c9df95deca9d017ef68d50e087709e7.jpg",
+    "message": "到我们公司场景了哈哈哈 非常的好用写周报月报也方便",
+    "ctime": "2026-09-03T13:03:28.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 312810157185,
+    "mid": 22277093,
+    "uname": "墨雨茶韵香",
+    "avatar": "https://i2.hdslb.com/bfs/face/97af2cfc2b5ec7a9e34eeed9aa7ea4a10aea8d5a.jpg",
+    "message": "[doge][doge][doge]不是因为飞书要开线上黑客松先试试水么",
+    "ctime": "2026-09-03T10:56:06.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  },
+  {
+    "rpid": 313146441025,
+    "mid": 39972398,
+    "uname": "恒字耀文_",
+    "avatar": "https://i2.hdslb.com/bfs/face/cbc7ad4d391080e517d66820910d144343796114.webp",
+    "message": "这不是和用notion的MCP差不多",
+    "ctime": "2026-09-06T11:40:41.000Z",
+    "like": 0,
+    "rcount": 0,
+    "subReplies": []
+  }
+]

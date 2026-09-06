@@ -1,0 +1,33 @@
+{
+  "bvid": "BV1rX8H63EUQ",
+  "aid": 117123137410459,
+  "cid": 41075017048,
+  "title": "DeepSeek Harness 内容创作工作台开源啦",
+  "desc": "",
+  "pubdate": "2026-08-19T16:38:45.000Z",
+  "ctime": "2026-08-19T16:38:46.000Z",
+  "duration": 404,
+  "pic": "http://i2.hdslb.com/bfs/archive/9b564d405bba6a9f13ff74c9c780b92a1eb28ed2.jpg",
+  "owner": {
+    "mid": 13030183,
+    "name": "oil欧呦",
+    "face": "https://i1.hdslb.com/bfs/face/a69e0c2da44e0b4333739aa01e5f6f772ff420fd.jpg"
+  },
+  "stat": {
+    "view": 6088,
+    "danmaku": 0,
+    "reply": 25,
+    "favorite": 409,
+    "coin": 88,
+    "share": 58,
+    "like": 230
+  },
+  "tags": [
+    "人工智能",
+    "编程",
+    "工作台",
+    "内容创作",
+    "AI生成",
+    "DeepSeek"
+  ]
+}
