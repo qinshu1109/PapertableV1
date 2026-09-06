@@ -30,6 +30,8 @@ import {
   OFFER_REPLY,
   parseMemosMcpResults,
   parseMemosRestResults,
+  renderDraftReply,
+  syncDraftToBitable,
   type DraftDeps,
 } from "./pw-feishu-draft.ts";
 
@@ -622,3 +624,63 @@ test("DraftHook：状态簿目录不可写时内部异常不外抛，回退缺�
     assert.equal(await hook.intercept("别问了", "om_2"), null);
   });
 });
+
+test("syncDraftToBitable：成功写入多维表格 / 鉴权或网络异常静默降级", async () => {
+  const fakeFetchSuccess = (async (url: string | URL | Request) => {
+    const urlStr = String(url);
+    if (urlStr.includes("tenant_access_token")) {
+      return new Response(JSON.stringify({ code: 0, tenant_access_token: "t-fake-token" }), { status: 200 });
+    }
+    if (urlStr.includes("/records")) {
+      return new Response(JSON.stringify({ code: 0, data: { record: { record_id: "rec123" } } }), { status: 200 });
+    }
+    return new Response("not found", { status: 404 });
+  }) as typeof fetch;
+
+  const url = await syncDraftToBitable(
+    "cli_fake",
+    "secret_fake",
+    "app_base_123",
+    "tbl_123",
+    "测试标题",
+    "草稿内容",
+    "原始速记",
+    fakeFetchSuccess,
+  );
+  assert.equal(url, "https://ccnexza2e5l5.feishu.cn/base/app_base_123");
+
+  const fakeFetchFail = (async () => {
+    throw new Error("network error");
+  }) as typeof fetch;
+
+  const failRes = await syncDraftToBitable(
+    "cli_fake",
+    "secret_fake",
+    "app_base_123",
+    "tbl_123",
+    "测试标题",
+    "草稿内容",
+    "原始速记",
+    fakeFetchFail,
+  );
+  assert.equal(failRes, undefined);
+});
+
+test("renderDraftReply：附带多维表格链接 / 旧记录不可用提示 / 结尾行动号召", () => {
+  const rendered = renderDraftReply("草稿正文", {
+    relatedCount: 1,
+    unavailable: [],
+    bitableUrl: "https://ccnexza2e5l5.feishu.cn/base/app123",
+  });
+  assert.ok(rendered.includes("草稿正文"));
+  assert.ok(rendered.includes("📌 已同步飞书多维表格：https://ccnexza2e5l5.feishu.cn/base/app123"));
+  assert.ok(rendered.includes("发不发、改不改、贴到哪，你定。发了把链接回我一条。"));
+
+  const renderedWithoutBitable = renderDraftReply("草稿正文2", {
+    relatedCount: 0,
+    unavailable: ["memos-mcp"],
+  });
+  assert.ok(!renderedWithoutBitable.includes("📌 已同步飞书多维表格"));
+  assert.ok(renderedWithoutBitable.includes("（旧记录检索不可用：memos-mcp）"));
+});
+

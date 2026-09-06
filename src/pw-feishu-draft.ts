@@ -40,6 +40,10 @@ export type DraftConfig = {
   model?: DraftModelConfig;
   memosMcpUrl?: string;
   memosCubeIds: string[];
+  bitableAppToken?: string;
+  bitableTableId?: string;
+  appId?: string;
+  appSecret?: string;
 };
 
 /** 缺省关键词：命中任一即视为「像个坑」。全部小写比较。数字类关键词要求前后不是数字。 */
@@ -119,6 +123,18 @@ export function loadDraftConfig(path: string): DraftConfig {
   const memosMcpUrl = typeof record.memosMcpUrl === "string" && record.memosMcpUrl.trim()
     ? record.memosMcpUrl.trim().replace(/\/+$/u, "")
     : undefined;
+  const bitableAppToken = typeof record.bitableAppToken === "string" && record.bitableAppToken.trim()
+    ? record.bitableAppToken.trim()
+    : undefined;
+  const bitableTableId = typeof record.bitableTableId === "string" && record.bitableTableId.trim()
+    ? record.bitableTableId.trim()
+    : undefined;
+  const appId = typeof record.appId === "string" && record.appId.trim()
+    ? record.appId.trim()
+    : undefined;
+  const appSecret = typeof record.appSecret === "string" && record.appSecret.trim()
+    ? record.appSecret.trim()
+    : undefined;
 
   return {
     enabled: true,
@@ -131,6 +147,10 @@ export function loadDraftConfig(path: string): DraftConfig {
     model,
     memosMcpUrl,
     memosCubeIds: memosCubeIds.length ? memosCubeIds : [...DEFAULT_MEMOS_CUBE_IDS],
+    bitableAppToken,
+    bitableTableId,
+    appId,
+    appSecret,
   };
 }
 
@@ -415,12 +435,61 @@ export function buildDraftPrompt(
 
 export function renderDraftReply(
   draft: string,
-  meta: { relatedCount: number; unavailable: readonly string[] },
+  meta: { relatedCount: number; unavailable: readonly string[]; bitableUrl?: string },
 ): string {
   const footer: string[] = [];
+  if (meta.bitableUrl) footer.push(`📌 已同步飞书多维表格：${meta.bitableUrl}`);
   if (meta.unavailable.length) footer.push(`（旧记录检索不可用：${meta.unavailable.join("、")}）`);
   footer.push("发不发、改不改、贴到哪，你定。发了把链接回我一条。");
   return `${draft.trim()}\n\n${footer.join("\n")}`;
+}
+
+/** 异步将生成的草稿同步写入飞书多维表格（best-effort，失败不阻断）。 */
+export async function syncDraftToBitable(
+  appId: string,
+  appSecret: string,
+  appToken: string,
+  tableId: string,
+  title: string,
+  draft: string,
+  originalText: string,
+  fetchImpl: typeof fetch,
+): Promise<string | undefined> {
+  try {
+    const tokenRes = await fetchImpl("https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ app_id: appId, app_secret: appSecret }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!tokenRes.ok) return undefined;
+    const tokenData = (await tokenRes.json().catch(() => ({}))) as Record<string, unknown>;
+    const token = typeof tokenData.tenant_access_token === "string" ? tokenData.tenant_access_token : "";
+    if (!token) return undefined;
+
+    const res = await fetchImpl(`https://open.feishu.cn/open-apis/bitable/v1/apps/${appToken}/tables/${tableId}/records`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        fields: {
+          标题: title,
+          草稿正文: draft,
+          发布状态: "待发布",
+          原始速记: originalText,
+        },
+      }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (res.ok) {
+      return `https://ccnexza2e5l5.feishu.cn/base/${appToken}`;
+    }
+  } catch {
+    // 忽略异常，降级处理
+  }
+  return undefined;
 }
 
 export function buildDraftFailedReply(error: string): string {
@@ -772,8 +841,30 @@ export class DraftHook {
       const prompt = buildDraftPrompt(pending, related.items);
       if (!config.model) throw new Error("draftModel 缺失");
       const draft = await generateDraft(config.model, prompt, this.deps.fetch);
+      let bitableUrl: string | undefined;
+      if (config.bitableAppToken && config.bitableTableId && config.appId && config.appSecret) {
+        const titleMatch = draft.match(/【?标题】?[:：]?\s*([^\n\r]+)/u);
+        const title = (titleMatch ? titleMatch[1] : pending.text).trim().slice(0, 80);
+        bitableUrl = await syncDraftToBitable(
+          config.appId,
+          config.appSecret,
+          config.bitableAppToken,
+          config.bitableTableId,
+          title,
+          draft,
+          pending.text,
+          this.deps.fetch,
+        );
+        if (bitableUrl) {
+          this.deps.log({ event: "bitable_synced", app_token: config.bitableAppToken, title });
+        }
+      }
       this.deps.log({ event: "draft_sent", message_id: messageId, chars: draft.length });
-      return renderDraftReply(draft, { relatedCount: related.items.length, unavailable: related.unavailable });
+      return renderDraftReply(draft, {
+        relatedCount: related.items.length,
+        unavailable: related.unavailable,
+        bitableUrl,
+      });
     } catch (error) {
       const summary = safeErrorText(error);
       this.deps.log({ event: "draft_failed", message_id: messageId, error: summary });
