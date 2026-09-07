@@ -1,10 +1,11 @@
 import { spawnSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-const bvid = process.argv[2] || 'BV1jv3c6tEbJ';
-const aid = '116992694554680';
+const bvid = process.argv[2] || 'BV1VB3v6WEfw';
 const outDir = path.resolve('materials', bvid);
+const meta = JSON.parse(readFileSync(path.join(outDir, 'meta.json'), 'utf8'));
+const aid = String(meta.aid);
 
 const allReplies = [];
 let nextCursor = 0;
