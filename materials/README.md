@@ -8,6 +8,8 @@
 | [BV173tN6EEXD](https://www.bilibili.com/video/BV173tN6EEXD) | 独立开发做社媒不知道发什么怎么办？ | oil欧呦 | 10.33 MB | 1423 | 47 | 3 | 141 句 | [`BV173tN6EEXD`](./BV173tN6EEXD/README.md) |
 | [BV1rX8H63EUQ](https://www.bilibili.com/video/BV1rX8H63EUQ) | DeepSeek Harness 内容创作工作台开源啦 | oil欧呦 | 31.14 MB | 6088 | 230 | 25 | 225 句 | [`BV1rX8H63EUQ`](./BV1rX8H63EUQ/README.md) |
 
+| [BV1jv3c6tEbJ](https://www.bilibili.com/video/BV1jv3c6tEbJ) | 一个agent搞定手绘动画3.0。一键从字幕到成片，整个手绘过程，一个token都没烧。 | 江哥是老登啊 | 14.80 MB | 30546 | 1477 | 941 | - | [`BV1jv3c6tEbJ`](./BV1jv3c6tEbJ/README.md) |
+
 ## 目录结构
 ```
 materials/

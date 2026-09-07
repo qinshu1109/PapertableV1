@@ -1,0 +1,30 @@
+{
+  "bvid": "BV1jv3c6tEbJ",
+  "aid": 116992694554680,
+  "cid": 40354316790,
+  "title": "一个agent搞定手绘动画3.0。一键从字幕到成片，整个手绘过程，一个token都没烧。",
+  "desc": "",
+  "owner": {
+    "mid": 305684376,
+    "name": "江哥是老登啊",
+    "face": "https://i0.hdslb.com/bfs/face/0106c252e47f73a67084ca67b4934d3d9382d54c.jpg"
+  },
+  "stat": {
+    "aid": 116992694554680,
+    "view": 30546,
+    "danmaku": 14,
+    "reply": 941,
+    "favorite": 2666,
+    "coin": 1585,
+    "share": 208,
+    "now_rank": 0,
+    "his_rank": 0,
+    "like": 1477,
+    "dislike": 0,
+    "evaluation": "",
+    "vt": 0
+  },
+  "duration": 488,
+  "pubdate": 1785210600,
+  "fetchedAt": "2026-09-07T00:01:14.867Z"
+}
